@@ -100,6 +100,8 @@ The 14-slide deck is built and published at https://claude.ai/artifact/LhSJi3g5j
 
 The link is private to its owner. Share it from the page's Share menu before anyone else, such as Dr Akshay, can open it.
 
+A copy is also on GitHub: the PDF at `docs/deck/RAD-SMART_Pitch_Deck.pdf` and a public web version at https://psraghothamrao8.github.io/RAD-SMART/deck/. After editing the deck, copy the changed slides into `docs/deck/src/` and run `python tools/build_deck.py` to update both.
+
 ### 2.6 Optional items
 
 - **Supporting document:** `docs/RAD-SMART_Research_Report.pdf`, the full research report and implementation plan (27 pages).

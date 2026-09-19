@@ -1,0 +1,54 @@
+{
+  "v": 4,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-19T00:40:00Z"
+  },
+  "title": "RAD-SMART Pitch Deck",
+  "order": [
+    "cover",
+    "problem",
+    "constraints",
+    "approaches",
+    "architecture",
+    "dayloop",
+    "ai",
+    "day",
+    "waits",
+    "fault",
+    "forecast",
+    "safety",
+    "pilot",
+    "next"
+  ],
+  "cover": "cover",
+  "sections": {
+    "problem": {
+      "description": "The problem and why it is hard",
+      "start": "cover"
+    },
+    "solution": {
+      "description": "The approach we chose and how it works",
+      "start": "approaches"
+    },
+    "evidence": {
+      "description": "Evidence from the proof of concept",
+      "start": "day"
+    },
+    "plan": {
+      "description": "Safety, pilot and next steps",
+      "start": "safety"
+    }
+  },
+  "faces": {
+    "source-serif-4": {
+      "family": "Source Serif 4",
+      "href": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400..700;1,400..700&display=swap"
+    },
+    "ibm-plex-sans": {
+      "family": "IBM Plex Sans",
+      "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    }
+  },
+  "designSystems": []
+}

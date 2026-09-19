@@ -6,6 +6,8 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 **Live results page:** https://psraghothamrao8.github.io/RAD-SMART/ (GitHub Pages, served from `docs/`)
 
+**Pitch deck:** https://psraghothamrao8.github.io/RAD-SMART/deck/ (web) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf)
+
 ## What is in this folder
 
 | Path | What it is |
@@ -18,6 +20,8 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 | `poc/` | Working proof of concept in Python on synthetic data (see `poc/README.md`) |
 | `tools/build_docs.py` | Rebuilds the DOCX and PDF from the Markdown: `python tools/build_docs.py docs/<file>.md` |
 | `docs/index.html` | Interactive results page (the Round 1 prototype link), served by GitHub Pages. Built from `docs/web/page_template.html` and the PoC output; `docs/web/rad-smart-prototype.html` is the same page for Claude artifacts |
+| `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 14 slide sources in `src/` |
+| `tools/build_deck.py` | Rebuilds the web deck and its PDF from `docs/deck/src/` (needs Google Chrome): `python tools/build_deck.py` |
 | `tools/build_results_page.py` | Rebuilds both copies of the results page after a PoC run: `python tools/build_results_page.py` |
 
 ## Key dates

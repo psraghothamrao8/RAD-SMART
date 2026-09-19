@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="RAD-SMART pitch deck, Health-a-thon 2026 (Cancer track): AI-assisted radiotherapy scheduling, machine allocation and resource tracking.">
+<title>RAD-SMART Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400..700;1,400..700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+  :root { color-scheme: dark; --bg: #15191e; --ink: #e8ecf1; --muted: #a3adb9; --line: #2b323b; --link: #8dbbf2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 'IBM Plex Sans', Arial, sans-serif; }
+  a { color: var(--link); }
+  header.top { max-width: 1280px; margin: 0 auto; padding: 28px 16px 8px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; }
+  header.top h1 { margin: 0; font: 600 24px/1.2 'Source Serif 4', Georgia, serif; }
+  header.top nav { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 15px; }
+  header.top p { margin: 0; width: 100%; color: var(--muted); font-size: 14px; }
+  .deck { max-width: 1280px; margin: 0 auto; padding: 16px 16px 48px; display: grid; gap: 28px; }
+  .slide { margin: 0; }
+  .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); background: #fff; }
+  .canvas { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+  .notes { margin-top: 8px; color: var(--muted); font-size: 14px; }
+  .notes summary { cursor: pointer; width: max-content; }
+  .notes p { margin: 6px 0 0; max-width: 900px; }
+  footer { max-width: 1280px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 14px; }
+
+  /* the slide canvas: 1920x1080, inline styles on top of these defaults */
+  .canvas section { position: relative; width: 1920px; height: 1080px; display: flex; flex-direction: column; overflow: hidden; color: #000; }
+  .canvas section * { margin: 0; box-sizing: border-box; }
+  .canvas section div { display: flex; flex-direction: column; }
+  .canvas h1 { font-size: 96px; font-weight: 600; line-height: 1.1; }
+  .canvas h2 { font-size: 64px; font-weight: 600; line-height: 1.15; }
+  .canvas h3 { font-size: 44px; font-weight: 600; line-height: 1.2; }
+  .canvas p { line-height: 1.4; }
+  .canvas ul, .canvas ol { padding-left: 1.15em; }
+  .canvas li + li { margin-top: 0.3em; }
+  .canvas img { display: block; }
+  .canvas table { border-collapse: collapse; }
+  .canvas th, .canvas td { border: 1px solid #d9dfe6; padding: 0.35em 0.6em; text-align: left; vertical-align: top; }
+  .canvas th { font-weight: 600; }
+  .canvas aside { display: none; }
+  .canvas x-shape { display: block; }
+  .canvas x-shape[kind="arrow-right"] { clip-path: polygon(0 30%, 60% 30%, 60% 0, 100% 50%, 60% 100%, 60% 70%, 0 70%); }
+
+  @page { size: 1920px 1080px; margin: 0; }
+  @media print {
+    html, body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    header.top, .notes, footer { display: none; }
+    .deck { max-width: none; padding: 0; gap: 0; display: block; }
+    .frame { width: 1920px; height: 1080px; aspect-ratio: auto; border-radius: 0; box-shadow: none; break-after: page; }
+    .canvas { transform: none !important; }
+  }
+</style>
+<header class="top">
+  <h1>RAD-SMART Pitch Deck</h1>
+  <nav>
+    <a href="RAD-SMART_Pitch_Deck.pdf">Download PDF</a>
+    <a href="../">Interactive results</a>
+    <a href="../RAD-SMART_Research_Report.pdf">Research report</a>
+    <a href="https://github.com/psraghothamrao8/RAD-SMART">Source code</a>
+  </nav>
+  <p>14 slides · use the arrow keys or Page Up / Page Down to move between slides · all data synthetic</p>
+</header>
+<main class="deck">
+<figure class="slide" id="s1" aria-label="Slide 1 of 14"><div class="frame"><div class="canvas"><section id="cover" data-transition="fade" style="background:#0E2A47; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px; justify-content:space-between">
+  <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#8DBBF2">Health-a-thon 2026 · Cancer track · Clinic Operations &amp; Patient Flow</p>
+  <div style="display:flex; flex-direction:column; gap:20px">
+    <h1 style="font-family:'Source Serif 4', Georgia, serif; font-size:144px; font-weight:600; line-height:1.05; color:#F3F5F8">RAD-SMART</h1>
+    <p style="font-family:'Source Serif 4', Georgia, serif; font-size:44px; font-style:italic; line-height:1.25; color:#F3F5F8">The right patient, on the right machine, at a predictable time.</p>
+    <p style="font-size:28px; line-height:1.4; color:#B9C7D8">Radiotherapy AI-assisted Dynamic Scheduling, Machine Allocation and Resource Tracking</p>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px">
+    <div style="display:flex; flex-direction:row; gap:4px; overflow:hidden"><div style="flex:none; width:20px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:28px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:24px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:24px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:58px; height:56px; background:#EB6834; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:24px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:52px; height:56px; background:#EB6834; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:150px; height:56px; background:#1BAF7A; border-radius:4px"></div><div style="flex:none; width:78px; height:56px; background:#898781; border-radius:4px"></div><div style="flex:none; width:26px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:56px; height:56px; background:#EB6834; border-radius:4px"></div><div style="flex:none; width:20px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:96px; height:56px; background:#1BAF7A; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:20px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:28px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:20px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:20px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:28px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:28px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:22px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:18px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:30px; height:56px; background:#2A78D6; border-radius:4px"></div><div style="flex:none; width:26px; height:56px; background:#2A78D6; border-radius:4px"></div></div>
+    <p style="font-size:24px; color:#B9C7D8">One planned treatment day: each block is a patient's session (routine, new start, complex, blood irradiation)</p>
+  </div>
+  <div style="display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#B9C7D8">Doctor partner: Dr Akshay Dinesan, Manipal · Technology team: [names]</p>
+    <p style="font-size:24px; color:#B9C7D8; white-space:nowrap">Assistive, not diagnostic</p>
+  </div>
+  <aside>RAD-SMART is an assistive operations layer for radiotherapy. It predicts machine-minutes, builds a plan in which hard rules cannot be broken, tests it in a digital twin, and explains and communicates it through Sarvam AI. People approve every change.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>RAD-SMART is an assistive operations layer for radiotherapy. It predicts machine-minutes, builds a plan in which hard rules cannot be broken, tests it in a digital twin, and explains and communicates it through Sarvam AI. People approve every change.</p></details></figure>
+<figure class="slide" id="s2" aria-label="Slide 2 of 14"><div class="frame"><div class="canvas"><section id="problem" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">The problem</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Every weekday, 80 patients wait for one machine</h2>
+  </div>
+  <p style="font-size:34px; line-height:1.4; color:#3B4654">Appointment times are given by hand, without knowing how many machine-minutes each patient needs. Too many people are told to come at once, and they wait, every day of their course.</p>
+  <div style="display:flex; flex-direction:row; gap:32px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:40px">
+      <p style="font-family:'Source Serif 4', Georgia, serif; font-size:80px; font-weight:600; line-height:1.05; color:#132238">70–90</p>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">patients treated on one machine every working day</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:40px">
+      <p style="font-family:'Source Serif 4', Georgia, serif; font-size:80px; font-weight:600; line-height:1.05; color:#132238">5–7 weeks</p>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">of daily visits for a curative course, usually with a caregiver</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:40px">
+      <p style="font-family:'Source Serif 4', Georgia, serif; font-size:80px; font-weight:600; line-height:1.05; color:#132238">69%</p>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">of India's 554 radiotherapy facilities have only one machine</p>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Sources: RAD-SMART problem statement (Dr A. Dinesan); J Med Phys 2024, PubMed 39526149</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">2 / 14</p>
+  </div>
+  <aside>The pain is daily and repeated. A patient on a 25-fraction course who waits an extra hour a day loses about 25 hours, and so does the family member who comes along. Most Indian centres have one machine, so one bad day affects everyone.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The pain is daily and repeated. A patient on a 25-fraction course who waits an extra hour a day loses about 25 hours, and so does the family member who comes along. Most Indian centres have one machine, so one bad day affects everyone.</p></details></figure>
+<figure class="slide" id="s3" aria-label="Slide 3 of 14"><div class="frame"><div class="canvas"><section id="constraints" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Why it is hard</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Allocation under hard rules and soft priorities</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:32px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Hard rules: never broken</h3>
+      <ul style="font-size:28px; line-height:1.4; color:#3B4654"><li>New starts finish before 5 PM</li><li>SBRT, SRT, TBI and CSI inside the senior-staff window, 10 AM – 5 PM</li><li>Blood irradiation slot, 1:30 – 2 PM</li><li>Breast boards and ABC shared with the CT simulator</li><li>Versa HD and Halcyon capabilities</li><li>Capacity held for same-day urgent starts</li></ul>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Soft priorities: traded off</h3>
+      <ul style="font-size:28px; line-height:1.4; color:#3B4654"><li>Elderly and public-transport patients earlier</li><li>Inpatient, hospice and dormitory time windows</li><li>Paying-patient preference, as the department sets it</li><li>Complex cases in the 12:00 – 1:30 protected block</li><li>As little overtime as possible</li></ul>
+    </div>
+  </div>
+  <p style="font-size:28px; line-height:1.4; color:#132238; background:#FFFFFE; border:1px dashed #898781; border-radius:12px; padding:20px 32px">And every day brings events: machine faults, overruns, no-shows and urgent add-ons, each of which should trigger a re-plan.</p>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic · synthetic data</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">3 / 14</p>
+  </div>
+  <aside>As the problem statement says, this is not appointment booking. It is dynamic allocation of machine time, staff and shared resources. Every rule on this slide is configuration the department can change, not code.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>As the problem statement says, this is not appointment booking. It is dynamic allocation of machine time, staff and shared resources. Every rule on this slide is configuration the department can change, not code.</p></details></figure>
+<figure class="slide" id="s4" aria-label="Slide 4 of 14"><div class="frame"><div class="canvas"><section id="approaches" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Five approaches</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">We compared five ways to build it</h2>
+  </div>
+  <table style="width:1664px; font-size:26px; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; border:1px solid #D9DFE6"><tr style="background:#EEF2F6"><th style="width:30%">Approach</th><th style="width:25%">Strength</th><th style="width:32%">Weakness</th><th style="width:13%">Score</th></tr><tr><td>Rule-based slot templates</td><td>Simple, transparent</td><td>Can't absorb variation or faults</td><td>3.10</td></tr><tr><td>LLM-only agent</td><td>Conversational</td><td>No guarantee on hard rules</td><td>2.60</td></tr><tr><td>Static optimisation</td><td>Guarantees hard rules</td><td>No learning or live recovery</td><td>3.60</td></tr><tr><td>Deep reinforcement learning</td><td>Adaptive in principle</td><td>Opaque; needs huge data</td><td>2.45</td></tr><tr style="background:#E3EEFB"><td>Hybrid (selected): predict, optimise, simulate, explain</td><td>Best of each technique</td><td>More parts, built in layers</td><td>4.85</td></tr></table>
+  <p style="font-size:24px; line-height:1.4; color:#5F6B7A">Weighted score out of 5: safety and scope 20%, impact 20%, real-time 15%, feasibility 15%, explainability 10%, ease and languages 10%, configurability 10%.</p>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic · synthetic data</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">4 / 14</p>
+  </div>
+  <aside>An LLM alone cannot promise that no new start runs past 5 PM. A solver alone cannot learn, recover or talk to patients. The hybrid uses each technique where it is strongest, and it can be built in layers: the optimiser with average tables works on its own from week one.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>An LLM alone cannot promise that no new start runs past 5 PM. A solver alone cannot learn, recover or talk to patients. The hybrid uses each technique where it is strongest, and it can be built in layers: the optimiser with average tables works on its own from week one.</p></details></figure>
+<figure class="slide" id="s5" aria-label="Slide 5 of 14"><div class="frame"><div class="canvas"><section id="architecture" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:32px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">The solution</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">How RAD-SMART works</h2>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px">
+  <div style="display:flex; flex-direction:row; gap:24px; align-items:center; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:18px 24px">
+    <p style="flex:none; width:220px; font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#1C5CAB">Who uses it</p>
+    <div style="flex:1; display:flex; flex-direction:row; gap:16px"><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">RTT console</p><p style="font-size:24px; line-height:1.35; color:#3B4654">Live queue, day plan, one-tap approve</p></div><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">Doctor / HoD</p><p style="font-size:24px; line-height:1.35; color:#3B4654">3-week load, new-start advice, KPIs</p></div><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">Patients, family</p><p style="font-size:24px; line-height:1.35; color:#3B4654">Times and updates in their language</p></div><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">Physics / admin</p><p style="font-size:24px; line-height:1.35; color:#3B4654">Rule Studio for slots and priorities</p></div></div>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px; align-items:center; background:#FDF1EA; border:1px solid #F2C9B3; border-radius:12px; padding:18px 24px">
+    <p style="flex:none; width:220px; font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#B0461D">Human in the loop</p>
+    <div style="flex:1; display:flex; flex-direction:row; gap:16px"><p style="font-size:26px; line-height:1.4; color:#132238">Every change is a proposal until a person approves it · one-tap override with a reason · reason codes for every placement · append-only audit trail · rule versions with rollback</p></div>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px; align-items:center; background:#E6F0FB; border:1px solid #BFD6F3; border-radius:12px; padding:18px 24px">
+    <p style="flex:none; width:220px; font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#1C5CAB">AI core</p>
+    <div style="flex:1; display:flex; flex-direction:row; gap:16px"><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FCFDFF; border:1px solid #BFD6F3; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">1 · Predict</p><p style="font-size:24px; line-height:1.35; color:#3B4654">ML predicts each session's minutes</p></div><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FCFDFF; border:1px solid #BFD6F3; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">2 · Optimise</p><p style="font-size:24px; line-height:1.35; color:#3B4654">Solver builds the plan; hard rules hold</p></div><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FCFDFF; border:1px solid #BFD6F3; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">3 · Simulate</p><p style="font-size:24px; line-height:1.35; color:#3B4654">Digital twin tests plans, forecasts load</p></div><div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FCFDFF; border:1px solid #BFD6F3; border-radius:8px; padding:14px 18px"><p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">4 · Explain</p><p style="font-size:24px; line-height:1.35; color:#3B4654">Copilot explains; speaks 10+ languages</p></div></div>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px; align-items:center; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:18px 24px">
+    <p style="flex:none; width:220px; font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#5F6B7A">Data in</p>
+    <div style="flex:1; display:flex; flex-direction:row; gap:16px"><p style="font-size:26px; line-height:1.4; color:#132238">Excel or CSV list · photo of the paper register read by OCR · QR check-in and accessory tags · OIS read-only in phase 2 · runs on a hospital server</p></div>
+  </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic · synthetic data</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">5 / 14</p>
+  </div>
+  <aside>Four layers. People at the top, a human-in-the-loop safety layer, the AI core in four steps, and light-touch data sources underneath. The language model never makes a scheduling decision; it calls the optimiser and simulator as tools and explains their output.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Four layers. People at the top, a human-in-the-loop safety layer, the AI core in four steps, and light-touch data sources underneath. The language model never makes a scheduling decision; it calls the optimiser and simulator as tools and explains their output.</p></details></figure>
+<figure class="slide" id="s6" aria-label="Slide 6 of 14"><div class="frame"><div class="canvas"><section id="dayloop" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">A day with RAD-SMART</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Automation proposes; people decide</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:12px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Two days ahead</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Capacity forecast</h3>
+      <ul style="font-size:24px; line-height:1.4; color:#3B4654"><li>Load from remaining fractions</li><li>Patients finishing each day</li><li>New starts per machine, by minutes</li></ul>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#B0461D; border-top:2px solid #EB6834; padding:12px 0px 0px 0px">Person: HoD confirms who starts</p>
+    </div>
+    <x-shape kind="arrow-right" style="flex:none; align-self:center; width:40px; height:24px; background:#9AA5B1"></x-shape>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Evening before</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Plan tomorrow</h3>
+      <ul style="font-size:24px; line-height:1.4; color:#3B4654"><li>Predict each session's minutes</li><li>Optimise; hard rules hold</li><li>Digital twin tests the plan</li></ul>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#B0461D; border-top:2px solid #EB6834; padding:12px 0px 0px 0px">Person: RTT lead approves; patients get their time</p>
+    </div>
+    <x-shape kind="arrow-right" style="flex:none; align-self:center; width:40px; height:24px; background:#9AA5B1"></x-shape>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">During the day</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Run and recover</h3>
+      <ul style="font-size:24px; line-height:1.4; color:#3B4654"><li>QR check-in; room times logged</li><li>Fault, delay or urgent patient: re-plan in seconds</li></ul>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#B0461D; border-top:2px solid #EB6834; padding:12px 0px 0px 0px">Person: RTT approves; affected patients told</p>
+    </div>
+    <x-shape kind="arrow-right" style="flex:none; align-self:center; width:40px; height:24px; background:#9AA5B1"></x-shape>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">After the day</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Learn and report</h3>
+      <ul style="font-size:24px; line-height:1.4; color:#3B4654"><li>Actual vs predicted minutes</li><li>Model retrained weekly</li><li>KPI and equity dashboard</li></ul>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#B0461D; border-top:2px solid #EB6834; padding:12px 0px 0px 0px">Person: Team reviews overrides</p>
+    </div>
+  </div>
+  <p style="font-size:26px; line-height:1.4; color:#3B4654">Every override and actual timing becomes training data, so plans improve each week.</p>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic · synthetic data</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">6 / 14</p>
+  </div>
+  <aside>The workflow matches how the department already works. Each step ends with a named person making the decision; RAD-SMART does the arithmetic and the communication.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The workflow matches how the department already works. Each step ends with a named person making the decision; RAD-SMART does the arithmetic and the communication.</p></details></figure>
+<figure class="slide" id="s7" aria-label="Slide 7 of 14"><div class="frame"><div class="canvas"><section id="ai" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">AI inside</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">AI where each technique is strongest</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <div style="height:8px; background:#2A78D6; border-radius:4px"></div>
+      <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#1C5CAB">Predict · machine learning</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Minutes, not head-counts</h3>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">Quantile gradient boosting gives typical (P50) and cautious (P80) minutes per session.</p>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:12px 16px">PoC: 1.9 min error vs 2.4 for averages</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <div style="height:8px; background:#EB6834; border-radius:4px"></div>
+      <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#B0461D">Optimise · operations research</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Hard rules guaranteed</h3>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">OR-Tools CP-SAT (HiGHS in the PoC) builds and repairs the plan; hard rules cannot break.</p>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:12px 16px">PoC: proven optimum in 2–8 s</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <div style="height:8px; background:#1BAF7A; border-radius:4px"></div>
+      <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#12805A">Simulate · digital twin</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Tested before it is used</h3>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">A Monte Carlo day model stress-tests plans and forecasts three weeks of load.</p>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:12px 16px">PoC: 300 simulated days per policy</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px">
+      <div style="height:8px; background:#4A3AA7; border-radius:4px"></div>
+      <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#4A3AA7">Explain · Sarvam AI</p>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Plain language, 10+ languages</h3>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">Sarvam-105B explains decisions and edits rules; Bulbul, Saaras and Translate reach patients.</p>
+      <div style="flex:1"></div>
+      <p style="font-size:24px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:12px 16px">The LLM never schedules</p>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic · synthetic data</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">7 / 14</p>
+  </div>
+  <aside>Machine learning predicts; the optimiser guarantees; the twin tests; the language model explains and talks to people. Personal identifiers never reach the language model: it sees pseudonymous IDs, and names are added on the hospital's server when a message is sent.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Machine learning predicts; the optimiser guarantees; the twin tests; the language model explains and talks to people. Personal identifiers never reach the language model: it sees pseudonymous IDs, and names are added on the hospital's server when a message is sent.</p></details></figure>
+<figure class="slide" id="s8" aria-label="Slide 8 of 14"><div class="frame"><div class="canvas"><section id="day" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">One optimised day, with every rule held</h2>
+  </div>
+  <img src="../figures/fig3_optimised_day.png" alt="Gantt chart of one optimised day on the Versa HD with ABC device and breast-board lanes: complex cases inside the protected block, new starts before 17:00, no accessory clashes with CT-simulator bookings" style="width:1320px; height:605px; object-fit:contain; align-self:center">
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Synthetic day: 67 patients, 676 of 750 machine-minutes (90% load); proven optimum, zero unscheduled</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">8 / 14</p>
+  </div>
+  <aside>A synthetic 67-patient day at 90% load. Complex cases sit in the protected block and senior-staff window, new starts finish before 5 PM, the blood-irradiation slot is kept, and accessories never clash with CT-simulator bookings. Every placement carries a reason code.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>A synthetic 67-patient day at 90% load. Complex cases sit in the protected block and senior-staff window, new starts finish before 5 PM, the blood-irradiation slot is kept, and accessories never clash with CT-simulator bookings. Every placement carries a reason code.</p></details></figure>
+<figure class="slide" id="s9" aria-label="Slide 9 of 14"><div class="frame"><div class="canvas"><section id="waits" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · 300 simulated days</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Waits fall by about three-quarters</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:48px; align-items:center">
+    <img src="../figures/fig1_wait_distribution.png" alt="Cumulative wait curves: RAD-SMART median 19 minutes versus 71 minutes for current practice" style="width:1040px; height:618px; object-fit:contain">
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px">
+      <div style="display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">71 → 19 min</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait, arrival to treatment room</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">227 → 52 min</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">90th-percentile wait</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">16% → 62%</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">treated within ±15 min of their time</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">No extra overtime</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">and no new start after 5 PM</p>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Synthetic 67-patient day; 'current practice' is a model of manual block booking</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">9 / 14</p>
+  </div>
+  <aside>Same patients, same machine time. Waits fall because patients are told to come when the machine will actually be free. The optimiser with average tables alone gets the median to 22 minutes, so the department benefits before any model is trained.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Same patients, same machine time. Waits fall because patients are told to come when the machine will actually be free. The optimiser with average tables alone gets the median to 22 minutes, so the department benefits before any model is trained.</p></details></figure>
+<figure class="slide" id="s10" aria-label="Slide 10 of 14"><div class="frame"><div class="canvas"><section id="fault" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · machine fault</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">It recovers when the machine fails</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:48px; align-items:center">
+    <img src="../figures/fig4b_fault_waiting_room.png" alt="Patients waiting through the day when the machine fails from 11:00 to 11:30: live re-planning keeps the queue short" style="width:1040px; height:586px; object-fit:contain">
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px">
+      <div style="display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">4.0 s</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">to re-plan the rest of the day after a 30-minute fault</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">38 moved, 17 told</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">only patients with 45+ minutes' notice are messaged</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">93 → 19 min</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait, versus current practice</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">0</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">new starts after 5 PM or complex cases deferred</p>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Fault injected at 11:00 in each of 300 simulated days; re-plans are proposals the RTT approves</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">10 / 14</p>
+  </div>
+  <aside>When the machine fails, RAD-SMART freezes what has started, re-plans the rest with the fewest changes, never asks anyone to come earlier than they can, and messages only people who can act. The cost is about two extra minutes of overtime a day.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>When the machine fails, RAD-SMART freezes what has started, re-plans the rest with the fewest changes, never asks anyone to come earlier than they can, and messages only people who can act. The cost is about two extra minutes of overtime a day.</p></details></figure>
+<figure class="slide" id="s11" aria-label="Slide 11 of 14"><div class="frame"><div class="canvas"><section id="forecast" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · two machines</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">New starts balanced by minutes, not head-count</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:48px; align-items:center">
+    <img src="../figures/fig5_capacity_forecast.png" alt="Three-week planned load per machine: equal head-count overloads Versa HD to 156%, RAD-SMART keeps both machines at or under 100%" style="width:1080px; height:509px; object-fit:contain">
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px">
+      <div style="display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">156% → 100%</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">peak planned load on the Versa HD</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">13 → 0</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">decision days over capacity</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">0 of 84</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">new patients still waiting after three weeks</p>
+      </div>
+      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">2 days ahead</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">advice per machine, as the department asked</p>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Synthetic department: 72 patients on Versa HD, 105 on Halcyon, 84 in the planning pipeline</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">11 / 14</p>
+  </div>
+  <aside>Splitting new patients equally by head-count overloads the slower Versa HD every day while the Halcyon sits under-used. Balancing by predicted minutes fills both to target. Clinicians still decide which patients start; RAD-SMART advises how many and where.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Splitting new patients equally by head-count overloads the slower Versa HD every day while the Halcyon sits under-used. Balancing by predicted minutes fills both to target. Clinicians still decide which patients start; RAD-SMART advises how many and where.</p></details></figure>
+<figure class="slide" id="s12" aria-label="Slide 12 of 14"><div class="frame"><div class="canvas"><section id="safety" data-transition="push" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Guardrails</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Safe by design</h2>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px">
+    <div style="display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
+      <div style="display:flex; flex-direction:row; gap:16px; align-items:center"><x-icon name="Check" style="color:#2A78D6; width:40px; height:40px"></x-icon><h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Proposal until approved</h3></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">RTTs approve every plan and re-plan, and override in one tap with a reason.</p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
+      <div style="display:flex; flex-direction:row; gap:16px; align-items:center"><x-icon name="Verified" style="color:#2A78D6; width:40px; height:40px"></x-icon><h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Rules re-checked</h3></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">An independent checker verifies every hard rule before a plan is published.</p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
+      <div style="display:flex; flex-direction:row; gap:16px; align-items:center"><x-icon name="Users" style="color:#2A78D6; width:40px; height:40px"></x-icon><h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Clinicians decide</h3></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">No diagnoses, doses, images or notes are read. Urgency and eligibility come from clinicians.</p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
+      <div style="display:flex; flex-direction:row; gap:16px; align-items:center"><x-icon name="Lock" style="color:#2A78D6; width:40px; height:40px"></x-icon><h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">No identifiers to AI</h3></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">Models see pseudonymous IDs; names and numbers are added on the hospital server.</p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
+      <div style="display:flex; flex-direction:row; gap:16px; align-items:center"><x-icon name="Book" style="color:#2A78D6; width:40px; height:40px"></x-icon><h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Full audit trail</h3></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">Every plan, override, rule version, model version and message is logged.</p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
+      <div style="display:flex; flex-direction:row; gap:16px; align-items:center"><x-icon name="Home" style="color:#2A78D6; width:40px; height:40px"></x-icon><h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Works where the clinic is</h3></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">Excel, paper via OCR, QR and WhatsApp; runs on the LAN with a printed fallback.</p>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Designed to the DPDP Act 2023 and Rules 2025: notice, consent for messaging, minimisation, retention limits</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">12 / 14</p>
+  </div>
+  <aside>This is how RAD-SMART stays assistive, not diagnostic. Its only prediction is how many minutes a session will take. Messages carry times and logistics only; any health question is referred to the doctor or nurse.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>This is how RAD-SMART stays assistive, not diagnostic. Its only prediction is how many minutes a session will take. Messages carry times and logistics only; any health question is referred to the doctor or nurse.</p></details></figure>
+<figure class="slide" id="s13" aria-label="Slide 13 of 14"><div class="frame"><div class="canvas"><section id="pilot" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Pilot</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">90 days on the Versa HD, one primary KPI</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:12px">
+    <div style="flex:14; display:flex; flex-direction:column; gap:6px; background:#E3E7EC; border-radius:10px; padding:20px 24px">
+      <p style="font-size:24px; font-weight:600; color:#3B4654">Days 1–14</p>
+      <p style="font-size:28px; font-weight:600; line-height:1.3; color:#132238">Baseline</p>
+      <p style="font-size:24px; line-height:1.35; color:#3B4654">Timestamps only; scheduling unchanged</p>
+    </div>
+    <div style="flex:21; display:flex; flex-direction:column; gap:6px; background:#D5E5F8; border-radius:10px; padding:20px 24px">
+      <p style="font-size:24px; font-weight:600; color:#3B4654">Days 15–35</p>
+      <p style="font-size:28px; font-weight:600; line-height:1.3; color:#132238">Shadow mode</p>
+      <p style="font-size:24px; line-height:1.35; color:#3B4654">RAD-SMART plans nightly; RTTs compare</p>
+    </div>
+    <div style="flex:55; display:flex; flex-direction:column; gap:6px; background:#1C5CAB; border-radius:10px; padding:20px 24px">
+      <p style="font-size:24px; font-weight:600; color:#DCE8F7">Days 36–90</p>
+      <p style="font-size:28px; font-weight:600; line-height:1.3; color:#F3F5F8">Live</p>
+      <p style="font-size:24px; line-height:1.35; color:#DCE8F7">RTT lead approves each plan; patients get times and live updates; model retrained weekly</p>
+    </div>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:32px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Primary KPI</p>
+      <p style="font-family:'Source Serif 4', Georgia, serif; font-size:88px; font-weight:600; line-height:1.05; color:#132238">≥ 40% lower</p>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">median wait from arrival to linac entry, against a measured two-week baseline</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Also tracked</p>
+      <ul style="font-size:26px; line-height:1.4; color:#3B4654"><li>At least 50% of sessions within ±15 min</li><li>100% of new starts finished before 5 PM</li><li>Overtime not above baseline</li><li>Throughput not lower; no patient group worse off</li></ul>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Interrupted time-series analysis · about ₹2–3 lakh: server, 3 tablets, QR printer, messaging</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">13 / 14</p>
+  </div>
+  <aside>The pilot target is deliberately well below the prototype's 73%, because the prototype's baseline is a model. Stopping rule: if a hard rule is broken in practice or balancing measures worsen for two weeks, the department reverts to manual mode.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The pilot target is deliberately well below the prototype's 73%, because the prototype's baseline is a model. Stopping rule: if a hard rule is broken in practice or balancing measures worsen for two weeks, the department reverts to manual mode.</p></details></figure>
+<figure class="slide" id="s14" aria-label="Slide 14 of 14"><div class="frame"><div class="canvas"><section id="next" data-transition="fade" style="background:#0E2A47; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#8DBBF2">Team and next steps</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#F3F5F8">From prototype to pilot</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:32px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#163657; border:1px solid #2C4C70; border-radius:12px; padding:32px 36px">
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#F3F5F8">Team</h3>
+      <ul style="font-size:26px; line-height:1.4; color:#B9C7D8"><li>Dr Akshay Dinesan, Manipal: doctor partner and problem owner</li><li>[Technical lead]</li><li>[Optimisation and ML engineer]</li><li>[Full-stack and messaging engineer]</li></ul>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#163657; border:1px solid #2C4C70; border-radius:12px; padding:32px 36px">
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#F3F5F8">Roadmap</h3>
+      <ul style="font-size:26px; line-height:1.4; color:#B9C7D8"><li>5 Oct – 8 Nov: build sprint</li><li>28 Nov: finale, IIT Bombay</li><li>Nov – Jan: approvals</li><li>Q1 2027: 90-day pilot</li><li>Then: Halcyon, OIS link, NCG centres</li></ul>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#163657; border:1px solid #2C4C70; border-radius:12px; padding:32px 36px">
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#F3F5F8">Our ask</h3>
+      <ul style="font-size:26px; line-height:1.4; color:#B9C7D8"><li>A pilot slot with mentor support</li><li>Sarvam API credits for voice and translation</li><li>Introductions to NCG centres for scale-up</li></ul>
+    </div>
+  </div>
+  <p style="font-family:'Source Serif 4', Georgia, serif; font-size:44px; font-style:italic; line-height:1.25; color:#F3F5F8">The right patient, on the right machine, at a predictable time.</p>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#B9C7D8">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic</p>
+    <p style="font-size:24px; color:#B9C7D8; white-space:nowrap">14 / 14</p>
+  </div>
+  <aside>Close on the ask. The build sprint turns the prototype into a working product on synthetic data; the pilot turns it into evidence.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Close on the ask. The build sprint turns the prototype into a working product on synthetic data; the pilot turns it into evidence.</p></details></figure>
+</main>
+<footer>RAD-SMART · Health-a-thon 2026 · Doctor partner: Dr Akshay Dinesan, Manipal · Assistive, not diagnostic</footer>
+<script>
+(function () {
+  var frames = Array.prototype.slice.call(document.querySelectorAll(".frame"));
+  function fit() {
+    frames.forEach(function (f) { f.firstElementChild.style.transform = "scale(" + (f.clientWidth / 1920) + ")"; });
+  }
+  window.addEventListener("resize", fit);
+  fit();
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  document.addEventListener("keydown", function (ev) {
+    var next = ev.key === "ArrowRight" || ev.key === "ArrowDown" || ev.key === "PageDown" || (ev.key === " " && !ev.shiftKey);
+    var prev = ev.key === "ArrowLeft" || ev.key === "ArrowUp" || ev.key === "PageUp" || (ev.key === " " && ev.shiftKey);
+    if (!next && !prev) return;
+    var y = window.scrollY + 40, i = 0;
+    slides.forEach(function (s, k) { if (s.offsetTop <= y) i = k; });
+    var t = slides[Math.max(0, Math.min(slides.length - 1, i + (next ? 1 : -1)))];
+    ev.preventDefault();
+    window.scrollTo({ top: t.offsetTop - 16, behavior: "smooth" });
+  });
+})();
+</script>
+</html>

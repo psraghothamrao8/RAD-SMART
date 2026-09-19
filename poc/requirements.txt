@@ -1,0 +1,6 @@
+# RAD-SMART proof of concept. Tested with Python 3.12 and the versions below.
+numpy>=2.0        # tested 2.5.1
+scipy>=1.11       # tested 1.18.0 (scipy.optimize.milp uses the HiGHS solver)
+scikit-learn>=1.4 # tested 1.9.0
+pandas>=2.0       # tested 3.0.3
+matplotlib>=3.8   # tested 3.11.1

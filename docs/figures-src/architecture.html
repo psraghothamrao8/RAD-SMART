@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RAD-SMART architecture</title>
+<style>
+  :root {
+    --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+    --hair: rgba(11,11,11,0.12); --band: #f4f3ef;
+    --blue: #2a78d6; --orange: #eb6834; --aqua: #1baf7a; --violet: #4a3aa7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); width: 1200px; padding: 28px 32px;
+         font: 14px/1.35 "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: var(--ink2); font-size: 14px; margin-bottom: 18px; }
+  .layer { border: 1px solid var(--hair); border-radius: 10px; background: var(--band);
+           padding: 12px 14px; }
+  .layer > .name { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+                   color: var(--ink2); margin-bottom: 8px; }
+  .row { display: grid; gap: 10px; }
+  .box { background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 10px 12px; }
+  .box b { display: block; font-size: 14.5px; margin-bottom: 3px; }
+  .box span { color: var(--ink2); font-size: 13px; }
+  .arrow { text-align: center; color: var(--muted); font-size: 18px; line-height: 22px; height: 22px; }
+  .core { background: #eef4fc; border-color: rgba(42,120,214,.35); }
+  .mod { border-top: 4px solid; }
+  .mod .tag { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .safety { background: #fff7f2; border-color: rgba(235,104,52,.35); }
+  .pill { display: inline-block; border: 1px solid var(--hair); border-radius: 999px; padding: 3px 10px;
+          margin: 3px 4px 0 0; background: #fff; font-size: 13px; }
+  .note { color: var(--ink2); font-size: 12.5px; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <h1>RAD-SMART architecture</h1>
+  <div class="sub">An operational layer between the patient list and the treatment machines. It is assistive: it never decides anything clinical.</div>
+
+  <div class="layer">
+    <div class="name">Who uses it</div>
+    <div class="row" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="box"><b>RTT console</b><span>Live queue board, day timeline, approve or override in one tap</span></div>
+      <div class="box"><b>Doctor / HoD dashboard</b><span>3-week load forecast, new-start advice, KPIs</span></div>
+      <div class="box"><b>Patients &amp; caregivers</b><span>WhatsApp, SMS or voice call in their own language: live ETA, "running late" replies</span></div>
+      <div class="box"><b>Physics / admin</b><span>Rule Studio: machines, accessories, protected slots, priorities</span></div>
+    </div>
+  </div>
+  <div class="arrow">&#8597;</div>
+
+  <div class="layer safety">
+    <div class="name" style="color:#b0461d">Human-in-the-loop safety layer</div>
+    <span class="pill">Every change is a proposal until a person approves it</span>
+    <span class="pill">Override with one tap, reason captured</span>
+    <span class="pill">Reason codes for every placement</span>
+    <span class="pill">Append-only audit trail</span>
+    <span class="pill">Rule versions with diff and rollback</span>
+    <span class="pill">Role-based access</span>
+  </div>
+  <div class="arrow">&#8597;</div>
+
+  <div class="layer core">
+    <div class="name" style="color:#1c5cab">AI core: predict &rarr; optimise &rarr; simulate &rarr; explain</div>
+    <div class="row" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="box mod" style="border-top-color: var(--blue)">
+        <div class="tag" style="color: var(--blue)">1 &middot; Predict (machine learning)</div>
+        <b>Machine-minute forecaster</b>
+        <span>Quantile gradient boosting gives P50 / P80 session length from technique, site, fraction number, imaging, mobility. Starts from average tables and learns from daily logs.</span>
+      </div>
+      <div class="box mod" style="border-top-color: var(--orange)">
+        <div class="tag" style="color: #c4521f">2 &middot; Optimise (operations research)</div>
+        <b>Constraint scheduling engine</b>
+        <span>Mixed-integer / constraint programming (OR-Tools CP-SAT, HiGHS). Hard rules can't be broken. It builds the day plan, re-plans live and balances machines by minutes.</span>
+      </div>
+      <div class="box mod" style="border-top-color: var(--aqua)">
+        <div class="tag" style="color: #13875e">3 &middot; Simulate (digital twin)</div>
+        <b>Monte Carlo day model</b>
+        <span>Stress-tests every plan against late arrivals, overruns, urgent add-ons and faults, and powers what-if questions and the 3-week capacity forecast.</span>
+      </div>
+      <div class="box mod" style="border-top-color: var(--violet)">
+        <div class="tag" style="color: var(--violet)">4 &middot; Explain &amp; converse (LLM agents)</div>
+        <b>Ops copilot on Sarvam AI</b>
+        <span>A tool-calling agent: plain-language rules become validated config, it answers "why was she moved?", and drafts messages in 10+ Indian languages (Bulbul voice, Saaras speech-to-text).</span>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">&#8597;</div>
+
+  <div class="layer">
+    <div class="name">Data &amp; integration (light-touch first)</div>
+    <span class="pill">Excel / CSV treatment register</span>
+    <span class="pill">Photo of paper register &rarr; Sarvam Vision OCR &rarr; human check</span>
+    <span class="pill">QR check-in &amp; QR tags on breast boards / ABC</span>
+    <span class="pill">OIS (MOSAIQ / ARIA) read-only via HL7 v2 / FHIR &mdash; phase 2</span>
+    <span class="pill">PostgreSQL: courses, schedule versions, events, audit</span>
+    <span class="pill">Runs on-premise; personal data stays in the hospital</span>
+  </div>
+  <div class="note">The LLM never makes a scheduling decision. It calls the optimiser and simulator as tools and explains their output. Urgency, technique and machine eligibility are always entered by clinicians and physicists.</div>
+</body>
+</html>

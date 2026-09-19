@@ -1,0 +1,427 @@
+{
+  "assumptions": {
+    "data": "synthetic (fake) patients; no real patient data used",
+    "operating_day": "07:30-20:30 (overtime to 21:30)",
+    "blood_irradiation": "13:30-14:00 on Versa HD",
+    "senior_staff_window": "10:00-17:00",
+    "protected_block": "12:00-13:30",
+    "new_start_cut_off": "17:00",
+    "deadline_buffer_min": 25,
+    "urgent_same_day_starts_per_day": "Poisson(1.2), ready 12:30-15:30",
+    "no_show_rate": 0.02,
+    "arrival_offset": "Normal(-10, 12) min, clipped to [-40, +25]",
+    "message_compliance": 0.85,
+    "replications": 300
+  },
+  "duration_model": {
+    "Lookup table (averages)": {
+      "mae_min": 2.43,
+      "within_2min_pct": 54.25,
+      "within_3min_pct": 73.45,
+      "p80_coverage_pct": 80.1
+    },
+    "Quantile gradient boosting": {
+      "mae_min": 1.92,
+      "within_2min_pct": 67.9,
+      "within_3min_pct": 82.25,
+      "p80_coverage_pct": 78.15
+    }
+  },
+  "day": {
+    "patients": 67,
+    "new_starts": 5,
+    "complex": 3,
+    "expected_machine_minutes": 676,
+    "available_minutes": 750,
+    "load_pct": 90.1,
+    "priority_mix": {
+      "elderly": 7,
+      "inpatient": 7,
+      "hospice_mhrc": 0,
+      "dormitory": 2,
+      "public_transport": 18,
+      "paying": 18,
+      "requested_time": 8,
+      "abc": 2,
+      "breast_board": 17
+    }
+  },
+  "solver": {
+    "averages": {
+      "seconds": 2.1,
+      "status": "optimal",
+      "proven_gap_pct": 0,
+      "unscheduled": [],
+      "variables": 6081,
+      "constraints": 1327
+    },
+    "ml": {
+      "seconds": 8.2,
+      "status": "optimal",
+      "proven_gap_pct": 0,
+      "unscheduled": [],
+      "variables": 6041,
+      "constraints": 1327
+    }
+  },
+  "day_results": {
+    "Current practice": {
+      "patients": 66.8,
+      "wait_median": 70.8,
+      "wait_median_ci": [
+        50.1,
+        106.3
+      ],
+      "wait_p90": 226.5,
+      "wait_p90_ci": [
+        166.9,
+        283.1
+      ],
+      "wait_mean": 106.9,
+      "delay_median": 66.0,
+      "within_15_pct": 15.5,
+      "within_30_pct": 27.7,
+      "overtime_min": 0.2,
+      "new_starts_after_5pm": 0.1,
+      "complex_deferred": 0.1,
+      "accessory_delays": 0.1,
+      "blood_slot_delay_min": 2.3,
+      "urgent_same_day_pct": 100.0,
+      "last_end": 1169.0,
+      "time_in_dept_mean": 117.1
+    },
+    "RAD-SMART (averages)": {
+      "patients": 66.7,
+      "wait_median": 22.5,
+      "wait_median_ci": [
+        7.7,
+        45.7
+      ],
+      "wait_p90": 60.5,
+      "wait_p90_ci": [
+        25.6,
+        111.8
+      ],
+      "wait_mean": 28.5,
+      "delay_median": 13.8,
+      "within_15_pct": 54.8,
+      "within_30_pct": 74.6,
+      "overtime_min": 0.3,
+      "new_starts_after_5pm": 0.0,
+      "complex_deferred": 0.1,
+      "accessory_delays": 0.0,
+      "blood_slot_delay_min": 1.0,
+      "urgent_same_day_pct": 100.0,
+      "last_end": 1182.0,
+      "time_in_dept_mean": 38.7
+    },
+    "RAD-SMART (ML)": {
+      "patients": 66.8,
+      "wait_median": 19.2,
+      "wait_median_ci": [
+        6.5,
+        38.1
+      ],
+      "wait_p90": 52.0,
+      "wait_p90_ci": [
+        23.2,
+        99.9
+      ],
+      "wait_mean": 24.3,
+      "delay_median": 10.0,
+      "within_15_pct": 62.4,
+      "within_30_pct": 81.9,
+      "overtime_min": 0.4,
+      "new_starts_after_5pm": 0.0,
+      "complex_deferred": 0.0,
+      "accessory_delays": 0.0,
+      "blood_slot_delay_min": 2.2,
+      "urgent_same_day_pct": 100.0,
+      "last_end": 1185.1,
+      "time_in_dept_mean": 34.4
+    }
+  },
+  "disruption": {
+    "fault": "Versa HD down 11:00-11:30",
+    "reoptimisation_seconds": 4.0,
+    "patients_replanned": 38,
+    "patients_messaged": 17
+  },
+  "disruption_results": {
+    "Current practice": {
+      "patients": 66.7,
+      "wait_median": 93.0,
+      "wait_median_ci": [
+        55.3,
+        126.9
+      ],
+      "wait_p90": 253.7,
+      "wait_p90_ci": [
+        200.7,
+        299.1
+      ],
+      "wait_mean": 122.9,
+      "delay_median": 83.0,
+      "within_15_pct": 14.3,
+      "within_30_pct": 26.1,
+      "overtime_min": 0.6,
+      "new_starts_after_5pm": 0.2,
+      "complex_deferred": 0.2,
+      "accessory_delays": 0.0,
+      "blood_slot_delay_min": 2.3,
+      "urgent_same_day_pct": 100.0,
+      "last_end": 1185.5,
+      "time_in_dept_mean": 133.4
+    },
+    "RAD-SMART plan, no re-planning": {
+      "patients": 66.8,
+      "wait_median": 31.2,
+      "wait_median_ci": [
+        11.9,
+        56.4
+      ],
+      "wait_p90": 76.0,
+      "wait_p90_ci": [
+        41.2,
+        125.6
+      ],
+      "wait_mean": 35.9,
+      "delay_median": 24.9,
+      "within_15_pct": 46.2,
+      "within_30_pct": 61.0,
+      "overtime_min": 0.8,
+      "new_starts_after_5pm": 0.1,
+      "complex_deferred": 0.2,
+      "accessory_delays": 0.0,
+      "blood_slot_delay_min": 0.9,
+      "urgent_same_day_pct": 100.0,
+      "last_end": 1198.1,
+      "time_in_dept_mean": 46.5
+    },
+    "RAD-SMART live re-planning + messages": {
+      "patients": 66.9,
+      "wait_median": 19.4,
+      "wait_median_ci": [
+        7.9,
+        40.3
+      ],
+      "wait_p90": 58.2,
+      "wait_p90_ci": [
+        29.0,
+        101.3
+      ],
+      "wait_mean": 30.0,
+      "delay_median": 10.7,
+      "within_15_pct": 60.9,
+      "within_30_pct": 80.8,
+      "overtime_min": 2.4,
+      "new_starts_after_5pm": 0.0,
+      "complex_deferred": 0.0,
+      "accessory_delays": 0.0,
+      "blood_slot_delay_min": 1.8,
+      "urgent_same_day_pct": 100.0,
+      "last_end": 1213.0,
+      "time_in_dept_mean": 40.6
+    }
+  },
+  "forecast": {
+    "machines": {
+      "VERSA": "Versa HD",
+      "HALCYON": "Halcyon"
+    },
+    "patients_on_treatment": {
+      "VERSA": 72,
+      "HALCYON": 105
+    },
+    "pipeline_patients": 84,
+    "daily_capacity_min": {
+      "VERSA": 650,
+      "HALCYON": 718
+    },
+    "table": [
+      {
+        "day": "Mon (day 1)",
+        "VERSA_committed_pct": 86,
+        "HALCYON_committed_pct": 83,
+        "VERSA_completing": 4,
+        "HALCYON_completing": 5,
+        "VERSA_recommended_starts": 0,
+        "HALCYON_recommended_starts": 0,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Tue (day 2)",
+        "VERSA_committed_pct": 82,
+        "HALCYON_committed_pct": 79,
+        "VERSA_completing": 4,
+        "HALCYON_completing": 5,
+        "VERSA_recommended_starts": 0,
+        "HALCYON_recommended_starts": 0,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Low"
+      },
+      {
+        "day": "Wed (day 3)",
+        "VERSA_committed_pct": 75,
+        "HALCYON_committed_pct": 75,
+        "VERSA_completing": 3,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 7,
+        "HALCYON_recommended_starts": 9,
+        "VERSA_occupancy": "High",
+        "HALCYON_occupancy": "High"
+      },
+      {
+        "day": "Thu (day 4)",
+        "VERSA_committed_pct": 72,
+        "HALCYON_committed_pct": 73,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 4,
+        "HALCYON_recommended_starts": 4,
+        "VERSA_occupancy": "High",
+        "HALCYON_occupancy": "High"
+      },
+      {
+        "day": "Fri (day 5)",
+        "VERSA_committed_pct": 67,
+        "HALCYON_committed_pct": 70,
+        "VERSA_completing": 4,
+        "HALCYON_completing": 4,
+        "VERSA_recommended_starts": 3,
+        "HALCYON_recommended_starts": 3,
+        "VERSA_occupancy": "High",
+        "HALCYON_occupancy": "High"
+      },
+      {
+        "day": "Mon (day 6)",
+        "VERSA_committed_pct": 63,
+        "HALCYON_committed_pct": 67,
+        "VERSA_completing": 1,
+        "HALCYON_completing": 5,
+        "VERSA_recommended_starts": 1,
+        "HALCYON_recommended_starts": 3,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "High"
+      },
+      {
+        "day": "Tue (day 7)",
+        "VERSA_committed_pct": 62,
+        "HALCYON_committed_pct": 62,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 5,
+        "VERSA_recommended_starts": 1,
+        "HALCYON_recommended_starts": 0,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Wed (day 8)",
+        "VERSA_committed_pct": 59,
+        "HALCYON_committed_pct": 58,
+        "VERSA_completing": 1,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 3,
+        "HALCYON_recommended_starts": 4,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Thu (day 9)",
+        "VERSA_committed_pct": 58,
+        "HALCYON_committed_pct": 56,
+        "VERSA_completing": 1,
+        "HALCYON_completing": 4,
+        "VERSA_recommended_starts": 3,
+        "HALCYON_recommended_starts": 4,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Fri (day 10)",
+        "VERSA_committed_pct": 57,
+        "HALCYON_committed_pct": 52,
+        "VERSA_completing": 3,
+        "HALCYON_completing": 7,
+        "VERSA_recommended_starts": 2,
+        "HALCYON_recommended_starts": 3,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Mon (day 11)",
+        "VERSA_committed_pct": 54,
+        "HALCYON_committed_pct": 45,
+        "VERSA_completing": 5,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 1,
+        "HALCYON_recommended_starts": 5,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Tue (day 12)",
+        "VERSA_committed_pct": 47,
+        "HALCYON_committed_pct": 41,
+        "VERSA_completing": 1,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 3,
+        "HALCYON_recommended_starts": 3,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Wed (day 13)",
+        "VERSA_committed_pct": 46,
+        "HALCYON_committed_pct": 39,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 1,
+        "HALCYON_recommended_starts": 1,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Thu (day 14)",
+        "VERSA_committed_pct": 44,
+        "HALCYON_committed_pct": 36,
+        "VERSA_completing": 4,
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 4,
+        "HALCYON_recommended_starts": 4,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      },
+      {
+        "day": "Fri (day 15)",
+        "VERSA_committed_pct": 38,
+        "HALCYON_committed_pct": 34,
+        "VERSA_completing": 3,
+        "HALCYON_completing": 5,
+        "VERSA_recommended_starts": 5,
+        "HALCYON_recommended_starts": 3,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
+      }
+    ],
+    "rad_smart_peak_pct": {
+      "VERSA": 100,
+      "HALCYON": 100
+    },
+    "headcount_peak_pct": {
+      "VERSA": 156,
+      "HALCYON": 75
+    },
+    "headcount_days_over_capacity": {
+      "VERSA": 13,
+      "HALCYON": 0
+    },
+    "rad_smart_days_over_capacity": {
+      "VERSA": 0,
+      "HALCYON": 0
+    },
+    "still_waiting_at_horizon": 0
+  },
+  "runtime_seconds": 28.1
+}

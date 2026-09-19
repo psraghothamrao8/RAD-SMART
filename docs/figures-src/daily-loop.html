@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RAD-SMART daily loop</title>
+<style>
+  :root { --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+          --hair: rgba(11,11,11,0.12); --blue: #2a78d6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--surface); color: var(--ink); width: 1200px; padding: 28px 32px;
+         font: 14px/1.35 "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: var(--ink2); margin-bottom: 18px; }
+  .flow { display: grid; grid-template-columns: 1fr 22px 1fr 22px 1fr 22px 1fr; align-items: stretch; }
+  .step { border: 1px solid var(--hair); border-radius: 10px; background: #fff; padding: 12px 14px; }
+  .when { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); }
+  .step h2 { font-size: 16px; margin: 4px 0 8px; }
+  .step ul { list-style: none; }
+  .step li { color: var(--ink2); font-size: 13px; padding: 4px 0 4px 14px; position: relative;
+             border-top: 1px solid rgba(11,11,11,0.06); }
+  .step li:first-child { border-top: 0; }
+  .step li::before { content: ""; position: absolute; left: 0; top: 11px; width: 6px; height: 6px;
+                     border-radius: 50%; background: var(--blue); }
+  .step li.human::before { background: #eb6834; }
+  .arr { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 18px; }
+  .loop { margin-top: 14px; border: 1px dashed rgba(11,11,11,0.18); border-radius: 10px; padding: 10px 14px;
+          color: var(--ink2); font-size: 13px; background: #fff; }
+  .key { margin-top: 10px; font-size: 12.5px; color: var(--ink2); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 5px 0 12px; vertical-align: 1px; }
+</style>
+</head>
+<body>
+  <h1>How RAD-SMART runs a department, day by day</h1>
+  <div class="sub">Automation proposes; people approve. Every step works with information the department already has.</div>
+  <div class="flow">
+    <div class="step"><div class="when">Two days ahead</div><h2>Capacity forecast</h2><ul>
+      <li>Project machine-minutes from remaining fractions</li>
+      <li>Count patients completing each day</li>
+      <li>Recommend new starts per machine, balanced by minutes</li>
+      <li class="human">Oncologist / HoD confirms start dates</li></ul></div>
+    <div class="arr">&#8594;</div>
+    <div class="step"><div class="when">Evening before</div><h2>Plan tomorrow</h2><ul>
+      <li>Predict each session's minutes (P50 / P80)</li>
+      <li>Optimise times: hard rules can't be broken</li>
+      <li>Digital twin checks the plan's robustness</li>
+      <li class="human">RTT lead reviews, edits, approves</li>
+      <li>Patients get their time in their language</li></ul></div>
+    <div class="arr">&#8594;</div>
+    <div class="step"><div class="when">During the day</div><h2>Run and recover</h2><ul>
+      <li>QR check-in; room entry and exit logged</li>
+      <li>Delay, fault, no-show or urgent patient triggers a re-plan in seconds</li>
+      <li>Changes kept small; deadlines protected</li>
+      <li class="human">RTT approves; affected patients messaged</li></ul></div>
+    <div class="arr">&#8594;</div>
+    <div class="step"><div class="when">After the day</div><h2>Learn and report</h2><ul>
+      <li>Actual vs predicted minutes stored</li>
+      <li>Duration model retrained weekly</li>
+      <li>KPIs: waits, punctuality, overtime, conflicts, equity by patient group</li>
+      <li class="human">Department reviews overrides and reasons</li></ul></div>
+  </div>
+  <div class="loop">&#8634; Every override and every actual timing becomes training data, so the plan gets more accurate each week without anyone writing new rules.</div>
+  <div class="key"><span class="dot" style="background:#2a78d6"></span>automated step<span class="dot" style="background:#eb6834"></span>human decision point</div>
+</body>
+</html>

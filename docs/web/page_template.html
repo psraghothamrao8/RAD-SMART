@@ -1,0 +1,761 @@
+<title>RAD-SMART Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500..700&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3f5f7; --surface: #fcfcfb; --raised: #ffffff;
+    --ink: #111c2b; --ink-2: #465265; --muted: #667183;
+    --line: #dce1e7; --grid: #e4e6e9; --axis: #c3c2b7;
+    --accent: #2a78d6; --accent-ink: #1c5cab; --accent-soft: rgba(42, 120, 214, 0.09);
+    --base: #898781; --new: #eb6834; --complex: #1baf7a;
+    --block: #b8b6ad; --block-soft: #ecebe6; --fault: #d03a2f; --fault-soft: rgba(208, 58, 47, 0.12);
+    --focus: #1c5cab;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0e131a; --surface: #151b23; --raised: #19202a;
+      --ink: #eef2f6; --ink-2: #bcc6d2; --muted: #8f9aa9;
+      --line: #28313c; --grid: #232a33; --axis: #3b434e;
+      --accent: #3987e5; --accent-ink: #8dbbf2; --accent-soft: rgba(57, 135, 229, 0.14);
+      --base: #9a988f; --new: #d95926; --complex: #199e70;
+      --block: #57554f; --block-soft: #232a33; --fault: #e5584c; --fault-soft: rgba(229, 88, 76, 0.18);
+      --focus: #8dbbf2;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e131a; --surface: #151b23; --raised: #19202a;
+    --ink: #eef2f6; --ink-2: #bcc6d2; --muted: #8f9aa9;
+    --line: #28313c; --grid: #232a33; --axis: #3b434e;
+    --accent: #3987e5; --accent-ink: #8dbbf2; --accent-soft: rgba(57, 135, 229, 0.14);
+    --base: #9a988f; --new: #d95926; --complex: #199e70;
+    --block: #57554f; --block-soft: #232a33; --fault: #e5584c; --fault-soft: rgba(229, 88, 76, 0.18);
+    --focus: #8dbbf2;
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink-2); font: 16px/1.55 var(--sans); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }
+  h1, h2, h3 { color: var(--ink); text-wrap: balance; margin: 0; }
+  h1 { font: 600 clamp(34px, 5vw, 52px)/1.08 var(--serif); letter-spacing: -0.01em; }
+  h2 { font: 600 clamp(26px, 3.2vw, 34px)/1.15 var(--serif); }
+  h3 { font: 600 17px/1.3 var(--sans); }
+  p { margin: 0; }
+  .eyebrow { font: 600 12.5px/1.2 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink); }
+  .lede { font-size: 18.5px; line-height: 1.55; max-width: 68ch; color: var(--ink-2); }
+  .mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .note { font-size: 14px; color: var(--muted); max-width: 72ch; }
+  a { color: var(--accent-ink); }
+
+  header.top { display: grid; gap: 16px; }
+  .notice { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; color: var(--muted); }
+  .notice span { display: inline-flex; align-items: center; gap: 8px; }
+  .notice span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  nav.toc a { font-size: 14px; text-decoration: none; color: var(--ink-2); border: 1px solid var(--line); background: var(--raised);
+              padding: 6px 12px; border-radius: 999px; }
+  nav.toc a:hover { border-color: var(--accent); color: var(--ink); }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 32px; }
+  .tile { background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 4px; align-content: start; }
+  .tile .k { font-size: 13.5px; color: var(--muted); }
+  .tile .v { font: 600 28px/1.15 var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .tile .v s { text-decoration: none; color: var(--muted); font-weight: 500; }
+  .tile .d { font-size: 13.5px; color: var(--ink-2); }
+
+  section.block { margin-top: 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; scroll-margin-top: 16px; }
+  .head { display: grid; gap: 8px; }
+  .takeaway { font-size: 17px; color: var(--ink-2); max-width: 72ch; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 18px 14px; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; color: var(--ink-2); }
+  .legend .it { display: inline-flex; align-items: center; gap: 7px; }
+  .legend svg { flex: none; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--raised); }
+  .seg button { font: 500 13.5px var(--sans); color: var(--ink-2); background: transparent; border: 0; padding: 7px 12px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
+  button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .chart { position: relative; width: 100%; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .scroll-x { overflow-x: auto; }
+  .scroll-x svg { width: auto; max-width: none; }
+  .tip { position: absolute; pointer-events: none; z-index: 2; min-width: 170px; max-width: 280px; background: var(--raised); color: var(--ink-2);
+         border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; font-size: 13px; line-height: 1.45;
+         box-shadow: 0 6px 20px rgba(17, 28, 43, 0.12); }
+  .tip b { color: var(--ink); font-weight: 600; }
+  .tip .row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+  .tip .row span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+  .sw.base { background: var(--base); } .sw.ml { background: var(--accent); }
+  .sw.avg { background: repeating-linear-gradient(90deg, var(--accent) 0 5px, transparent 5px 8px); }
+
+  svg text { font-family: var(--sans); font-size: 12px; fill: var(--muted); }
+  svg .lab { fill: var(--ink-2); font-size: 12.5px; }
+  svg .grid { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+  svg .axis { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; }
+  svg .s-base { stroke: var(--base); }
+  svg .s-avg { stroke: var(--accent); stroke-dasharray: 6 5; }
+  svg .s-ml { stroke: var(--accent); }
+  svg .line { fill: none; stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+  svg .xhair { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+  svg .dot { stroke: var(--surface); stroke-width: 2; }
+  svg .f-base { fill: var(--base); } svg .f-ml, svg .f-avg { fill: var(--accent); }
+
+  /* the day timeline */
+  .gantt-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: 500 13px var(--sans); color: var(--ink-2); background: var(--raised); border: 1px solid var(--line); border-radius: 999px;
+          padding: 5px 11px; cursor: pointer; }
+  .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+  svg .sess { cursor: pointer; stroke: var(--surface); stroke-width: 1.5; }
+  svg .sess.routine { fill: var(--accent); } svg .sess.new_start { fill: var(--new); } svg .sess.complex { fill: var(--complex); }
+  svg .sess.dim { opacity: 0.18; }
+  svg .sess.sel { stroke: var(--ink); stroke-width: 2.5; }
+  svg .moved { fill: none; stroke: var(--ink); stroke-width: 1.5; pointer-events: none; }
+  svg .told { fill: var(--ink); }
+  svg .blk { fill: var(--block); }
+  svg .ctsim { fill: url(#hatch); stroke: var(--block); stroke-width: 1; }
+  svg .hold { fill: none; stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 4 3; }
+  svg .protect { fill: var(--accent-soft); }
+  svg .faultband { fill: var(--fault-soft); }
+  svg .faultlab { fill: var(--fault); font-weight: 600; }
+  svg .hatchline { stroke: var(--block); stroke-width: 1.5; }
+  .detail { background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .detail .when { font: 500 24px/1.1 var(--mono); color: var(--ink); }
+  .detail .what { font-size: 15px; color: var(--ink-2); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; color: var(--ink-2); background: var(--surface); }
+  .detail ul { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 4px; }
+  .detail .sub { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .detail .change { font-size: 14px; border-left: 3px solid var(--accent); padding: 4px 0 4px 10px; color: var(--ink-2); }
+  .detail .change.moved { border-color: var(--ink); }
+
+  details.tbl { margin-top: 12px; }
+  details.tbl summary { cursor: pointer; font-weight: 500; color: var(--ink); width: max-content; max-width: 100%; }
+  .table-scroll { overflow-x: auto; margin-top: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; color: var(--ink); background: var(--raised); }
+  td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--accent-soft); }
+  tr.pick.sel td { background: var(--accent-soft); }
+  td.best { color: var(--ink); font-weight: 600; }
+
+  .kpis { overflow-x: auto; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .fact { background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .fact .v { font: 600 22px/1.2 var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .fact .k { font-size: 13.5px; color: var(--muted); }
+
+  .about { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .about .card { display: grid; gap: 8px; align-content: start; }
+  .about ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 15px; }
+  pre { margin: 0; background: var(--raised); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto;
+        font: 13.5px/1.5 var(--mono); color: var(--ink); }
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+
+  @media (max-width: 900px) {
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .gantt-wrap, .split, .about { grid-template-columns: minmax(0, 1fr); }
+    .facts { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .wrap { padding-inline: 16px; }
+    .card { padding: 14px 12px 12px; }
+    table { font-size: 13px; }
+    th, td { padding: 6px 7px; }
+    .tiles { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Health-a-thon 2026 · Cancer track · Proof of concept</p>
+    <h1>RAD-SMART prototype results</h1>
+    <p class="lede">RAD-SMART plans radiotherapy sessions by predicted machine-minutes, keeps every hard rule, and re-plans when the day goes wrong. These results come from our working prototype, run on a synthetic 67-patient day and simulated 300 times.</p>
+    <div class="notice">
+      <span>All patients are synthetic; no real data</span>
+      <span>"Current practice" is modelled on manual block booking, not measured</span>
+      <span>Assistive, not diagnostic: people approve every plan</span>
+    </div>
+    <nav class="toc" aria-label="Sections">
+      <a href="#waits">Waiting times</a><a href="#day">The optimised day</a><a href="#fault">Machine fault</a>
+      <a href="#forecast">Two machines</a><a href="#minutes">Predicting minutes</a><a href="#about">About</a>
+    </nav>
+  </header>
+
+  <div class="tiles" id="tiles" aria-label="Headline results"></div>
+
+  <section class="block" id="waits" aria-labelledby="h-waits">
+    <div class="head">
+      <p class="eyebrow">300 simulated days</p>
+      <h2 id="h-waits">How long patients wait</h2>
+      <p class="takeaway">Same patients, same machine time. Waits fall because each patient is told to come when the machine will actually be free. Even with only average durations, most of the gain is there from day one.</p>
+    </div>
+    <div class="card">
+      <div class="toolbar"><div class="legend" id="lg-waits"></div></div>
+      <div class="chart" id="ch-waits"></div>
+    </div>
+    <div class="kpis card"><table id="tb-waits"></table></div>
+  </section>
+
+  <section class="block" id="day" aria-labelledby="h-day">
+    <div class="head">
+      <p class="eyebrow">One optimised day on the Versa HD</p>
+      <h2 id="h-day">Every session has a time, and a reason</h2>
+      <p class="takeaway">Complex cases sit inside the protected block and senior-staff window, new starts finish before 17:00, and shared accessories never clash with CT-simulator bookings. Select any session to see why it got its time, or switch to the re-plan after an 11:00 machine fault.</p>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Plan shown">
+          <button type="button" id="mode-plan" aria-pressed="true">Evening plan</button>
+          <button type="button" id="mode-fault" aria-pressed="false">After 11:00 fault</button>
+        </div>
+        <div class="chips" id="chips" role="group" aria-label="Highlight patients"></div>
+      </div>
+      <div class="legend" id="lg-day" style="margin-bottom:8px"></div>
+      <div class="gantt-wrap">
+        <div class="chart scroll-x" id="ch-day"></div>
+        <aside class="detail" id="detail" aria-live="polite"></aside>
+      </div>
+      <details class="tbl">
+        <summary>Every placement, with its reason (<span id="count">67</span> patients)</summary>
+        <div class="table-scroll"><table id="tb-day"></table></div>
+      </details>
+    </div>
+  </section>
+
+  <section class="block" id="fault" aria-labelledby="h-fault">
+    <div class="head">
+      <p class="eyebrow">Recovery</p>
+      <h2 id="h-fault">When the machine fails for 30 minutes</h2>
+      <p class="takeaway">RAD-SMART freezes what has started, re-plans the rest with the fewest changes, never asks anyone to arrive earlier than they can, and messages only patients with at least 45 minutes' notice.</p>
+    </div>
+    <div class="facts" id="facts-fault"></div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Scenario">
+          <button type="button" id="wr-normal" aria-pressed="false">Normal day</button>
+          <button type="button" id="wr-fault" aria-pressed="true">Fault at 11:00</button>
+        </div>
+        <div class="legend" id="lg-wr"></div>
+      </div>
+      <div class="chart" id="ch-wr"></div>
+    </div>
+    <div class="kpis card"><table id="tb-fault"></table></div>
+  </section>
+
+  <section class="block" id="forecast" aria-labelledby="h-fc">
+    <div class="head">
+      <p class="eyebrow">Two machines, three weeks</p>
+      <h2 id="h-fc">New starts balanced by minutes, not head-count</h2>
+      <p class="takeaway">Splitting new patients equally by head-count overloads the slower Versa HD while the Halcyon sits under-used. Recommending starts two working days ahead, by predicted minutes, fills both machines to target.</p>
+    </div>
+    <div class="card">
+      <div class="toolbar"><div class="legend" id="lg-fc"></div></div>
+      <div class="split" id="ch-fc"></div>
+    </div>
+    <div class="kpis card"><table id="tb-fc"></table></div>
+  </section>
+
+  <section class="block" id="minutes" aria-labelledby="h-min">
+    <div class="head">
+      <p class="eyebrow">Machine learning</p>
+      <h2 id="h-min">Predicting machine-minutes</h2>
+      <p class="takeaway">Trained on 12,000 synthetic past sessions, a quantile gradient-boosting model learns first-fraction time, imaging type, wheelchair and stretcher transfers, and Halcyon's faster delivery, which the average table misses.</p>
+    </div>
+    <div class="card">
+      <div class="toolbar"><div class="legend" id="lg-min"></div></div>
+      <div class="chart" id="ch-min"></div>
+    </div>
+  </section>
+
+  <section class="block" id="about" aria-labelledby="h-about">
+    <div class="head"><p class="eyebrow">About</p><h2 id="h-about">What this prototype is, and is not</h2></div>
+    <div class="about">
+      <div class="card">
+        <h3>How it works</h3>
+        <ul>
+          <li><b>Predict:</b> quantile gradient boosting gives typical (P50) and cautious (P80) minutes per session.</li>
+          <li><b>Optimise:</b> a two-stage mixed-integer model (HiGHS) places each session on a 2-minute grid; hard rules are constraints, preferences are costs.</li>
+          <li><b>Simulate:</b> a Monte Carlo twin replays 300 days of late arrivals, overruns, no-shows, urgent add-ons and faults.</li>
+          <li><b>Explain:</b> every placement carries reason codes; in the full system a Sarvam AI copilot explains them and messages patients in their language.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Assumptions and limits</h3>
+        <ul id="assumptions"></ul>
+      </div>
+      <div class="card">
+        <h3>Safety by design</h3>
+        <ul>
+          <li>Plans and re-plans are proposals until a radiation therapy technologist approves them.</li>
+          <li>No diagnoses, doses, images or notes are used. Urgency and eligibility come from clinicians.</li>
+          <li>Language models never make a scheduling decision and never see names or phone numbers.</li>
+          <li>Every plan, override, rule version and message is logged.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Reproduce it</h3>
+        <p class="note">Python 3.10+, open-source libraries only, synthetic data generated on the fly; a full run takes about a minute or two.</p>
+        <pre>cd poc
+pip install -r requirements.txt
+python run_poc.py</pre>
+        <p class="note" id="timing"></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>RAD-SMART · Radiotherapy AI-assisted Dynamic Scheduling, Machine Allocation and Resource Tracking · Doctor partner: Dr Akshay Dinesan, Manipal · Health-a-thon 2026</footer>
+</div>
+
+<script type="application/json" id="data">/*DATA*/</script>
+<script>
+(function () {
+  "use strict";
+  const W = JSON.parse(document.getElementById("data").textContent);
+  const R = W.results;
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const h = (tag, attrs, html) => { const e = document.createElement(tag); Object.assign(e, attrs || {}); if (html != null) e.innerHTML = html; return e; };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const hhmm = (m) => { m = Math.round(m); return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+  const f1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
+  const f0 = (v) => String(Math.round(v));
+  const lineSample = (cls) => {
+    const s = el("svg", { width: 26, height: 10, viewBox: "0 0 26 10", "aria-hidden": "true" });
+    el("line", { x1: 1, y1: 5, x2: 25, y2: 5, class: "line s-" + cls }, s);
+    return s;
+  };
+  const legend = (host, items) => {
+    host.innerHTML = "";
+    items.forEach(([cls, label]) => {
+      const it = h("span", { className: "it" });
+      if (cls instanceof Element) it.appendChild(cls); else it.appendChild(lineSample(cls));
+      it.appendChild(document.createTextNode(label));
+      host.appendChild(it);
+    });
+  };
+  const boxSample = (fillVar, extra) => {
+    const s = el("svg", { width: 14, height: 14, viewBox: "0 0 14 14", "aria-hidden": "true" });
+    el("rect", Object.assign({ x: 1, y: 1, width: 12, height: 12, rx: 2, style: "fill:" + fillVar }, extra || {}), s);
+    return s;
+  };
+
+  // ------------------------------------------------------------ headline tiles
+  const D = R.day_results, CP = D["Current practice"], ML = D["RAD-SMART (ML)"];
+  const pctDown = (a, b) => Math.round(100 * (a - b) / a);
+  const tiles = [
+    ["Median wait, arrival to treatment", `<s>${f0(CP.wait_median)}</s> → ${f0(ML.wait_median)} min`, `${pctDown(CP.wait_median, ML.wait_median)}% shorter`],
+    ["90th-percentile wait", `<s>${f0(CP.wait_p90)}</s> → ${f0(ML.wait_p90)} min`, `${pctDown(CP.wait_p90, ML.wait_p90)}% shorter`],
+    ["Treated within ±15 min of their time", `<s>${f0(CP.within_15_pct)}%</s> → ${f0(ML.within_15_pct)}%`, "punctuality"],
+    ["Re-plan after a 30-min fault", `${f1(R.disruption.reoptimisation_seconds)} s`, `${R.disruption.patients_replanned} moved, ${R.disruption.patients_messaged} messaged`],
+  ];
+  tiles.forEach(([k, v, d]) => $("tiles").appendChild(h("div", { className: "tile" }, `<span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span>`)));
+
+  // ------------------------------------------------------------ generic line chart
+  function lineChart(host, o) {
+    const width = Math.max(300, host.clientWidth);
+    const height = o.height || 320;
+    const m = { l: 52, r: 18, t: 14, b: 42 };
+    const iw = width - m.l - m.r, ih = height - m.t - m.b;
+    const [x0, x1] = o.x, [y0, y1] = o.y;
+    const X = (v) => m.l + (v - x0) / (x1 - x0) * iw, Y = (v) => m.t + ih - (v - y0) / (y1 - y0) * ih;
+    host.innerHTML = "";
+    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, width, height, role: "img", "aria-label": o.label }, host);
+    (o.bands || []).forEach((b) => {
+      el("rect", { x: X(b.from), y: m.t, width: X(b.to) - X(b.from), height: ih, class: b.cls }, svg);
+      if (b.label) { const t = el("text", { x: X(b.from) + 6, y: m.t + 14, class: b.labelCls || "lab" }, svg); t.textContent = b.label; }
+    });
+    o.yTicks.forEach((v) => {
+      el("line", { x1: m.l, x2: m.l + iw, y1: Y(v), y2: Y(v), class: "grid" }, svg);
+      const t = el("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end" }, svg); t.textContent = o.yFmt(v);
+    });
+    o.xTicks.forEach((v) => {
+      el("line", { x1: X(v), x2: X(v), y1: m.t, y2: m.t + ih, class: "grid" }, svg);
+      const t = el("text", { x: X(v), y: m.t + ih + 18, "text-anchor": "middle" }, svg); t.textContent = o.xFmt(v);
+    });
+    el("line", { x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih, class: "axis" }, svg);
+    if (o.xLabel) { const t = el("text", { x: m.l + iw / 2, y: height - 4, "text-anchor": "middle", class: "lab" }, svg); t.textContent = o.xLabel; }
+    if (o.yLabel) { const t = el("text", { x: 12, y: m.t + ih / 2, "text-anchor": "middle", class: "lab", transform: `rotate(-90 12 ${m.t + ih / 2})` }, svg); t.textContent = o.yLabel; }
+    (o.areas || []).forEach((a) => {
+      const pts = a.points.map(([x, y]) => `${X(x)},${Y(y)}`);
+      el("path", { d: `M${X(a.points[0][0])},${Y(y0)}L${pts.join("L")}L${X(a.points[a.points.length - 1][0])},${Y(y0)}Z`, style: "fill:" + a.fill }, svg);
+    });
+    (o.refLines || []).forEach((r) => {
+      el("line", { x1: m.l, x2: m.l + iw, y1: Y(r.y), y2: Y(r.y), style: "stroke:var(--ink-2);stroke-width:1.25;stroke-dasharray:5 4" }, svg);
+      const t = el("text", { x: m.l + 6, y: Y(r.y) - 6, class: "lab" }, svg); t.textContent = r.label;
+    });
+    o.series.forEach((s) => {
+      el("path", { d: "M" + s.points.map(([x, y]) => `${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join("L"), class: "line s-" + s.cls }, svg);
+      (s.marks || []).forEach(([x, y]) => el("circle", { cx: X(x), cy: Y(y), r: 5, class: "dot f-" + s.cls }, svg));
+    });
+    // hover layer: crosshair + tooltip
+    const xh = el("line", { y1: m.t, y2: m.t + ih, class: "xhair", visibility: "hidden" }, svg);
+    const dots = o.series.map((s) => el("circle", { r: 4.5, class: "dot f-" + s.cls, visibility: "hidden" }, svg));
+    const tip = h("div", { className: "tip", hidden: true });
+    host.appendChild(tip);
+    const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, svg);
+    const valueAt = (pts, x) => {
+      if (x <= pts[0][0]) return pts[0][1];
+      for (let i = 1; i < pts.length; i++) {
+        if (pts[i][0] >= x) { const [ax, ay] = pts[i - 1], [bx, by] = pts[i]; return bx === ax ? by : ay + (by - ay) * (x - ax) / (bx - ax); }
+      }
+      return pts[pts.length - 1][1];
+    };
+    const move = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const px = (ev.clientX - r.left) * (width / r.width);
+      let x = x0 + (px - m.l) / iw * (x1 - x0);
+      x = Math.min(x1, Math.max(x0, o.snap ? o.snap(x) : x));
+      xh.setAttribute("x1", X(x)); xh.setAttribute("x2", X(x)); xh.setAttribute("visibility", "visible");
+      const vals = o.series.map((s, i) => {
+        const v = s.at ? s.at(x) : valueAt(s.points, x);
+        dots[i].setAttribute("cx", X(x)); dots[i].setAttribute("cy", Y(v)); dots[i].setAttribute("visibility", "visible");
+        return v;
+      });
+      tip.innerHTML = o.tip(x, vals);
+      tip.hidden = false;
+      const hostR = host.getBoundingClientRect();
+      const left = ev.clientX - hostR.left + host.scrollLeft;
+      const tw = tip.offsetWidth;
+      tip.style.left = (left + 14 + tw > host.scrollLeft + host.clientWidth ? left - tw - 14 : left + 14) + "px";
+      tip.style.top = Math.max(0, ev.clientY - hostR.top - tip.offsetHeight / 2) + "px";
+    };
+    const leave = () => { tip.hidden = true; xh.setAttribute("visibility", "hidden"); dots.forEach((d) => d.setAttribute("visibility", "hidden")); };
+    hit.addEventListener("pointermove", move);
+    hit.addEventListener("pointerdown", move);
+    hit.addEventListener("pointerleave", leave);
+  }
+  const tipRows = (title, rows) => `<b>${title}</b>` + rows.map(([cls, name, v]) =>
+    `<div class="row"><span><i class="sw ${cls}"></i>${esc(name)}</span><span class="num">${v}</span></div>`).join("");
+
+  // ------------------------------------------------------------ 1. waits
+  const WAIT = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART (averages)", "avg", "RAD-SMART, average durations"], ["RAD-SMART (ML)", "ml", "RAD-SMART, ML durations"]];
+  function drawWaits() {
+    const series = WAIT.map(([k, cls]) => {
+      const p = W.wait_percentiles[k];
+      const pts = p.map((v, i) => [v, i]).filter(([v]) => v <= 240);
+      return { cls, points: pts, marks: [[p[50], 50]] };
+    });
+    lineChart($("ch-waits"), {
+      label: "Share of patients who entered the treatment room within a given number of minutes of arriving",
+      x: [0, 240], y: [0, 100], xTicks: [0, 30, 60, 90, 120, 150, 180, 210, 240], yTicks: [0, 20, 40, 60, 80, 100],
+      xFmt: (v) => v, yFmt: (v) => v + "%", xLabel: "Minutes from arrival to entering the treatment room", yLabel: "Patients treated within",
+      series, height: 340, snap: (x) => Math.round(x),
+      tip: (x, vals) => tipRows(`Within ${Math.round(x)} min`, WAIT.map(([k, cls, name], i) => [cls, name, f0(vals[i]) + "%"])),
+    });
+    legend($("lg-waits"), WAIT.map(([k, cls, name]) => [cls, `${name}: median ${f1(D[k].wait_median)} min`]));
+  }
+  const KPI = [
+    ["wait_median", "Median wait, arrival to room (min)", f1, "low"], ["wait_p90", "90th-percentile wait (min)", f1, "low"],
+    ["delay_median", "Median delay versus appointment (min)", f1, "low"], ["within_15_pct", "Treated within ±15 min", (v) => f1(v) + "%", "high"],
+    ["within_30_pct", "Treated within ±30 min", (v) => f1(v) + "%", "high"], ["time_in_dept_mean", "Mean time in department (min)", f1, "low"],
+    ["overtime_min", "Overtime (min per day)", f1, null], ["new_starts_after_5pm", "New starts after 5 PM (per day)", f1, null],
+    ["complex_deferred", "Complex cases deferred (per day)", f1, null], ["accessory_delays", "Accessory-related delays (per day)", f1, null],
+    ["urgent_same_day_pct", "Urgent patients treated the same day", (v) => f0(v) + "%", null],
+  ];
+  function kpiTable(tb, res, cols, caption) {
+    const names = cols.map((c) => c[0]);
+    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">${caption}</caption><thead><tr><th>Mean of 300 simulated days</th>` +
+      cols.map((c) => `<th class="n">${esc(c[1])}</th>`).join("") + "</tr></thead><tbody>";
+    KPI.forEach(([k, label, fmt, better]) => {
+      const vals = names.map((n) => res[n][k]);
+      const best = better === "low" ? Math.min(...vals) : better === "high" ? Math.max(...vals) : null;
+      html += `<tr><td>${label}</td>` + vals.map((v) => `<td class="n${best !== null && v === best ? " best" : ""}">${fmt(v)}</td>`).join("") + "</tr>";
+    });
+    tb.innerHTML = html + "</tbody>";
+  }
+  kpiTable($("tb-waits"), D, [["Current practice", "Current practice"], ["RAD-SMART (averages)", "RAD-SMART, averages"], ["RAD-SMART (ML)", "RAD-SMART, ML"]],
+    "Bold marks the best value in each row where lower or higher is clearly better.");
+
+  // ------------------------------------------------------------ 2. the day
+  const S = W.schedule, DEP = W.department, F = W.fault;
+  const FILTERS = [["all", "All patients", () => true], ["new", "New starts", (r) => r.cat === "new_start"], ["complex", "Complex", (r) => r.cat === "complex"],
+    ["elderly", "Elderly", (r) => r.flags.includes("elderly")], ["transport", "Public transport", (r) => r.flags.includes("public transport")],
+    ["inpatient", "Inpatients", (r) => r.flags.includes("inpatient")], ["paying", "Paying", (r) => r.flags.includes("paying")],
+    ["board", "Breast board", (r) => r.accessories.includes("BREAST_BOARD")], ["abc", "ABC device", (r) => r.accessories.includes("ABC")]];
+  const CAT = { routine: "Routine", new_start: "New start", complex: "Complex" };
+  const ACC = { BREAST_BOARD: "breast board", ABC: "ABC device" };
+  const state = { mode: "plan", filter: "all", sel: (S.find((r) => r.cat === "new_start") || S[0]).pid };
+  const startOf = (r) => (state.mode === "fault" && r.replanned != null ? r.replanned : r.start);
+  const matches = (r) => FILTERS.find((f) => f[0] === state.filter)[2](r);
+
+  FILTERS.forEach(([key, label]) => {
+    const b = h("button", { type: "button", className: "chip", textContent: label });
+    b.setAttribute("aria-pressed", String(key === state.filter));
+    b.addEventListener("click", () => { state.filter = key; [...$("chips").children].forEach((c) => c.setAttribute("aria-pressed", String(c === b))); drawDay(); drawDayTable(); });
+    $("chips").appendChild(b);
+  });
+  const setMode = (mode) => { state.mode = mode; $("mode-plan").setAttribute("aria-pressed", String(mode === "plan")); $("mode-fault").setAttribute("aria-pressed", String(mode === "fault")); drawDay(); drawDetail(); drawDayTable(); };
+  $("mode-plan").addEventListener("click", () => setMode("plan"));
+  $("mode-fault").addEventListener("click", () => setMode("fault"));
+
+  function drawDayLegend() {
+    const items = [[boxSample("var(--accent)"), "Routine"], [boxSample("var(--new)"), "New start"], [boxSample("var(--complex)"), "Complex"],
+      [boxSample("var(--block)"), "Blood irradiation"], [boxSample("none", { style: "fill:none;stroke:var(--muted);stroke-dasharray:3 2" }), "Urgent hold"],
+      [boxSample("var(--block-soft)", { style: "fill:var(--block-soft);stroke:var(--block)" }), "CT-simulator booking"]];
+    if (state.mode === "fault") items.push([boxSample("none", { style: "fill:none;stroke:var(--ink);stroke-width:1.5" }), "Moved"], [(() => { const s = el("svg", { width: 14, height: 14, viewBox: "0 0 14 14", "aria-hidden": "true" }); el("circle", { cx: 7, cy: 7, r: 3.5, style: "fill:var(--ink)" }, s); return s; })(), "Messaged"]);
+    legend($("lg-day"), items);
+  }
+
+  function drawDay() {
+    drawDayLegend();
+    const host = $("ch-day");
+    const width = Math.max(760, host.clientWidth);
+    const m = { l: 128, r: 12, t: 44, b: 30 };
+    const lanes = [["VERSA", "Versa HD", 58], ["ABC", "ABC device (1)", 30], ["BREAST_BOARD", "Breast boards (2)", 30]];
+    const gap = 16;
+    const height = m.t + lanes.reduce((a, l) => a + l[2], 0) + gap * (lanes.length - 1) + m.b;
+    const x0 = 7 * 60 + 15, x1 = 21 * 60;
+    const iw = width - m.l - m.r;
+    const X = (v) => m.l + (v - x0) / (x1 - x0) * iw;
+    host.innerHTML = "";
+    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, width, height, role: "img", "aria-label": "Timeline of one optimised treatment day on the Versa HD, with the ABC device and breast-board lanes" }, host);
+    const defs = el("defs", {}, svg);
+    const pat = el("pattern", { id: "hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    el("rect", { width: 6, height: 6, style: "fill:var(--block-soft)" }, pat);
+    el("line", { x1: 0, y1: 0, x2: 0, y2: 6, class: "hatchline" }, pat);
+    const laneY = {}; let y = m.t;
+    lanes.forEach(([k, , hgt]) => { laneY[k] = [y, hgt]; y += hgt + gap; });
+    const bottom = y - gap;
+    // senior-staff window bracket and protected block
+    const [sw0, sw1] = DEP.senior_staff_window;
+    el("line", { x1: X(sw0), x2: X(sw1), y1: 14, y2: 14, style: "stroke:var(--ink-2);stroke-width:1" }, svg);
+    el("line", { x1: X(sw0), x2: X(sw0), y1: 10, y2: 18, style: "stroke:var(--ink-2)" }, svg);
+    el("line", { x1: X(sw1), x2: X(sw1), y1: 10, y2: 18, style: "stroke:var(--ink-2)" }, svg);
+    let t = el("text", { x: X(sw0) + 6, y: 10, class: "lab" }, svg); t.textContent = "Senior staff present 10:00–17:00 (complex cases)";
+    const [pb0, pb1] = DEP.protected_block;
+    el("rect", { x: X(pb0), y: m.t - 18, width: X(pb1) - X(pb0), height: laneY.VERSA[1] + 18, class: "protect" }, svg);
+    t = el("text", { x: X(pb0) + 4, y: m.t - 5 }, svg); t.textContent = "protected block";
+    for (let hr = 8; hr <= 21; hr++) {
+      el("line", { x1: X(hr * 60), x2: X(hr * 60), y1: m.t, y2: bottom, class: "grid" }, svg);
+      t = el("text", { x: X(hr * 60), y: bottom + 18, "text-anchor": "middle" }, svg); t.textContent = hhmm(hr * 60);
+    }
+    const nsEnd = DEP.new_start_latest_end;
+    el("line", { x1: X(nsEnd), x2: X(nsEnd), y1: m.t - 18, y2: bottom, style: "stroke:var(--new);stroke-width:1.25;stroke-dasharray:4 3" }, svg);
+    t = el("text", { x: X(nsEnd) + 4, y: m.t - 5 }, svg); t.textContent = "new-start cut-off";
+    lanes.forEach(([k, label, hgt]) => {
+      const [ly] = laneY[k];
+      el("line", { x1: m.l, x2: m.l + iw, y1: ly + hgt, y2: ly + hgt, class: "axis" }, svg);
+      const tt = el("text", { x: m.l - 12, y: ly + hgt / 2 + 4, "text-anchor": "end", class: "lab" }, svg); tt.textContent = label;
+    });
+    // machine blocks, urgent holds, CT-sim bookings
+    const tipHost = h("div", { className: "tip", hidden: true }); host.appendChild(tipHost);
+    const showTip = (ev, html) => {
+      tipHost.innerHTML = html; tipHost.hidden = false;
+      const hr = host.getBoundingClientRect();
+      const left = ev.clientX - hr.left + host.scrollLeft, tw = tipHost.offsetWidth;
+      tipHost.style.left = (left + 14 + tw > host.scrollLeft + host.clientWidth ? left - tw - 14 : left + 14) + "px";
+      tipHost.style.top = Math.max(0, ev.clientY - hr.top + 16) + "px";
+    };
+    const hideTip = () => { tipHost.hidden = true; };
+    const [vy, vh] = laneY.VERSA;
+    DEP.machine_blocks.forEach((b) => {
+      const r = el("rect", { x: X(b.start), y: vy + 4, width: X(b.end) - X(b.start), height: vh - 8, rx: 3, class: "blk" }, svg);
+      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>${esc(b.label)}</b><br><span class="num">${hhmm(b.start)}–${hhmm(b.end)}</span> · machine reserved`));
+      r.addEventListener("pointerleave", hideTip);
+    });
+    DEP.urgent_holds.filter((u) => u.machine === "VERSA").forEach((u) => {
+      const r = el("rect", { x: X(u.start), y: vy + 4, width: X(u.start + u.minutes) - X(u.start), height: vh - 8, rx: 3, class: "hold" }, svg);
+      r.style.pointerEvents = "all";
+      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>Urgent hold</b><br><span class="num">${hhmm(u.start)}–${hhmm(u.start + u.minutes)}</span> · kept free for a same-day urgent start`));
+      r.addEventListener("pointerleave", hideTip);
+    });
+    DEP.ct_sim_bookings.forEach((b) => {
+      const [ay, ah] = laneY[b.accessory];
+      const r = el("rect", { x: X(b.start), y: ay + 3, width: X(b.end) - X(b.start), height: ah - 6, rx: 2, class: "ctsim" }, svg);
+      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>CT simulator: ${esc(b.label)}</b><br><span class="num">${hhmm(b.start)}–${hhmm(b.end)}</span> · the ${ACC[b.accessory]} is in the CT room`));
+      r.addEventListener("pointerleave", hideTip);
+    });
+    if (state.mode === "fault") {
+      el("rect", { x: X(F.start), y: m.t - 18, width: X(F.start + F.minutes) - X(F.start), height: bottom - m.t + 18, class: "faultband" }, svg);
+      t = el("text", { x: X(F.start) + 4, y: m.t + laneY.VERSA[1] + 13, class: "faultlab" }, svg); t.textContent = "machine fault";
+    }
+    // sessions
+    const sessTip = (r) => {
+      const s0 = startOf(r);
+      let x = `<b class="num">${hhmm(s0)} · ${r.pid}</b><br>${esc(r.technique)}, fraction ${r.fraction} · ${CAT[r.cat]}<br><span class="num">${f1(r.minutes)}</span> min planned`;
+      if (state.mode === "fault" && r.replanned != null && Math.abs(r.replanned - r.start) >= 1) x += `<br>moved from <span class="num">${hhmm(r.start)}</span>${r.notified ? " · messaged" : ""}`;
+      return x + "<br><i>Select for the reasons</i>";
+    };
+    S.forEach((r) => {
+      const s0 = startOf(r), w = Math.max(2, X(s0 + r.minutes) - X(s0));
+      const cls = `sess ${r.cat}${matches(r) ? "" : " dim"}${r.pid === state.sel ? " sel" : ""}`;
+      const rects = [el("rect", { x: X(s0), y: vy + 4, width: w, height: vh - 8, rx: 2, class: cls }, svg)];
+      r.accessories.forEach((a) => {
+        if (!laneY[a]) return;
+        const [ay, ah] = laneY[a];
+        rects.push(el("rect", { x: X(s0), y: ay + 3, width: w, height: ah - 6, rx: 2, class: cls }, svg));
+      });
+      if (state.mode === "fault" && r.replanned != null && Math.abs(r.replanned - r.start) >= 1 && matches(r)) {
+        el("rect", { x: X(s0) + 0.75, y: vy + 4.75, width: Math.max(1, w - 1.5), height: vh - 9.5, rx: 2, class: "moved" }, svg);
+        if (r.notified) el("circle", { cx: X(s0) + w / 2, cy: vy + vh + 6, r: 2.8, class: "told" }, svg);
+      }
+      rects.forEach((rc) => {
+        rc.addEventListener("pointermove", (ev) => showTip(ev, sessTip(r)));
+        rc.addEventListener("pointerleave", hideTip);
+        rc.addEventListener("click", () => { state.sel = r.pid; drawDay(); drawDetail(); drawDayTable(); });
+      });
+    });
+  }
+
+  function drawDetail() {
+    const r = S.find((x) => x.pid === state.sel);
+    const d = $("detail");
+    const flags = r.flags.filter((f) => f !== "new start" && f !== "complex").concat(r.accessories.map((a) => ACC[a]));
+    let change = "";
+    if (state.mode === "fault") {
+      if (r.replanned == null) change = `<p class="change">Treated before the fault; unchanged.</p>`;
+      else if (Math.abs(r.replanned - r.start) < 1) change = `<p class="change">Unchanged by the re-plan.</p>`;
+      else change = `<p class="change moved">Re-planned from <span class="num">${hhmm(r.start)}</span> to <span class="num">${hhmm(r.replanned)}</span> (${r.replanned > r.start ? "+" : ""}${f0(r.replanned - r.start)} min). ` +
+        (r.notified ? `Told by message in ${esc(r.language)}.` : "Not messaged: too little notice, so staff keep the original time as the earliest start.") + "</p>";
+    }
+    d.innerHTML = `<p class="sub">Selected session</p>
+      <p class="when">${hhmm(startOf(r))} <span style="font-size:15px;color:var(--muted)">· ${r.pid}</span></p>
+      <p class="what">${esc(r.technique)}, fraction ${r.fraction} · <b style="color:var(--ink);font-weight:600">${CAT[r.cat]}</b><br><span class="num">${f1(r.minutes)}</span> min planned · usually reports <span class="num">${hhmm(r.usual)}</span></p>
+      ${flags.length ? `<div class="pills">${flags.map((f) => `<span class="pill">${esc(f)}</span>`).join("")}</div>` : ""}
+      ${change}
+      <p class="sub">Why this time</p>
+      <ul>${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+      <p class="note" style="font-size:13px">Messages in ${esc(r.language)}. Reason codes like these ground the copilot's plain-language answers.</p>`;
+  }
+
+  function drawDayTable() {
+    const rows = S.filter(matches).slice().sort((a, b) => startOf(a) - startOf(b));
+    $("count").textContent = rows.length;
+    let html = `<thead><tr><th class="n">Time</th><th>Patient</th><th>Technique</th><th class="n">Fraction</th><th class="n">Minutes</th><th>Flags</th><th>Why</th></tr></thead><tbody>`;
+    rows.forEach((r) => {
+      const flags = r.flags.concat(r.accessories.map((a) => ACC[a])).join(", ");
+      html += `<tr class="pick${r.pid === state.sel ? " sel" : ""}" data-pid="${r.pid}" tabindex="0"><td class="n">${hhmm(startOf(r))}</td><td class="mono">${r.pid}</td><td>${esc(r.technique)}</td><td class="n">${r.fraction}</td><td class="n">${f1(r.minutes)}</td><td>${esc(flags)}</td><td>${esc(r.reasons.join("; "))}</td></tr>`;
+    });
+    $("tb-day").innerHTML = html + "</tbody>";
+  }
+  $("tb-day").addEventListener("click", (ev) => { const tr = ev.target.closest("tr[data-pid]"); if (tr) { state.sel = tr.dataset.pid; drawDay(); drawDetail(); drawDayTable(); } });
+  $("tb-day").addEventListener("keydown", (ev) => { if (ev.key !== "Enter" && ev.key !== " ") return; const tr = ev.target.closest("tr[data-pid]"); if (tr) { ev.preventDefault(); state.sel = tr.dataset.pid; drawDay(); drawDetail(); drawDayTable(); } });
+
+  // ------------------------------------------------------------ 3. fault
+  const FAULTP = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART plan, no re-planning", "avg", "RAD-SMART plan, no re-planning"], ["RAD-SMART live re-planning + messages", "ml", "RAD-SMART live re-planning + messages"]];
+  const NORMP = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART (averages)", "avg", "RAD-SMART, average durations"], ["RAD-SMART (ML)", "ml", "RAD-SMART, ML durations"]];
+  const DR = R.disruption_results;
+  let wrMode = "fault";
+  [["Re-plan time", `${f1(R.disruption.reoptimisation_seconds)} s`], ["Patients moved, and messaged", `${R.disruption.patients_replanned}, of whom ${R.disruption.patients_messaged} messaged`],
+   ["Median wait under the fault", `${f0(DR["Current practice"].wait_median)} → ${f0(DR["RAD-SMART live re-planning + messages"].wait_median)} min`]]
+    .forEach(([k, v]) => $("facts-fault").appendChild(h("div", { className: "fact" }, `<p class="k">${k}</p><p class="v">${v}</p>`)));
+  function drawWR() {
+    const set = wrMode === "fault" ? FAULTP : NORMP, src = wrMode === "fault" ? W.fault_waiting_room : W.waiting_room;
+    const grid = src.grid;
+    const series = set.map(([k, cls]) => ({ cls, points: grid.map((g, i) => [g, src.series[k][i]]) }));
+    const ymax = Math.ceil(Math.max(...series.flatMap((s) => s.points.map((p) => p[1]))) / 5) * 5;
+    const yTicks = []; for (let v = 0; v <= ymax; v += 5) yTicks.push(v);
+    lineChart($("ch-wr"), {
+      label: "Mean number of patients waiting in the department through the day",
+      x: [grid[0], 21.5 * 60], y: [0, ymax], xTicks: [7, 9, 11, 13, 15, 17, 19, 21].map((x) => x * 60), yTicks,
+      xFmt: hhmm, yFmt: (v) => v, yLabel: "Patients waiting (mean)", series, height: 320, snap: (x) => Math.round(x / 5) * 5,
+      bands: wrMode === "fault" ? [{ from: F.start, to: F.start + F.minutes, cls: "faultband", label: "fault", labelCls: "faultlab" }] : [],
+      tip: (x, vals) => tipRows(`${hhmm(x)}: patients waiting`, set.map(([k, cls, name], i) => [cls, name, f1(vals[i])])),
+    });
+    legend($("lg-wr"), set.map(([, cls, name]) => [cls, name]));
+    $("wr-normal").setAttribute("aria-pressed", String(wrMode === "normal"));
+    $("wr-fault").setAttribute("aria-pressed", String(wrMode === "fault"));
+  }
+  $("wr-normal").addEventListener("click", () => { wrMode = "normal"; drawWR(); });
+  $("wr-fault").addEventListener("click", () => { wrMode = "fault"; drawWR(); });
+  kpiTable($("tb-fault"), DR, FAULTP.map(([k, , n]) => [k, n.replace(" (modelled)", "")]),
+    "The same 30-minute fault at 11:00 in all 300 simulated days. The trade-off is visible: a little more overtime, in exchange for no late new starts and no deferred complex cases.");
+
+  // ------------------------------------------------------------ 4. forecast
+  const FC = W.forecast, MS = Object.keys(FC.labels);
+  function drawFC() {
+    const host = $("ch-fc"); host.innerHTML = "";
+    const days = FC.days.map((d, i) => i + 1);
+    MS.forEach((mk) => {
+      const box = h("div", {});
+      box.appendChild(h("h3", { style: "margin:0 0 6px;font-size:15px" }, esc(FC.labels[mk])));
+      const ch = h("div", { className: "chart" }); box.appendChild(ch); host.appendChild(box);
+      const cap = FC.capacity[mk], pc = (v) => 100 * v / cap;
+      const committed = FC.committed[mk].map((v, i) => [i + 1, pc(v)]);
+      const rad = FC.rad_smart[mk].map((v, i) => [i + 1, pc(v)]).slice(2);
+      const head = FC.headcount[mk].map((v, i) => [i + 1, pc(v)]).slice(2);
+      const ymax = Math.max(160, Math.ceil(Math.max(...head.map((p) => p[1])) / 20) * 20);
+      lineChart(ch, {
+        label: `Planned load on ${FC.labels[mk]} over 15 working days`,
+        x: [1, 15], y: [0, ymax], xTicks: [1, 3, 5, 7, 9, 11, 13, 15], yTicks: [0, 50, 100, 150].filter((v) => v <= ymax),
+        xFmt: (v) => "D" + v, yFmt: (v) => v + "%", height: 250, snap: (x) => Math.round(x),
+        areas: [{ points: committed, fill: "var(--block-soft)" }], refLines: [{ y: 100, label: "capacity" }],
+        series: [{ cls: "base", points: head }, { cls: "ml", points: rad }],
+        tip: (x, vals) => {
+          const i = Math.round(x) - 1;
+          const decided = i >= 2;
+          return `<b>${esc(FC.days[i])}</b>` +
+            `<div class="row"><span>Committed by current patients</span><span class="num">${f0(pc(FC.committed[mk][i]))}%</span></div>` +
+            `<div class="row"><span>Patients finishing</span><span class="num">${FC.completing[mk][i]}</span></div>` +
+            (decided ? `<div class="row"><span><i class="sw base"></i>Head-count plan</span><span class="num">${f0(pc(FC.headcount[mk][i]))}%</span></div>` +
+              `<div class="row"><span><i class="sw ml"></i>RAD-SMART plan</span><span class="num">${f0(pc(FC.rad_smart[mk][i]))}%</span></div>` +
+              `<div class="row"><span>Recommended new starts</span><span class="num">${FC.recommended_starts[mk][i]}</span></div>` : `<div class="note" style="font-size:12.5px">Already booked; advice starts two working days ahead.</div>`);
+        },
+      });
+    });
+    legend($("lg-fc"), [[boxSample("var(--block-soft)", { style: "fill:var(--block-soft);stroke:var(--block)" }), "Committed by patients on treatment"], ["base", "Equal head-count, start when ready"], ["ml", "RAD-SMART recommendation"]]);
+  }
+  (function fcTable() {
+    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">Committed load counts only patients already on treatment; days 1–2 are already booked. ${R.forecast.pipeline_patients} new patients in the pipeline; ${R.forecast.still_waiting_at_horizon} still waiting at the end of the horizon.</caption>` +
+      `<thead><tr><th>Working day</th>` + MS.map((mk) => `<th class="n">${FC.labels[mk]} load</th><th class="n">Finishing</th><th class="n">New starts</th>`).join("") + `</tr></thead><tbody>`;
+    for (let i = 0; i < 10; i++) {
+      html += `<tr><td>${esc(FC.days[i])}</td>` + MS.map((mk) => `<td class="n">${f0(100 * FC.committed[mk][i] / FC.capacity[mk])}%</td><td class="n">${FC.completing[mk][i]}</td><td class="n">${i < 2 ? "booked" : FC.recommended_starts[mk][i]}</td>`).join("") + `</tr>`;
+    }
+    $("tb-fc").innerHTML = html + "</tbody>";
+  })();
+
+  // ------------------------------------------------------------ 5. minutes
+  const DM = [["Lookup table (averages)", "avg", "Average table"], ["Quantile gradient boosting", "ml", "ML model (quantile gradient boosting)"]];
+  function drawMin() {
+    const series = DM.map(([k, cls]) => ({ cls, points: W.duration_abs_error_percentiles[k].map((v, i) => [v, i]).filter(([v]) => v <= 12) }));
+    lineChart($("ch-min"), {
+      label: "Share of held-out sessions predicted within a given number of minutes",
+      x: [0, 12], y: [0, 100], xTicks: [0, 2, 4, 6, 8, 10, 12], yTicks: [0, 20, 40, 60, 80, 100],
+      xFmt: (v) => v, yFmt: (v) => v + "%", xLabel: "Absolute error of predicted session length (minutes)", yLabel: "Sessions within",
+      series, height: 300, snap: (x) => Math.round(x * 4) / 4,
+      tip: (x, vals) => tipRows(`Within ${x.toFixed(2).replace(/\.?0+$/, "")} min`, DM.map(([k, cls, name], i) => [cls, name, f0(vals[i]) + "%"])),
+    });
+    const dm = R.duration_model;
+    legend($("lg-min"), DM.map(([k, cls, name]) => [cls, `${name}: mean error ${dm[k].mae_min.toFixed(1)} min, ${f0(dm[k].within_3min_pct)}% within 3 min`]));
+  }
+
+  // ------------------------------------------------------------ about
+  const A = R.assumptions, DAY = R.day;
+  [`${DAY.patients} patients on one machine: ${DAY.new_starts} new starts, ${DAY.complex} complex, ${DAY.expected_machine_minutes} of ${DAY.available_minutes} minutes (${DAY.load_pct}% load).`,
+   `Operating day ${A.operating_day}; blood irradiation ${A.blood_irradiation}; senior staff ${A.senior_staff_window}; protected block ${A.protected_block}; new starts by ${A.new_start_cut_off} with a ${A.deadline_buffer_min}-minute buffer.`,
+   `Arrivals ${A.arrival_offset}; ${Math.round(A.no_show_rate * 100)}% no-shows; ${Math.round(A.message_compliance * 100)}% of patients act on an updated time; urgent starts ${A.urgent_same_day_starts_per_day}.`,
+   "The day simulation covers one machine; the two-machine test covers the forecast only.",
+   "Real gains depend on how much of today's waiting comes from scheduling; the pilot measures a real baseline first."]
+    .forEach((t) => $("assumptions").appendChild(h("li", { textContent: t })));
+  $("timing").textContent = `This run: day plan solved to proven optimum in ${f1(R.solver.averages.seconds)} s (averages) and ${f1(R.solver.ml.seconds)} s (ML), zero unscheduled. Timings vary with the computer's load.`;
+
+  // ------------------------------------------------------------ render + resize
+  const drawAll = () => { drawWaits(); drawDay(); drawWR(); drawFC(); drawMin(); };
+  drawAll(); drawDetail(); drawDayTable();
+  let lastW = document.documentElement.clientWidth, timer;
+  window.addEventListener("resize", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { const w = document.documentElement.clientWidth; if (w !== lastW) { lastW = w; drawAll(); } }, 150);
+  });
+})();
+</script>

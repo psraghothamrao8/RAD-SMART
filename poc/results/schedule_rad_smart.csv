@@ -1,0 +1,68 @@
+appointment,patient,technique,fraction,planned_min,flags,current_reporting_time,why
+07:30,P014,VMAT,12/30,5.9,,07:30,within 30 min of usual time 07:30
+07:36,P034,IMRT,22/30,7.9,,07:30,within 30 min of usual time 07:30
+07:44,P015,Breast (breast board),13/18,9.6,public transport; BREAST_BOARD,07:30,public transport: finish by 18:00 | within 30 min of usual time 07:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+07:54,P058,IMRT,30/32,9.5,,07:30,within 30 min of usual time 07:30
+08:04,P048,Palliative 2D/3D,2/5,4.3,paying,08:30,within 30 min of usual time 08:30
+08:08,P028,3D-CRT,3/30,4.9,public transport,08:30,public transport: finish by 17:00 | within 30 min of usual time 08:30
+08:12,P019,Palliative 2D/3D,4/6,3.3,public transport,08:30,public transport: finish by 17:45 | within 30 min of usual time 08:30
+08:16,P067,3D-CRT,19/28,5.7,elderly; public transport,08:30,public transport: finish by 16:45 | within 30 min of usual time 08:30
+08:22,P057,VMAT,6/29,8.6,elderly; dormitory; paying,07:30,within 30 min of requested time 08:00
+08:30,P021,IMRT,8/31,8.8,public transport; paying,07:30,public transport: finish by 17:15 | within 30 min of requested time 08:00
+08:38,P055,3D-CRT,6/24,5.2,,08:30,within 30 min of usual time 08:30
+08:44,P044,3D-CRT,15/30,6.0,,08:30,within 30 min of usual time 08:30
+08:50,P010,Breast (breast board),2/18,7.0,BREAST_BOARD,08:30,within 30 min of usual time 08:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+08:56,P063,IMRT,29/30,7.7,,08:30,within 30 min of usual time 08:30
+09:04,P026,3D-CRT,17/23,7.5,,08:30,34 min later than usual time 08:30
+09:12,P040,IMRT,14/34,8.4,paying,08:30,42 min later than usual time 08:30
+09:20,P029,IMRT,11/34,9.7,public transport,08:30,public transport: finish by 17:15 | 50 min later than usual time 08:30
+09:30,P008,VMAT,11/25,6.7,public transport; paying,08:30,public transport: finish by 17:45 | within 30 min of requested time 09:00
+09:36,P031,Breast (breast board),17/17,5.6,BREAST_BOARD,09:30,within 30 min of usual time 09:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+09:42,P047,VMAT,17/28,5.0,,09:30,within 30 min of usual time 09:30
+09:48,P061,3D-CRT,2/24,7.4,elderly,09:30,within 30 min of usual time 09:30
+09:56,P042,VMAT,12/28,7.1,,09:30,within 30 min of usual time 09:30
+10:04,P050,Palliative 2D/3D,2/6,4.5,,10:30,within 30 min of usual time 10:30
+10:08,P013,VMAT,17/26,6.0,elderly; public transport,10:30,public transport: finish by 18:00 | within 30 min of usual time 10:30
+10:14,P020,VMAT,29/30,6.6,,10:30,within 30 min of usual time 10:30
+10:20,P037,Breast (breast board),12/15,6.9,BREAST_BOARD,10:30,within 30 min of usual time 10:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+10:26,P003,VMAT,1/32,18.8,new start; paying,10:30,new start: finish by 17:00 | within 30 min of usual time 10:30
+10:44,P033,IMRT,2/30,7.7,public transport,10:30,public transport: finish by 17:45 | within 30 min of usual time 10:30
+10:52,P036,VMAT,20/30,7.1,,10:30,within 30 min of usual time 10:30
+11:00,P005,3D-CRT,1/27,14.8,new start,11:30,new start: finish by 17:00 | within 30 min of usual time 11:30
+11:14,P024,VMAT,28/28,7.3,,10:30,44 min later than usual time 10:30
+11:22,P032,Breast (breast board),15/23,10.2,BREAST_BOARD,10:30,52 min later than usual time 10:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+11:32,P018,3D-CRT,4/21,6.5,public transport,11:30,public transport: finish by 17:30 | within 30 min of usual time 11:30
+11:38,P023,VMAT,12/31,7.2,public transport; paying,11:30,public transport: finish by 17:00 | within 30 min of usual time 11:30
+11:46,P011,3D-CRT,12/30,8.9,,11:30,within 30 min of usual time 11:30
+11:54,P060,3D-CRT,5/25,6.6,inpatient,12:30,36 min earlier than usual time 12:30 | inpatient: ward window 10:00-16:00
+12:00,P002,Craniospinal (CSI),14/30,26.1,complex; public transport; paying,11:30,complex procedure: senior staff 10:00-17:00 | public transport: finish by 17:30 | within 30 min of usual time 11:30
+12:26,P007,SBRT,1/4,37.8,new start; complex; elderly; public transport,11:30,complex procedure: senior staff 10:00-17:00 | new start: finish by 17:00 | public transport: finish by 16:15 | 56 min later than usual time 11:30
+13:04,P066,3D-CRT,13/23,5.1,paying,12:30,34 min later than usual time 12:30
+13:10,P012,Breast (breast board),18/23,8.0,elderly; paying; BREAST_BOARD,14:00,50 min earlier than usual time 14:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+13:18,P022,Breast (breast board),7/23,5.6,public transport; BREAST_BOARD,14:00,public transport: finish by 17:45 | 42 min earlier than usual time 14:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+13:24,P049,3D-CRT,17/20,5.4,public transport; paying,14:00,public transport: finish by 18:30 | 36 min earlier than usual time 14:00
+14:00,P006,Breast (breast board),1/21,18.6,new start; BREAST_BOARD,11:30,new start: finish by 17:00 | 150 min later than usual time 11:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+14:18,P053,VMAT,29/32,7.2,public transport,14:00,public transport: finish by 18:30 | within 30 min of usual time 14:00
+14:26,P016,VMAT,5/25,8.6,inpatient,14:00,within 30 min of usual time 14:00 | inpatient: ward window 10:00-16:00
+14:34,P062,3D-CRT,14/30,5.6,public transport; paying,19:00,public transport: finish by 16:15 | 296 min earlier than requested time 19:30
+15:00,P004,IMRT,1/35,20.8,new start,10:30,new start: finish by 17:00 | 270 min later than usual time 10:30
+15:20,P001,SRT,4/5,25.2,complex; paying,10:30,complex procedure: senior staff 10:00-17:00 | 290 min later than usual time 10:30
+15:46,P027,Breast (breast board),6/23,6.0,public transport; BREAST_BOARD,15:00,public transport: finish by 18:30 | 46 min later than usual time 15:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+15:52,P045,Breast (breast board),16/17,11.7,inpatient; BREAST_BOARD,15:00,52 min later than usual time 15:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided) | inpatient: ward window 10:00-16:00
+16:04,P056,VMAT,20/25,6.8,,14:00,124 min later than usual time 14:00
+16:30,P059,Breast (breast board),6/17,15.7,inpatient; BREAST_BOARD,12:30,240 min later than usual time 12:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided) | inpatient: ward window 10:00-16:00
+16:46,P046,Breast (breast board),3/16,15.5,inpatient; BREAST_BOARD,14:00,166 min later than usual time 14:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided) | inpatient: ward window 10:00-16:00
+17:02,P051,VMAT,6/27,16.4,inpatient,11:30,332 min later than usual time 11:30 | inpatient: ward window 10:00-16:00
+17:18,P039,Breast (breast board),10/18,5.6,BREAST_BOARD,15:00,138 min later than usual time 15:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+17:24,P017,VMAT,6/27,17.8,inpatient,11:30,354 min later than usual time 11:30 | inpatient: ward window 10:00-16:00
+17:42,P035,VMAT,7/27,7.3,,16:00,102 min later than usual time 16:00
+17:50,P043,3D-CRT,25/27,4.9,paying,17:00,within 30 min of requested time 17:30
+17:54,P065,VMAT,13/25,5.9,paying,17:00,within 30 min of requested time 17:30
+18:00,P030,Breast DIBH (ABC),21/25,12.9,ABC; BREAST_BOARD,15:00,"180 min later than usual time 15:00 | accessory check: ABC, BREAST_BOARD free (CT-sim bookings avoided)"
+18:12,P009,Breast DIBH (ABC),11/16,11.4,ABC; BREAST_BOARD,08:30,"582 min later than usual time 08:30 | accessory check: ABC, BREAST_BOARD free (CT-sim bookings avoided)"
+18:24,P025,IMRT,3/32,10.7,elderly; paying,19:00,36 min earlier than usual time 19:00
+18:34,P038,3D-CRT,8/23,13.6,,09:30,544 min later than usual time 09:30
+18:48,P054,Breast (breast board),2/15,6.0,paying; BREAST_BOARD,18:00,within 30 min of requested time 18:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+18:54,P041,VMAT,12/28,8.0,paying,18:00,within 30 min of requested time 18:30
+19:02,P064,Breast (breast board),9/19,16.2,BREAST_BOARD,10:30,512 min later than usual time 10:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
+19:18,P052,IMRT,3/34,8.0,dormitory,09:30,588 min later than usual time 09:30

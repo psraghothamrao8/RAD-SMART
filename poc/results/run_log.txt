@@ -1,0 +1,88 @@
+{
+ "day": {
+  "patients": 67,
+  "new_starts": 5,
+  "complex": 3,
+  "expected_machine_minutes": 676,
+  "available_minutes": 750,
+  "load_pct": 90.1,
+  "priority_mix": {
+   "elderly": 7,
+   "inpatient": 7,
+   "hospice_mhrc": 0,
+   "dormitory": 2,
+   "public_transport": 18,
+   "paying": 18,
+   "requested_time": 8,
+   "abc": 2,
+   "breast_board": 17
+  }
+ },
+ "solver": {
+  "averages": {
+   "seconds": 2.1,
+   "status": "optimal",
+   "proven_gap_pct": 0,
+   "unscheduled": [],
+   "variables": 6081,
+   "constraints": 1327
+  },
+  "ml": {
+   "seconds": 8.2,
+   "status": "optimal",
+   "proven_gap_pct": 0,
+   "unscheduled": [],
+   "variables": 6041,
+   "constraints": 1327
+  }
+ },
+ "duration_model": {
+  "Lookup table (averages)": {
+   "mae_min": 2.43,
+   "within_2min_pct": 54.25,
+   "within_3min_pct": 73.45,
+   "p80_coverage_pct": 80.1
+  },
+  "Quantile gradient boosting": {
+   "mae_min": 1.92,
+   "within_2min_pct": 67.9,
+   "within_3min_pct": 82.25,
+   "p80_coverage_pct": 78.15
+  }
+ }
+}
+
+day_results
+metric                                        Current practice                  RAD-SMART (averages)                        RAD-SMART (ML)
+wait_median                                               70.8                                  22.5                                  19.2
+wait_p90                                                 226.5                                  60.5                                  52.0
+delay_median                                              66.0                                  13.8                                  10.0
+within_15_pct                                             15.5                                  54.8                                  62.4
+within_30_pct                                             27.7                                  74.6                                  81.9
+time_in_dept_mean                                        117.1                                  38.7                                  34.4
+overtime_min                                               0.2                                   0.3                                   0.4
+new_starts_after_5pm                                       0.1                                   0.0                                   0.0
+complex_deferred                                           0.1                                   0.1                                   0.0
+accessory_delays                                           0.1                                   0.0                                   0.0
+blood_slot_delay_min                                       2.3                                   1.0                                   2.2
+urgent_same_day_pct                                      100.0                                 100.0                                 100.0
+
+disruption_results
+metric                                        Current practice        RAD-SMART plan, no re-planning RAD-SMART live re-planning + messages
+wait_median                                               93.0                                  31.2                                  19.4
+wait_p90                                                 253.7                                  76.0                                  58.2
+delay_median                                              83.0                                  24.9                                  10.7
+within_15_pct                                             14.3                                  46.2                                  60.9
+within_30_pct                                             26.1                                  61.0                                  80.8
+time_in_dept_mean                                        133.4                                  46.5                                  40.6
+overtime_min                                               0.6                                   0.8                                   2.4
+new_starts_after_5pm                                       0.2                                   0.1                                   0.0
+complex_deferred                                           0.2                                   0.2                                   0.0
+accessory_delays                                           0.0                                   0.0                                   0.0
+blood_slot_delay_min                                       2.3                                   0.9                                   1.8
+urgent_same_day_pct                                      100.0                                 100.0                                 100.0
+
+disruption {'fault': 'Versa HD down 11:00-11:30', 'reoptimisation_seconds': 4.0, 'patients_replanned': 38, 'patients_messaged': 17}
+
+forecast peaks  RAD-SMART {'VERSA': 100, 'HALCYON': 100}  head-count {'VERSA': 156, 'HALCYON': 75}  days over capacity (head-count) {'VERSA': 13, 'HALCYON': 0}
+runtime 28.1 s

@@ -4,6 +4,8 @@
 
 RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy departments. It predicts each session's machine-minutes, builds and live-repairs a daily plan in which hard rules cannot be broken, stress-tests plans in a digital twin, and explains decisions and messages patients in their own language through Sarvam AI. A person approves every change.
 
+**Live results page:** https://psraghothamrao8.github.io/RAD-SMART/ (GitHub Pages, served from `docs/`)
+
 ## What is in this folder
 
 | Path | What it is |
@@ -15,8 +17,8 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 | `docs/figures-src/` | HTML sources of the architecture and daily-loop diagrams |
 | `poc/` | Working proof of concept in Python on synthetic data (see `poc/README.md`) |
 | `tools/build_docs.py` | Rebuilds the DOCX and PDF from the Markdown: `python tools/build_docs.py docs/<file>.md` |
-| `docs/web/rad-smart-prototype.html` | Interactive results page (the Round 1 prototype link), built from `docs/web/page_template.html` and the PoC output |
-| `tools/build_results_page.py` | Rebuilds the results page after a PoC run: `python tools/build_results_page.py` |
+| `docs/index.html` | Interactive results page (the Round 1 prototype link), served by GitHub Pages. Built from `docs/web/page_template.html` and the PoC output; `docs/web/rad-smart-prototype.html` is the same page for Claude artifacts |
+| `tools/build_results_page.py` | Rebuilds both copies of the results page after a PoC run: `python tools/build_results_page.py` |
 
 ## Key dates
 

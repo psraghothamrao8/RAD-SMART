@@ -6,6 +6,7 @@ venv/
 
 # Intermediate HTML written by tools/build_docs.py (docs/web/ is kept)
 docs/*.html
+!docs/index.html
 
 # OS and editor files
 .DS_Store

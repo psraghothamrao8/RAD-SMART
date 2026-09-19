@@ -19,7 +19,7 @@ This kit contains ready-to-paste answers for the five Round 1 sections, the outl
 | 5 | Fill in team names and bios (section 2.3 below and report Section 9.5) | All | 22 Sep |
 | 6 | Open the published deck (section 2.5), replace [names] on slides 1 and 14, and download it as PDF | Tech team | 23 Sep |
 | 7 | Optional: record the 3-minute video walkthrough (section 4) | Tech team + Dr Akshay | 23 Sep |
-| 8 | Optional: share the published results page from its Share menu and paste its link as the prototype link (section 2.6) | Tech lead | 23 Sep |
+| 8 | Optional: paste the public results page link as the prototype link, and the code repository link if asked (section 2.6) | Tech lead | 23 Sep |
 | 9 | Optional: attach the supporting document `RAD-SMART_Research_Report.pdf` | Tech lead | 23 Sep |
 | 10 | Paste the answers, upload the files and **submit** | Tech lead | **23 Sep** |
 | 11 | Final proofread; check who last edited the entry; re-save if needed | All | 25 Sep, before 23:59 |
@@ -103,8 +103,8 @@ The link is private to its owner. Share it from the page's Share menu before any
 ### 2.6 Optional items
 
 - **Supporting document:** `docs/RAD-SMART_Research_Report.pdf`, the full research report and implementation plan (27 pages).
-- **Prototype link:** the interactive results page at https://claude.ai/artifact/MiqA2wgSu8FcHJ4e5276eZ. It shows the wait curves, the optimised day with a reason for every session, the fault re-plan and the two-machine forecast, all from the PoC on synthetic data. The page is private until shared: open its Share menu and allow anyone with the link to view it, then paste the link. To rebuild it after re-running the PoC, run `python tools/build_results_page.py`, which writes `docs/web/rad-smart-prototype.html`.
-- **Code (optional):** a repository containing the `poc/` folder, which is synthetic data only and safe to share. It could be on GitHub, public or shared with the organisers.
+- **Prototype link:** the interactive results page at https://psraghothamrao8.github.io/RAD-SMART/, hosted on GitHub Pages and open to anyone. It shows the wait curves, the optimised day with a reason for every session, the fault re-plan and the two-machine forecast, all from the PoC on synthetic data. After re-running the PoC, run `python tools/build_results_page.py`, commit and push; the page updates within a few minutes.
+- **Code:** https://github.com/psraghothamrao8/RAD-SMART (public). It holds the PoC, the documents and the page source. Everything in it is synthetic data only.
 - **Video walkthrough:** the script is in section 4.
 
 ---

@@ -9,13 +9,13 @@ pip install -r requirements.txt
 python run_poc.py
 ```
 
-A full run takes under a minute on a laptop. Results are identical from run to run (fixed seeds, ties broken by patient ID); only solver timings vary. It writes to `results/`:
+A full run takes about four minutes on a laptop. Seeds are fixed and ties are broken by patient ID, so runs reproduce, with one exception: a solve that stops at its time limit (the average-table plan) can return a slightly different best plan. Solver timings always vary. It writes to `results/`:
 
 | File | Contents |
 |---|---|
 | `results.json` | Every number quoted in the report: assumptions, model accuracy, solver statistics, KPIs |
 | `run_log.txt` | Human-readable summary tables |
-| `schedule_rad_smart.csv` | The optimised 67-patient day, with a reason code for every placement |
+| `schedule_rad_smart.csv` | The optimised 87-patient day, with the reporting time and a reason code for every placement |
 | `web_data.json` | Chart data for the interactive results page |
 | `fig1`–`fig6*.png` | Figures used in the report |
 
@@ -23,26 +23,27 @@ A full run takes under a minute on a laptop. Results are identical from run to r
 
 | Module | Role |
 |---|---|
-| `radsmart/config.py` | Department rules as data: techniques and durations, operating day, blood-irradiation slot, senior-staff window, protected block, new-start cut-off and buffer, urgent holds, accessories and CT-simulator bookings, objective weights |
-| `radsmart/synth.py` | Synthetic patients, days, urgent arrivals and 12,000 historical sessions; models "current practice" as hourly block appointments |
-| `radsmart/duration_model.py` | Lookup table of averages versus quantile gradient boosting (P50 / P80), with evaluation |
-| `radsmart/scheduler.py` | Two-stage coarse-to-fine MILP (HiGHS via SciPy). Hard rules as constraints, soft preferences in the objective, reason codes, minimum-disruption re-planning |
-| `radsmart/simulate.py` | Monte Carlo digital twin: arrivals, no-shows, duration noise, urgent patients, faults, message compliance, accessory hand-offs; KPIs defined as in Munshi et al. (2021) |
-| `radsmart/forecast.py` | Committed load from remaining fractions, pipeline of new patients, 2-day-ahead new-start recommendation per machine, compared with equal head-count |
-| `run_poc.py` | Runs every experiment and draws the figures |
+| `radsmart/config.py` | The department's rules as data (answers of 21 Sep 2026): operating day 08:30–01:00, blood-irradiation slot, senior-staff window and protected block, new-start and urgent cut-offs, MHRC slots and bus, public-transport limit, reporting and bladder-filling times, urgent holds, one breast board and one ABC with CT-simulator bookings and reservations, downtime rules, TBI, objective weights |
+| `radsmart/synth.py` | Synthetic patients (including MHRC, dormitory, nearby, public-transport, paying and pelvic patients, and the department's languages), days, urgent arrivals and 12,000 historical sessions; models "current practice" as hourly block appointments |
+| `radsmart/duration_model.py` | Lookup table of averages versus gradient boosting (expected, P50 and P80 minutes), with evaluation |
+| `radsmart/scheduler.py` | Two-stage coarse-to-fine MILP (HiGHS via SciPy). Hard rules as constraints, soft preferences in the objective, reason codes, re-planning that treats patients already waiting first, and an independent rule checker (`check_plan`) |
+| `radsmart/simulate.py` | Monte Carlo digital twin: reporting times, arrivals, no-shows, duration noise, urgent patients, imaging holds, faults and deferrals, message compliance, call-in of flexible patients, accessory hand-offs; KPIs defined as in Munshi et al. (2021) |
+| `radsmart/forecast.py` | Committed load from remaining fractions, pipeline of new patients, TBI capacity, 2-day-ahead new-start recommendation per machine, compared with equal head-count and a manual taper |
+| `run_poc.py` | Runs every experiment (the day, the urgent-hold trade-off, both downtime rules, the forecast) and draws the figures |
 
 ## Headline results (300 simulated days)
 
 | Metric | Current practice (modelled) | RAD-SMART (ML) |
 |---|---|---|
-| Median wait, arrival to treatment room | 70.8 min | 19.2 min |
-| 90th-percentile wait | 226.5 min | 52.0 min |
-| Within ±15 min of appointment | 15.5% | 62.4% |
-| Live re-plan after a 30-min fault | n/a | 4.0 s; median wait 93.0 → 19.4 min |
+| Median wait, arrival to treatment room (preparation included) | 100.0 min | 32.8 min |
+| 90th-percentile wait | 172.9 min | 61.6 min |
+| Within ±15 min of appointment | 9.6% | 72.6% |
+| 45-min fault at 11:00: median wait | 144.0 min | 40.3 min (re-planned in 26.3 s) |
+| 150-min fault at 10:00: median wait | 215.7 min | 35.0 min (re-planned in 3.7 s; new starts to the next day) |
 
 ## Limitations
 
-- The data are synthetic, and the "current practice" baseline is a model, not a measurement.
+- The data are synthetic. The rules are the department's, but session lengths are estimates (no timestamps exist yet), and the "current practice" baseline is a model, not a measurement.
 - The day simulation covers one machine; the two-machine test covers the forecast only.
 - Production would use OR-Tools CP-SAT; this PoC uses the open-source HiGHS MILP solver through SciPy.
 

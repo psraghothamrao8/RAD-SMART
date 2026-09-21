@@ -5,7 +5,9 @@ Two predictors share one interface:
     durations per technique and first/subsequent fraction.
   * QuantileGBMPredictor - learns from session logs (check-in, room entry,
     last beam, exit timestamps) and returns P50 and P80 minutes, so the
-    scheduler can plan with uncertainty instead of a single average.
+    scheduler can plan with uncertainty instead of a single average. It also
+    learns the expected (mean) minutes, which is what a plan should reserve:
+    session lengths are skewed, so reserving medians under-books the day.
 
 This predicts how long the machine is occupied. It never interprets clinical
 data or recommends anything clinical.
@@ -63,8 +65,9 @@ class QuantileGBMPredictor:
         X = self._encode(df)
         mask = [f in CATEGORICAL for f in FEATURES]
         self.models = {}
-        for q in (0.5, 0.8):
-            m = HistGradientBoostingRegressor(loss="quantile", quantile=q, max_iter=300,
+        for q in (0.5, 0.8, "mean"):
+            loss = dict(loss="squared_error") if q == "mean" else dict(loss="quantile", quantile=q)
+            m = HistGradientBoostingRegressor(**loss, max_iter=300,
                                               learning_rate=0.08, max_leaf_nodes=31,
                                               categorical_features=mask, random_state=seed)
             m.fit(X, df["duration"].values)
@@ -81,13 +84,14 @@ class QuantileGBMPredictor:
                 X[f] = df[f].astype(float)
         return X.values
 
-    def predict_frame(self, rows, q: float) -> np.ndarray:
+    def predict_frame(self, rows, q) -> np.ndarray:
+        """q: 0.5 (P50), 0.8 (P80) or "mean" (expected minutes)."""
         return self.models[q].predict(self._encode(_frame(rows)))
 
     def _one(self, p, q):
         return float(self.predict_many([p], q)[0])
 
-    def predict_many(self, patients, q: float) -> np.ndarray:
+    def predict_many(self, patients, q) -> np.ndarray:
         rows = []
         for p in patients:
             row = p.to_dict()

@@ -1,227 +1,514 @@
 {
   "assumptions": {
-    "data": "synthetic (fake) patients; no real patient data used",
-    "operating_day": "07:30-20:30 (overtime to 21:30)",
+    "data": "synthetic (fake) patients; department rules from its answers (21 Sep 2026)",
+    "operating_day": "08:30-01:00 (overtime to 02:00)",
+    "patients": "87 planned + 0-3 same-day urgent starts (ceiling 90)",
     "blood_irradiation": "13:30-14:00 on Versa HD",
     "senior_staff_window": "10:00-17:00",
     "protected_block": "12:00-13:30",
     "new_start_cut_off": "17:00",
+    "urgent_cut_off": "18:00",
+    "mhrc": "16:00-17:00 slots, 17:00 bus",
+    "public_transport": "finish by 21:00",
     "deadline_buffer_min": 25,
-    "urgent_same_day_starts_per_day": "Poisson(1.2), ready 12:30-15:30",
+    "reporting": "20 min before the slot; pelvic 45 min (500 mL water, 30 min wait)",
+    "accessories": "1 breast board, 1 ABC, shared with the CT simulator (11:00-18:00), 2-min transfer",
+    "urgent_same_day_starts_per_day": "Poisson(1.2) capped at 3, ready 13:00-16:30",
+    "imaging_holds": "2% of sessions; half repositioned at once, half treated later the same day",
     "no_show_rate": 0.02,
-    "arrival_offset": "Normal(-10, 12) min, clipped to [-40, +25]",
+    "arrival_offset": "Normal(-5, 12) min around the reporting time, clipped to [-40, +25]",
     "message_compliance": 0.85,
     "replications": 300
   },
   "duration_model": {
     "Lookup table (averages)": {
-      "mae_min": 2.43,
-      "within_2min_pct": 54.25,
-      "within_3min_pct": 73.45,
-      "p80_coverage_pct": 80.1
+      "mae_min": 2.62,
+      "within_2min_pct": 50.85,
+      "within_3min_pct": 70.1,
+      "p80_coverage_pct": 80.4
     },
     "Quantile gradient boosting": {
-      "mae_min": 1.92,
-      "within_2min_pct": 67.9,
-      "within_3min_pct": 82.25,
-      "p80_coverage_pct": 78.15
+      "mae_min": 2.15,
+      "within_2min_pct": 61.95,
+      "within_3min_pct": 78.3,
+      "p80_coverage_pct": 78.55
     }
   },
   "day": {
-    "patients": 67,
+    "patients": 87,
     "new_starts": 5,
     "complex": 3,
-    "expected_machine_minutes": 676,
-    "available_minutes": 750,
-    "load_pct": 90.1,
+    "expected_machine_minutes": 890,
+    "available_minutes": 960,
+    "load_pct": 92.7,
     "priority_mix": {
-      "elderly": 7,
-      "inpatient": 7,
-      "hospice_mhrc": 0,
-      "dormitory": 2,
-      "public_transport": 18,
-      "paying": 18,
-      "requested_time": 8,
-      "abc": 2,
-      "breast_board": 17
+      "older_70_plus": 9,
+      "inpatient": 5,
+      "mhrc": 3,
+      "dormitory": 10,
+      "nearby": 19,
+      "flexible": 34,
+      "public_transport": 26,
+      "paying": 31,
+      "preferred_time": 17,
+      "pelvic": 26,
+      "abc": 5,
+      "breast_board": 15
+    },
+    "languages": {
+      "Kannada": 49,
+      "Tulu": 22,
+      "Malayalam": 9,
+      "English": 5,
+      "Hindi": 2
     }
   },
   "solver": {
     "averages": {
-      "seconds": 2.1,
-      "status": "optimal",
-      "proven_gap_pct": 0,
+      "seconds": 44.3,
+      "status": "time limit (best found)",
+      "proven_gap_pct": 2.49,
       "unscheduled": [],
-      "variables": 6081,
-      "constraints": 1327
+      "variables": 5056,
+      "constraints": 1662
     },
     "ml": {
-      "seconds": 8.2,
+      "seconds": 20.0,
       "status": "optimal",
-      "proven_gap_pct": 0,
+      "proven_gap_pct": 0.05,
       "unscheduled": [],
-      "variables": 6041,
-      "constraints": 1327
+      "variables": 4614,
+      "constraints": 1662
     }
+  },
+  "plan_check": {
+    "averages": {
+      "rules_checked": 7,
+      "violations": [],
+      "sessions_checked": 87,
+      "unplanned": []
+    },
+    "ml": {
+      "rules_checked": 7,
+      "violations": [],
+      "sessions_checked": 87,
+      "unplanned": []
+    }
+  },
+  "plan": {
+    "planned_last_end": "00:45",
+    "paying_with_preference": 17,
+    "paying_within_15_min": 11,
+    "sessions_after_21": 25,
+    "sessions_after_21_flexible": 24,
+    "older_before_13": 3,
+    "older": 9,
+    "complex_in_protected_block": 2,
+    "mhrc_slots": [
+      "16:16",
+      "16:32",
+      "16:24"
+    ]
   },
   "day_results": {
     "Current practice": {
-      "patients": 66.8,
-      "wait_median": 70.8,
+      "patients": 86.3,
+      "wait_median": 100.0,
       "wait_median_ci": [
-        50.1,
-        106.3
+        50.7,
+        151.1
       ],
-      "wait_p90": 226.5,
+      "wait_p90": 172.9,
       "wait_p90_ci": [
-        166.9,
-        283.1
+        109.9,
+        226.9
       ],
-      "wait_mean": 106.9,
-      "delay_median": 66.0,
-      "within_15_pct": 15.5,
-      "within_30_pct": 27.7,
-      "overtime_min": 0.2,
-      "new_starts_after_5pm": 0.1,
-      "complex_deferred": 0.1,
-      "accessory_delays": 0.1,
-      "blood_slot_delay_min": 2.3,
+      "wait_mean": 98.6,
+      "excess_wait_median": 83.7,
+      "excess_wait_p90": 156.3,
+      "delay_median": 93.8,
+      "within_15_pct": 9.6,
+      "within_30_pct": 17.7,
+      "overtime_min": 3.4,
+      "last_end": 1468.8,
+      "new_starts_after_5pm": 1.2,
+      "complex_deferred": 0.0,
+      "mhrc_missed_bus": 0.1,
+      "transport_after_9pm": 0.6,
+      "others_after_9pm": 2.0,
+      "paying_within_15_pct": 15.8,
+      "accessory_delays": 3.1,
+      "blood_slot_delay_min": 1.2,
       "urgent_same_day_pct": 100.0,
-      "last_end": 1169.0,
-      "time_in_dept_mean": 117.1
+      "imaging_holds": 1.8,
+      "held_treated_same_day": 0.8,
+      "deferred": 0.0,
+      "time_in_dept_mean": 110.3,
+      "called_in_early": 0.8
     },
     "RAD-SMART (averages)": {
-      "patients": 66.7,
-      "wait_median": 22.5,
+      "patients": 86.3,
+      "wait_median": 35.1,
       "wait_median_ci": [
-        7.7,
-        45.7
+        24.8,
+        56.7
       ],
-      "wait_p90": 60.5,
+      "wait_p90": 64.7,
       "wait_p90_ci": [
-        25.6,
-        111.8
+        48.7,
+        97.3
       ],
-      "wait_mean": 28.5,
-      "delay_median": 13.8,
-      "within_15_pct": 54.8,
-      "within_30_pct": 74.6,
-      "overtime_min": 0.3,
-      "new_starts_after_5pm": 0.0,
+      "wait_mean": 38.1,
+      "excess_wait_median": 19.2,
+      "excess_wait_p90": 43.2,
+      "delay_median": 5.4,
+      "within_15_pct": 70.4,
+      "within_30_pct": 89.3,
+      "overtime_min": 3.0,
+      "last_end": 1486.5,
+      "new_starts_after_5pm": 0.4,
       "complex_deferred": 0.1,
-      "accessory_delays": 0.0,
-      "blood_slot_delay_min": 1.0,
+      "mhrc_missed_bus": 0.2,
+      "transport_after_9pm": 0.1,
+      "others_after_9pm": 0.8,
+      "paying_within_15_pct": 49.3,
+      "accessory_delays": 0.9,
+      "blood_slot_delay_min": 0.4,
       "urgent_same_day_pct": 100.0,
-      "last_end": 1182.0,
-      "time_in_dept_mean": 38.7
+      "imaging_holds": 1.8,
+      "held_treated_same_day": 0.8,
+      "deferred": 0.0,
+      "time_in_dept_mean": 49.1,
+      "called_in_early": 2.5
     },
     "RAD-SMART (ML)": {
-      "patients": 66.8,
-      "wait_median": 19.2,
+      "patients": 86.3,
+      "wait_median": 32.8,
       "wait_median_ci": [
-        6.5,
-        38.1
+        23.5,
+        52.2
       ],
-      "wait_p90": 52.0,
+      "wait_p90": 61.6,
       "wait_p90_ci": [
-        23.2,
-        99.9
+        44.8,
+        94.4
       ],
-      "wait_mean": 24.3,
-      "delay_median": 10.0,
-      "within_15_pct": 62.4,
-      "within_30_pct": 81.9,
-      "overtime_min": 0.4,
-      "new_starts_after_5pm": 0.0,
-      "complex_deferred": 0.0,
-      "accessory_delays": 0.0,
-      "blood_slot_delay_min": 2.2,
-      "urgent_same_day_pct": 100.0,
-      "last_end": 1185.1,
-      "time_in_dept_mean": 34.4
-    }
-  },
-  "disruption": {
-    "fault": "Versa HD down 11:00-11:30",
-    "reoptimisation_seconds": 4.0,
-    "patients_replanned": 38,
-    "patients_messaged": 17
-  },
-  "disruption_results": {
-    "Current practice": {
-      "patients": 66.7,
-      "wait_median": 93.0,
-      "wait_median_ci": [
-        55.3,
-        126.9
-      ],
-      "wait_p90": 253.7,
-      "wait_p90_ci": [
-        200.7,
-        299.1
-      ],
-      "wait_mean": 122.9,
-      "delay_median": 83.0,
-      "within_15_pct": 14.3,
-      "within_30_pct": 26.1,
-      "overtime_min": 0.6,
+      "wait_mean": 36.2,
+      "excess_wait_median": 16.6,
+      "excess_wait_p90": 40.2,
+      "delay_median": 3.5,
+      "within_15_pct": 72.6,
+      "within_30_pct": 90.6,
+      "overtime_min": 3.9,
+      "last_end": 1493.0,
       "new_starts_after_5pm": 0.2,
-      "complex_deferred": 0.2,
-      "accessory_delays": 0.0,
-      "blood_slot_delay_min": 2.3,
-      "urgent_same_day_pct": 100.0,
-      "last_end": 1185.5,
-      "time_in_dept_mean": 133.4
-    },
-    "RAD-SMART plan, no re-planning": {
-      "patients": 66.8,
-      "wait_median": 31.2,
-      "wait_median_ci": [
-        11.9,
-        56.4
-      ],
-      "wait_p90": 76.0,
-      "wait_p90_ci": [
-        41.2,
-        125.6
-      ],
-      "wait_mean": 35.9,
-      "delay_median": 24.9,
-      "within_15_pct": 46.2,
-      "within_30_pct": 61.0,
-      "overtime_min": 0.8,
-      "new_starts_after_5pm": 0.1,
-      "complex_deferred": 0.2,
-      "accessory_delays": 0.0,
+      "complex_deferred": 0.0,
+      "mhrc_missed_bus": 0.1,
+      "transport_after_9pm": 0.1,
+      "others_after_9pm": 1.0,
+      "paying_within_15_pct": 52.5,
+      "accessory_delays": 1.3,
       "blood_slot_delay_min": 0.9,
       "urgent_same_day_pct": 100.0,
-      "last_end": 1198.1,
-      "time_in_dept_mean": 46.5
+      "imaging_holds": 1.8,
+      "held_treated_same_day": 0.8,
+      "deferred": 0.0,
+      "time_in_dept_mean": 47.3,
+      "called_in_early": 2.8
+    }
+  },
+  "buffer_tradeoff": [
+    {
+      "policy": "Current practice",
+      "wait_median": 100.0,
+      "wait_p90": 172.9,
+      "within_15_pct": 9.6,
+      "last_end": "00:29",
+      "overtime_min": 3.4,
+      "urgent_same_day_pct": 100.0
     },
-    "RAD-SMART live re-planning + messages": {
-      "patients": 66.9,
-      "wait_median": 19.4,
-      "wait_median_ci": [
-        7.9,
-        40.3
+    {
+      "policy": "40 min held (two 20-min holds)",
+      "wait_median": 32.8,
+      "wait_p90": 61.6,
+      "within_15_pct": 72.6,
+      "last_end": "00:53",
+      "overtime_min": 3.9,
+      "urgent_same_day_pct": 100.0
+    },
+    {
+      "policy": "20 min held (one hold at 14:40)",
+      "wait_median": 38.6,
+      "wait_p90": 68.2,
+      "within_15_pct": 65.7,
+      "last_end": "00:40",
+      "overtime_min": 2.6,
+      "urgent_same_day_pct": 100.0
+    },
+    {
+      "policy": "Nothing held",
+      "wait_median": 42.7,
+      "wait_p90": 73.4,
+      "within_15_pct": 61.4,
+      "last_end": "00:17",
+      "overtime_min": 0.7,
+      "urgent_same_day_pct": 100.0
+    }
+  ],
+  "disruption": {
+    "short": {
+      "label": "45-minute fault at 11:00",
+      "rule": "up to 60 min: nobody sent home; all ongoing patients treated today; new starts deferred only if they can no longer finish by 17:00",
+      "reoptimisation_seconds": 26.3,
+      "patients_replanned": 70,
+      "patients_moved": 46,
+      "patients_messaged": 41,
+      "new_starts_moved_to_next_day": [],
+      "deferral_proposals": [],
+      "plan_check": {
+        "rules_checked": 7,
+        "violations": [],
+        "sessions_checked": 70,
+        "unplanned": []
+      }
+    },
+    "long": {
+      "label": "150-minute fault at 10:00",
+      "rule": "over 120 min: new starts to the next day (urgent palliative excepted); ongoing patients deferred only if the day cannot hold them",
+      "reoptimisation_seconds": 3.7,
+      "patients_replanned": 70,
+      "patients_moved": 15,
+      "patients_messaged": 17,
+      "new_starts_moved_to_next_day": [
+        "P003",
+        "P004",
+        "P005",
+        "P006",
+        "P007"
       ],
-      "wait_p90": 58.2,
-      "wait_p90_ci": [
-        29.0,
-        101.3
-      ],
-      "wait_mean": 30.0,
-      "delay_median": 10.7,
-      "within_15_pct": 60.9,
-      "within_30_pct": 80.8,
-      "overtime_min": 2.4,
-      "new_starts_after_5pm": 0.0,
-      "complex_deferred": 0.0,
-      "accessory_delays": 0.0,
-      "blood_slot_delay_min": 1.8,
-      "urgent_same_day_pct": 100.0,
-      "last_end": 1213.0,
-      "time_in_dept_mean": 40.6
+      "deferral_proposals": [],
+      "plan_check": {
+        "rules_checked": 7,
+        "violations": [],
+        "sessions_checked": 70,
+        "unplanned": []
+      }
+    }
+  },
+  "disruption_results": {
+    "short": {
+      "Current practice": {
+        "patients": 86.4,
+        "wait_median": 144.0,
+        "wait_median_ci": [
+          88.0,
+          194.9
+        ],
+        "wait_p90": 219.4,
+        "wait_p90_ci": [
+          162.8,
+          275.9
+        ],
+        "wait_mean": 134.9,
+        "excess_wait_median": 128.2,
+        "excess_wait_p90": 202.7,
+        "delay_median": 137.7,
+        "within_15_pct": 8.6,
+        "within_30_pct": 15.5,
+        "overtime_min": 20.1,
+        "last_end": 1511.2,
+        "new_starts_after_5pm": 1.9,
+        "complex_deferred": 0.1,
+        "mhrc_missed_bus": 0.2,
+        "transport_after_9pm": 2.0,
+        "others_after_9pm": 3.2,
+        "paying_within_15_pct": 13.7,
+        "accessory_delays": 2.0,
+        "blood_slot_delay_min": 1.0,
+        "urgent_same_day_pct": 100.0,
+        "imaging_holds": 1.6,
+        "held_treated_same_day": 0.7,
+        "deferred": 0.0,
+        "time_in_dept_mean": 147.1,
+        "called_in_early": 0.8
+      },
+      "RAD-SMART plan, no re-planning": {
+        "patients": 86.3,
+        "wait_median": 47.4,
+        "wait_median_ci": [
+          29.4,
+          80.6
+        ],
+        "wait_p90": 87.6,
+        "wait_p90_ci": [
+          57.4,
+          120.8
+        ],
+        "wait_mean": 51.5,
+        "excess_wait_median": 31.8,
+        "excess_wait_p90": 67.2,
+        "delay_median": 16.1,
+        "within_15_pct": 51.4,
+        "within_30_pct": 70.9,
+        "overtime_min": 13.6,
+        "last_end": 1508.6,
+        "new_starts_after_5pm": 1.1,
+        "complex_deferred": 0.1,
+        "mhrc_missed_bus": 0.2,
+        "transport_after_9pm": 0.4,
+        "others_after_9pm": 1.7,
+        "paying_within_15_pct": 43.2,
+        "accessory_delays": 2.2,
+        "blood_slot_delay_min": 0.6,
+        "urgent_same_day_pct": 100.0,
+        "imaging_holds": 1.6,
+        "held_treated_same_day": 0.8,
+        "deferred": 0.0,
+        "time_in_dept_mean": 62.9,
+        "called_in_early": 0.6
+      },
+      "RAD-SMART live re-planning + messages": {
+        "patients": 86.4,
+        "wait_median": 40.3,
+        "wait_median_ci": [
+          25.4,
+          71.4
+        ],
+        "wait_p90": 79.3,
+        "wait_p90_ci": [
+          52.7,
+          116.2
+        ],
+        "wait_mean": 45.8,
+        "excess_wait_median": 24.1,
+        "excess_wait_p90": 58.5,
+        "delay_median": 8.9,
+        "within_15_pct": 61.1,
+        "within_30_pct": 80.4,
+        "overtime_min": 23.1,
+        "last_end": 1522.5,
+        "new_starts_after_5pm": 0.4,
+        "complex_deferred": 0.0,
+        "mhrc_missed_bus": 0.2,
+        "transport_after_9pm": 0.1,
+        "others_after_9pm": 3.6,
+        "paying_within_15_pct": 43.3,
+        "accessory_delays": 0.1,
+        "blood_slot_delay_min": 0.4,
+        "urgent_same_day_pct": 100.0,
+        "imaging_holds": 1.6,
+        "held_treated_same_day": 0.8,
+        "deferred": 0.0,
+        "time_in_dept_mean": 57.3,
+        "called_in_early": 1.6
+      }
+    },
+    "long": {
+      "Current practice": {
+        "patients": 85.1,
+        "wait_median": 215.7,
+        "wait_median_ci": [
+          173.7,
+          262.0
+        ],
+        "wait_p90": 305.1,
+        "wait_p90_ci": [
+          260.0,
+          351.5
+        ],
+        "wait_mean": 202.9,
+        "excess_wait_median": 198.3,
+        "excess_wait_p90": 290.0,
+        "delay_median": 210.9,
+        "within_15_pct": 7.8,
+        "within_30_pct": 13.5,
+        "overtime_min": 72.6,
+        "last_end": 1572.5,
+        "new_starts_after_5pm": 2.6,
+        "complex_deferred": 1.3,
+        "mhrc_missed_bus": 0.4,
+        "transport_after_9pm": 5.0,
+        "others_after_9pm": 4.5,
+        "paying_within_15_pct": 12.8,
+        "accessory_delays": 1.4,
+        "blood_slot_delay_min": 0.7,
+        "urgent_same_day_pct": 100.0,
+        "imaging_holds": 1.6,
+        "held_treated_same_day": 0.7,
+        "deferred": 0.0,
+        "time_in_dept_mean": 216.3,
+        "called_in_early": 0.8
+      },
+      "RAD-SMART plan, no re-planning": {
+        "patients": 85.2,
+        "wait_median": 108.5,
+        "wait_median_ci": [
+          60.2,
+          159.8
+        ],
+        "wait_p90": 211.2,
+        "wait_p90_ci": [
+          176.1,
+          246.7
+        ],
+        "wait_mean": 116.2,
+        "excess_wait_median": 92.7,
+        "excess_wait_p90": 195.4,
+        "delay_median": 75.2,
+        "within_15_pct": 16.5,
+        "within_30_pct": 20.2,
+        "overtime_min": 64.6,
+        "last_end": 1564.5,
+        "new_starts_after_5pm": 2.8,
+        "complex_deferred": 1.2,
+        "mhrc_missed_bus": 0.5,
+        "transport_after_9pm": 3.0,
+        "others_after_9pm": 5.0,
+        "paying_within_15_pct": 24.2,
+        "accessory_delays": 1.1,
+        "blood_slot_delay_min": 0.6,
+        "urgent_same_day_pct": 100.0,
+        "imaging_holds": 1.6,
+        "held_treated_same_day": 0.7,
+        "deferred": 0.0,
+        "time_in_dept_mean": 128.7,
+        "called_in_early": 0.1
+      },
+      "RAD-SMART live re-planning + messages": {
+        "patients": 81.3,
+        "wait_median": 35.0,
+        "wait_median_ci": [
+          23.8,
+          52.4
+        ],
+        "wait_p90": 75.3,
+        "wait_p90_ci": [
+          49.6,
+          110.7
+        ],
+        "wait_mean": 44.0,
+        "excess_wait_median": 18.8,
+        "excess_wait_p90": 53.3,
+        "delay_median": 4.3,
+        "within_15_pct": 68.8,
+        "within_30_pct": 86.5,
+        "overtime_min": 4.6,
+        "last_end": 1494.9,
+        "new_starts_after_5pm": 0.0,
+        "complex_deferred": 0.1,
+        "mhrc_missed_bus": 0.2,
+        "transport_after_9pm": 0.0,
+        "others_after_9pm": 1.0,
+        "paying_within_15_pct": 49.5,
+        "accessory_delays": 0.4,
+        "blood_slot_delay_min": 0.4,
+        "urgent_same_day_pct": 100.0,
+        "imaging_holds": 1.6,
+        "held_treated_same_day": 0.7,
+        "deferred": 5.0,
+        "time_in_dept_mean": 55.8,
+        "called_in_early": 1.8
+      }
     }
   },
   "forecast": {
@@ -230,21 +517,32 @@
       "HALCYON": "Halcyon"
     },
     "patients_on_treatment": {
-      "VERSA": 72,
-      "HALCYON": 105
+      "VERSA": 79,
+      "HALCYON": 111
     },
-    "pipeline_patients": 84,
+    "pipeline_patients": 99,
     "daily_capacity_min": {
-      "VERSA": 650,
-      "HALCYON": 718
+      "VERSA": 843,
+      "HALCYON": 911
+    },
+    "tbi": {
+      "machine": "VERSA",
+      "days": [
+        "Mon (day 11)",
+        "Tue (day 12)",
+        "Wed (day 13)"
+      ],
+      "minutes_per_day": 180,
+      "manual_taper": "at most 2 new starts a day on days 6-13"
     },
     "table": [
       {
         "day": "Mon (day 1)",
-        "VERSA_committed_pct": 86,
-        "HALCYON_committed_pct": 83,
-        "VERSA_completing": 4,
-        "HALCYON_completing": 5,
+        "tbi": false,
+        "VERSA_committed_pct": 90,
+        "HALCYON_committed_pct": 81,
+        "VERSA_completing": 5,
+        "HALCYON_completing": 9,
         "VERSA_recommended_starts": 0,
         "HALCYON_recommended_starts": 0,
         "VERSA_occupancy": "Moderate",
@@ -252,10 +550,11 @@
       },
       {
         "day": "Tue (day 2)",
-        "VERSA_committed_pct": 82,
-        "HALCYON_committed_pct": 79,
-        "VERSA_completing": 4,
-        "HALCYON_completing": 5,
+        "tbi": false,
+        "VERSA_committed_pct": 85,
+        "HALCYON_committed_pct": 74,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 10,
         "VERSA_recommended_starts": 0,
         "HALCYON_recommended_starts": 0,
         "VERSA_occupancy": "Moderate",
@@ -263,165 +562,182 @@
       },
       {
         "day": "Wed (day 3)",
-        "VERSA_committed_pct": 75,
-        "HALCYON_committed_pct": 75,
-        "VERSA_completing": 3,
-        "HALCYON_completing": 3,
-        "VERSA_recommended_starts": 7,
-        "HALCYON_recommended_starts": 9,
+        "tbi": false,
+        "VERSA_committed_pct": 82,
+        "HALCYON_committed_pct": 67,
+        "VERSA_completing": 4,
+        "HALCYON_completing": 7,
+        "VERSA_recommended_starts": 5,
+        "HALCYON_recommended_starts": 12,
         "VERSA_occupancy": "High",
         "HALCYON_occupancy": "High"
       },
       {
         "day": "Thu (day 4)",
-        "VERSA_committed_pct": 72,
-        "HALCYON_committed_pct": 73,
-        "VERSA_completing": 2,
-        "HALCYON_completing": 3,
-        "VERSA_recommended_starts": 4,
-        "HALCYON_recommended_starts": 4,
-        "VERSA_occupancy": "High",
-        "HALCYON_occupancy": "High"
+        "tbi": false,
+        "VERSA_committed_pct": 78,
+        "HALCYON_committed_pct": 61,
+        "VERSA_completing": 5,
+        "HALCYON_completing": 6,
+        "VERSA_recommended_starts": 3,
+        "HALCYON_recommended_starts": 8,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Fri (day 5)",
+        "tbi": false,
         "VERSA_committed_pct": 67,
-        "HALCYON_committed_pct": 70,
-        "VERSA_completing": 4,
-        "HALCYON_completing": 4,
+        "HALCYON_committed_pct": 56,
+        "VERSA_completing": 5,
+        "HALCYON_completing": 2,
         "VERSA_recommended_starts": 3,
-        "HALCYON_recommended_starts": 3,
-        "VERSA_occupancy": "High",
-        "HALCYON_occupancy": "High"
+        "HALCYON_recommended_starts": 4,
+        "VERSA_occupancy": "Moderate",
+        "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Mon (day 6)",
-        "VERSA_committed_pct": 63,
-        "HALCYON_committed_pct": 67,
+        "tbi": false,
+        "VERSA_committed_pct": 62,
+        "HALCYON_committed_pct": 55,
         "VERSA_completing": 1,
         "HALCYON_completing": 5,
-        "VERSA_recommended_starts": 1,
-        "HALCYON_recommended_starts": 3,
+        "VERSA_recommended_starts": 5,
+        "HALCYON_recommended_starts": 4,
         "VERSA_occupancy": "Moderate",
-        "HALCYON_occupancy": "High"
+        "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Tue (day 7)",
-        "VERSA_committed_pct": 62,
-        "HALCYON_committed_pct": 62,
-        "VERSA_completing": 2,
-        "HALCYON_completing": 5,
-        "VERSA_recommended_starts": 1,
-        "HALCYON_recommended_starts": 0,
+        "tbi": false,
+        "VERSA_committed_pct": 61,
+        "HALCYON_committed_pct": 51,
+        "VERSA_completing": 4,
+        "HALCYON_completing": 4,
+        "VERSA_recommended_starts": 2,
+        "HALCYON_recommended_starts": 2,
         "VERSA_occupancy": "Moderate",
         "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Wed (day 8)",
-        "VERSA_committed_pct": 59,
-        "HALCYON_committed_pct": 58,
-        "VERSA_completing": 1,
-        "HALCYON_completing": 3,
+        "tbi": false,
+        "VERSA_committed_pct": 55,
+        "HALCYON_committed_pct": 47,
+        "VERSA_completing": 6,
+        "HALCYON_completing": 4,
         "VERSA_recommended_starts": 3,
-        "HALCYON_recommended_starts": 4,
+        "HALCYON_recommended_starts": 3,
         "VERSA_occupancy": "Moderate",
         "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Thu (day 9)",
-        "VERSA_committed_pct": 58,
-        "HALCYON_committed_pct": 56,
+        "tbi": false,
+        "VERSA_committed_pct": 48,
+        "HALCYON_committed_pct": 44,
         "VERSA_completing": 1,
-        "HALCYON_completing": 4,
-        "VERSA_recommended_starts": 3,
-        "HALCYON_recommended_starts": 4,
-        "VERSA_occupancy": "Moderate",
+        "HALCYON_completing": 3,
+        "VERSA_recommended_starts": 1,
+        "HALCYON_recommended_starts": 5,
+        "VERSA_occupancy": "Low",
         "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Fri (day 10)",
-        "VERSA_committed_pct": 57,
-        "HALCYON_committed_pct": 52,
-        "VERSA_completing": 3,
-        "HALCYON_completing": 7,
+        "tbi": false,
+        "VERSA_committed_pct": 47,
+        "HALCYON_committed_pct": 42,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 4,
         "VERSA_recommended_starts": 2,
-        "HALCYON_recommended_starts": 3,
-        "VERSA_occupancy": "Moderate",
-        "HALCYON_occupancy": "Moderate"
-      },
-      {
-        "day": "Mon (day 11)",
-        "VERSA_committed_pct": 54,
-        "HALCYON_committed_pct": 45,
-        "VERSA_completing": 5,
-        "HALCYON_completing": 3,
-        "VERSA_recommended_starts": 1,
         "HALCYON_recommended_starts": 5,
         "VERSA_occupancy": "Moderate",
         "HALCYON_occupancy": "Moderate"
       },
       {
-        "day": "Tue (day 12)",
-        "VERSA_committed_pct": 47,
-        "HALCYON_committed_pct": 41,
+        "day": "Mon (day 11)",
+        "tbi": true,
+        "VERSA_committed_pct": 44,
+        "HALCYON_committed_pct": 38,
         "VERSA_completing": 1,
-        "HALCYON_completing": 3,
-        "VERSA_recommended_starts": 3,
-        "HALCYON_recommended_starts": 3,
-        "VERSA_occupancy": "Moderate",
-        "HALCYON_occupancy": "Moderate"
+        "HALCYON_completing": 4,
+        "VERSA_recommended_starts": 1,
+        "HALCYON_recommended_starts": 5,
+        "VERSA_occupancy": "High",
+        "HALCYON_occupancy": "High"
+      },
+      {
+        "day": "Tue (day 12)",
+        "tbi": true,
+        "VERSA_committed_pct": 43,
+        "HALCYON_committed_pct": 34,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 4,
+        "VERSA_recommended_starts": 2,
+        "HALCYON_recommended_starts": 6,
+        "VERSA_occupancy": "High",
+        "HALCYON_occupancy": "High"
       },
       {
         "day": "Wed (day 13)",
-        "VERSA_committed_pct": 46,
-        "HALCYON_committed_pct": 39,
+        "tbi": true,
+        "VERSA_committed_pct": 40,
+        "HALCYON_committed_pct": 31,
         "VERSA_completing": 2,
         "HALCYON_completing": 3,
-        "VERSA_recommended_starts": 1,
-        "HALCYON_recommended_starts": 1,
-        "VERSA_occupancy": "Moderate",
-        "HALCYON_occupancy": "Moderate"
+        "VERSA_recommended_starts": 5,
+        "HALCYON_recommended_starts": 4,
+        "VERSA_occupancy": "High",
+        "HALCYON_occupancy": "High"
       },
       {
         "day": "Thu (day 14)",
-        "VERSA_committed_pct": 44,
-        "HALCYON_committed_pct": 36,
+        "tbi": false,
+        "VERSA_committed_pct": 37,
+        "HALCYON_committed_pct": 28,
         "VERSA_completing": 4,
         "HALCYON_completing": 3,
-        "VERSA_recommended_starts": 4,
-        "HALCYON_recommended_starts": 4,
+        "VERSA_recommended_starts": 5,
+        "HALCYON_recommended_starts": 0,
         "VERSA_occupancy": "Moderate",
         "HALCYON_occupancy": "Moderate"
       },
       {
         "day": "Fri (day 15)",
-        "VERSA_committed_pct": 38,
-        "HALCYON_committed_pct": 34,
-        "VERSA_completing": 3,
-        "HALCYON_completing": 5,
-        "VERSA_recommended_starts": 5,
-        "HALCYON_recommended_starts": 3,
-        "VERSA_occupancy": "Moderate",
+        "tbi": false,
+        "VERSA_committed_pct": 33,
+        "HALCYON_committed_pct": 25,
+        "VERSA_completing": 2,
+        "HALCYON_completing": 0,
+        "VERSA_recommended_starts": 4,
+        "HALCYON_recommended_starts": 0,
+        "VERSA_occupancy": "Low",
         "HALCYON_occupancy": "Moderate"
       }
     ],
     "rad_smart_peak_pct": {
-      "VERSA": 100,
-      "HALCYON": 100
+      "VERSA": 98,
+      "HALCYON": 99
     },
     "headcount_peak_pct": {
-      "VERSA": 156,
-      "HALCYON": 75
+      "VERSA": 154,
+      "HALCYON": 95
     },
+    "rad_smart_tbi_peak_pct": 98,
+    "headcount_tbi_peak_pct": 111,
     "headcount_days_over_capacity": {
-      "VERSA": 13,
+      "VERSA": 10,
       "HALCYON": 0
     },
     "rad_smart_days_over_capacity": {
       "VERSA": 0,
       "HALCYON": 0
     },
+    "rad_smart_mean_days_to_start": 0.0,
+    "headcount_mean_days_to_start": 1.7,
     "still_waiting_at_horizon": 0
   },
-  "runtime_seconds": 28.1
+  "runtime_seconds": 241.9
 }

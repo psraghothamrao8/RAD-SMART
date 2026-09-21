@@ -11,7 +11,7 @@
     --accent: #2a78d6; --accent-ink: #1c5cab; --accent-soft: rgba(42, 120, 214, 0.09);
     --base: #898781; --new: #eb6834; --complex: #1baf7a;
     --block: #b8b6ad; --block-soft: #ecebe6; --fault: #d03a2f; --fault-soft: rgba(208, 58, 47, 0.12);
-    --focus: #1c5cab;
+    --focus: #1c5cab; --band: rgba(137, 135, 129, 0.16);
     --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
     --sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -25,7 +25,7 @@
       --accent: #3987e5; --accent-ink: #8dbbf2; --accent-soft: rgba(57, 135, 229, 0.14);
       --base: #9a988f; --new: #d95926; --complex: #199e70;
       --block: #57554f; --block-soft: #232a33; --fault: #e5584c; --fault-soft: rgba(229, 88, 76, 0.18);
-      --focus: #8dbbf2;
+      --focus: #8dbbf2; --band: rgba(154, 152, 143, 0.16);
     }
   }
   :root[data-theme="dark"] {
@@ -36,7 +36,7 @@
     --accent: #3987e5; --accent-ink: #8dbbf2; --accent-soft: rgba(57, 135, 229, 0.14);
     --base: #9a988f; --new: #d95926; --complex: #199e70;
     --block: #57554f; --block-soft: #232a33; --fault: #e5584c; --fault-soft: rgba(229, 88, 76, 0.18);
-    --focus: #8dbbf2;
+    --focus: #8dbbf2; --band: rgba(154, 152, 143, 0.16);
   }
 
   * { box-sizing: border-box; }
@@ -111,7 +111,7 @@
   svg .f-base { fill: var(--base); } svg .f-ml, svg .f-avg { fill: var(--accent); }
 
   /* the day timeline */
-  .gantt-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+  .gantt-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font: 500 13px var(--sans); color: var(--ink-2); background: var(--raised); border: 1px solid var(--line); border-radius: 999px;
           padding: 5px 11px; cursor: pointer; }
@@ -129,7 +129,13 @@
   svg .faultband { fill: var(--fault-soft); }
   svg .faultlab { fill: var(--fault); font-weight: 600; }
   svg .hatchline { stroke: var(--block); stroke-width: 1.5; }
-  .detail { background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .sw.cap { background: repeating-linear-gradient(90deg, var(--ink-2) 0 2px, transparent 2px 5px); }
+  svg .s-cap { stroke: var(--ink-2); stroke-width: 1.5; stroke-dasharray: 2 4; }
+  svg .f-cap { fill: var(--ink-2); }
+  svg .mhrcband, svg .tbiband { fill: var(--band); }
+  svg .sess.off { fill: transparent; stroke: var(--ink-2); stroke-width: 1.5; stroke-dasharray: 3 2; }
+  .detail { background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 28px; }
+  .detail > div { display: grid; gap: 10px; align-content: start; }
   .detail .when { font: 500 24px/1.1 var(--mono); color: var(--ink); }
   .detail .what { font-size: 15px; color: var(--ink-2); }
   .pills { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -153,6 +159,7 @@
   .kpis { overflow-x: auto; }
   .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
   .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .facts.facts4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .fact { background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
   .fact .v { font: 600 22px/1.2 var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
   .fact .k { font-size: 13.5px; color: var(--muted); }
@@ -166,8 +173,9 @@
 
   @media (max-width: 900px) {
     .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .gantt-wrap, .split, .about { grid-template-columns: minmax(0, 1fr); }
+    .gantt-wrap, .split, .about, .detail { grid-template-columns: minmax(0, 1fr); }
     .facts { grid-template-columns: minmax(0, 1fr); }
+    .facts.facts4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 560px) {
     .wrap { padding-inline: 16px; }
@@ -175,6 +183,7 @@
     table { font-size: 13px; }
     th, td { padding: 6px 7px; }
     .tiles { grid-template-columns: minmax(0, 1fr); }
+    .facts.facts4 { grid-template-columns: minmax(0, 1fr); }
   }
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
@@ -183,15 +192,16 @@
   <header class="top">
     <p class="eyebrow">Health-a-thon 2026 · Cancer track · Proof of concept</p>
     <h1>RAD-SMART prototype results</h1>
-    <p class="lede">RAD-SMART plans radiotherapy sessions by predicted machine-minutes, keeps every hard rule, and re-plans when the day goes wrong. These results come from our working prototype, run on a synthetic 67-patient day and simulated 300 times.</p>
+    <p class="lede">RAD-SMART plans radiotherapy sessions by predicted machine-minutes, keeps every hard rule, and re-plans when the day goes wrong. These results come from our working prototype, run on a synthetic 87-patient day under the department's own rules and simulated 300 times.</p>
     <div class="notice">
       <span>All patients are synthetic; no real data</span>
-      <span>"Current practice" is modelled on manual block booking, not measured</span>
-      <span>Assistive, not diagnostic: people approve every plan</span>
+      <span>Rules from the department's answers (21 Sep 2026)</span>
+      <span>"Current practice" is modelled, not measured</span>
+      <span>Assistive, not diagnostic: a senior RTT or oncologist approves every plan</span>
     </div>
     <nav class="toc" aria-label="Sections">
-      <a href="#waits">Waiting times</a><a href="#day">The optimised day</a><a href="#fault">Machine fault</a>
-      <a href="#forecast">Two machines</a><a href="#minutes">Predicting minutes</a><a href="#about">About</a>
+      <a href="#waits">Waiting times</a><a href="#day">The optimised day</a><a href="#fault">Machine downtime</a>
+      <a href="#forecast">Two machines and TBI</a><a href="#minutes">Predicting minutes</a><a href="#about">About</a>
     </nav>
   </header>
 
@@ -201,26 +211,32 @@
     <div class="head">
       <p class="eyebrow">300 simulated days</p>
       <h2 id="h-waits">How long patients wait</h2>
-      <p class="takeaway">Same patients, same machine time. Waits fall because each patient is told to come when the machine will actually be free. Even with only average durations, most of the gain is there from day one.</p>
+      <p class="takeaway">Same patients, same machine time. Waits fall because each patient is told a reporting time based on when the machine will actually be free: 20 minutes before their slot, or 45 minutes for pelvic patients, who drink water and wait 30 minutes. That preparation time is included in every wait below.</p>
     </div>
     <div class="card">
       <div class="toolbar"><div class="legend" id="lg-waits"></div></div>
       <div class="chart" id="ch-waits"></div>
     </div>
     <div class="kpis card"><table id="tb-waits"></table></div>
+    <div class="kpis card">
+      <h3 style="margin-bottom:8px">How much capacity to hold for urgent starts</h3>
+      <table id="tb-buffer"></table>
+    </div>
   </section>
 
   <section class="block" id="day" aria-labelledby="h-day">
     <div class="head">
       <p class="eyebrow">One optimised day on the Versa HD</p>
       <h2 id="h-day">Every session has a time, and a reason</h2>
-      <p class="takeaway">Complex cases sit inside the protected block and senior-staff window, new starts finish before 17:00, and shared accessories never clash with CT-simulator bookings. Select any session to see why it got its time, or switch to the re-plan after an 11:00 machine fault.</p>
+      <p class="takeaway">Complex cases stay inside 10:00–17:00, preferably the 12:00–13:30 block; new starts finish by 17:00; MHRC patients are treated in their 16:00–17:00 slots and catch the 17:00 bus; public-transport patients are home by 21:00; inpatients, dormitory residents and people living nearby take the late evening; and the single breast board and ABC unit never clash with the CT simulator. Select any session to see why it got its time, or switch to a re-plan after a machine fault.</p>
     </div>
+    <div class="facts facts4" id="facts-day"></div>
     <div class="card">
       <div class="toolbar">
         <div class="seg" role="group" aria-label="Plan shown">
-          <button type="button" id="mode-plan" aria-pressed="true">Evening plan</button>
-          <button type="button" id="mode-fault" aria-pressed="false">After 11:00 fault</button>
+          <button type="button" data-mode="plan" aria-pressed="true">Evening plan</button>
+          <button type="button" data-mode="short" aria-pressed="false">After 45-min fault</button>
+          <button type="button" data-mode="long" aria-pressed="false">After 150-min fault</button>
         </div>
         <div class="chips" id="chips" role="group" aria-label="Highlight patients"></div>
       </div>
@@ -230,7 +246,7 @@
         <aside class="detail" id="detail" aria-live="polite"></aside>
       </div>
       <details class="tbl">
-        <summary>Every placement, with its reason (<span id="count">67</span> patients)</summary>
+        <summary>Every placement, with its reason (<span id="count">87</span> patients)</summary>
         <div class="table-scroll"><table id="tb-day"></table></div>
       </details>
     </div>
@@ -238,16 +254,17 @@
 
   <section class="block" id="fault" aria-labelledby="h-fault">
     <div class="head">
-      <p class="eyebrow">Recovery</p>
-      <h2 id="h-fault">When the machine fails for 30 minutes</h2>
-      <p class="takeaway">RAD-SMART freezes what has started, re-plans the rest with the fewest changes, never asks anyone to arrive earlier than they can, and messages only patients with at least 45 minutes' notice.</p>
+      <p class="eyebrow">Machine downtime</p>
+      <h2 id="h-fault">When the machine goes down</h2>
+      <p class="takeaway">The department's rules: for downtime of up to an hour, nobody is sent home, every ongoing patient is treated the same day, and only new starts that can no longer finish by 17:00 are deferred. Beyond two hours, new starts move to the next day (urgent palliative starts excepted) and some patients may be deferred. RAD-SMART applies these rules, re-plans the rest of the day with the fewest changes, messages only patients with at least 45 minutes' notice, and proposes every deferral to the oncologist or senior RTT for approval.</p>
     </div>
-    <div class="facts" id="facts-fault"></div>
+    <div class="facts facts4" id="facts-fault"></div>
     <div class="card">
       <div class="toolbar">
         <div class="seg" role="group" aria-label="Scenario">
-          <button type="button" id="wr-normal" aria-pressed="false">Normal day</button>
-          <button type="button" id="wr-fault" aria-pressed="true">Fault at 11:00</button>
+          <button type="button" data-wr="short" aria-pressed="true">45-min fault at 11:00</button>
+          <button type="button" data-wr="long" aria-pressed="false">150-min fault at 10:00</button>
+          <button type="button" data-wr="normal" aria-pressed="false">Normal day</button>
         </div>
         <div class="legend" id="lg-wr"></div>
       </div>
@@ -258,10 +275,11 @@
 
   <section class="block" id="forecast" aria-labelledby="h-fc">
     <div class="head">
-      <p class="eyebrow">Two machines, three weeks</p>
+      <p class="eyebrow">Two machines, three weeks, one TBI course</p>
       <h2 id="h-fc">New starts balanced by minutes, not head-count</h2>
-      <p class="takeaway">Splitting new patients equally by head-count overloads the slower Versa HD while the Halcyon sits under-used. Recommending starts two working days ahead, by predicted minutes, fills both machines to target.</p>
+      <p class="takeaway">Total body irradiation is known a month ahead and takes two 90-minute slots a day, so RAD-SMART takes those minutes off the Versa HD's capacity on the TBI days and holds back exactly the new starts that would not fit. Splitting new patients equally by head-count, even with a manual taper before TBI, overloads the Versa HD and delays starts. The second machine's capability matrix is still to be agreed, so its eligibility here is a placeholder.</p>
     </div>
+    <div class="facts facts4" id="facts-fc"></div>
     <div class="card">
       <div class="toolbar"><div class="legend" id="lg-fc"></div></div>
       <div class="split" id="ch-fc"></div>
@@ -273,7 +291,7 @@
     <div class="head">
       <p class="eyebrow">Machine learning</p>
       <h2 id="h-min">Predicting machine-minutes</h2>
-      <p class="takeaway">Trained on 12,000 synthetic past sessions, a quantile gradient-boosting model learns first-fraction time, imaging type, wheelchair and stretcher transfers, and Halcyon's faster delivery, which the average table misses.</p>
+      <p class="takeaway">Trained on 12,000 synthetic past sessions, a gradient-boosting model learns first-fraction time, imaging type, wheelchair and stretcher transfers, and faster delivery on the second machine, which an average table misses. The department has no workflow timestamps yet, so the pilot starts from its own estimate table, which already delivers most of the gain, and switches to the model once check-in and room timestamps build up.</p>
     </div>
     <div class="card">
       <div class="toolbar"><div class="legend" id="lg-min"></div></div>
@@ -287,10 +305,10 @@
       <div class="card">
         <h3>How it works</h3>
         <ul>
-          <li><b>Predict:</b> quantile gradient boosting gives typical (P50) and cautious (P80) minutes per session.</li>
-          <li><b>Optimise:</b> a two-stage mixed-integer model (HiGHS) places each session on a 2-minute grid; hard rules are constraints, preferences are costs.</li>
-          <li><b>Simulate:</b> a Monte Carlo twin replays 300 days of late arrivals, overruns, no-shows, urgent add-ons and faults.</li>
-          <li><b>Explain:</b> every placement carries reason codes; in the full system a Sarvam AI copilot explains them and messages patients in their language.</li>
+          <li><b>Predict:</b> gradient boosting gives expected and cautious (P80) minutes per session; plans reserve the expected minutes.</li>
+          <li><b>Optimise:</b> a two-stage mixed-integer model (HiGHS) places each session on a 2-minute grid; hard rules are constraints, preferences are costs; an independent checker re-verifies every hard rule.</li>
+          <li><b>Simulate:</b> a Monte Carlo twin replays 300 days of late arrivals, overruns, no-shows, urgent starts, imaging holds and faults.</li>
+          <li><b>Explain:</b> every placement carries reason codes; in the full system a Sarvam AI copilot explains them and messages patients in Kannada, Malayalam, Hindi or English. Tulu, which Sarvam's models do not cover, uses recorded Tulu voice notes with Kannada-script text.</li>
         </ul>
       </div>
       <div class="card">
@@ -300,7 +318,7 @@
       <div class="card">
         <h3>Safety by design</h3>
         <ul>
-          <li>Plans and re-plans are proposals until a radiation therapy technologist approves them.</li>
+          <li>Plans, re-plans and deferrals are proposals until a designated senior RTT or oncologist approves them.</li>
           <li>No diagnoses, doses, images or notes are used. Urgency and eligibility come from clinicians.</li>
           <li>Language models never make a scheduling decision and never see names or phone numbers.</li>
           <li>Every plan, override, rule version and message is logged.</li>
@@ -308,7 +326,7 @@
       </div>
       <div class="card">
         <h3>Reproduce it</h3>
-        <p class="note">Python 3.10+, open-source libraries only, synthetic data generated on the fly; a full run takes about a minute or two.</p>
+        <p class="note">Python 3.10+, open-source libraries only, synthetic data generated on the fly; a full run takes about four minutes.</p>
         <pre>cd poc
 pip install -r requirements.txt
 python run_poc.py</pre>
@@ -336,9 +354,11 @@ python run_poc.py</pre>
   };
   const h = (tag, attrs, html) => { const e = document.createElement(tag); Object.assign(e, attrs || {}); if (html != null) e.innerHTML = html; return e; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const hhmm = (m) => { m = Math.round(m); return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+  // minutes after midnight -> HH:MM; the day runs past midnight (1500 = 01:00)
+  const hhmm = (m) => { m = Math.round(m); return String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
   const f1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
   const f0 = (v) => String(Math.round(v));
+  const pct1 = (v) => f1(v) + "%", pct0 = (v) => f0(v) + "%";
   const lineSample = (cls) => {
     const s = el("svg", { width: 26, height: 10, viewBox: "0 0 26 10", "aria-hidden": "true" });
     el("line", { x1: 1, y1: 5, x2: 25, y2: 5, class: "line s-" + cls }, s);
@@ -358,17 +378,20 @@ python run_poc.py</pre>
     el("rect", Object.assign({ x: 1, y: 1, width: 12, height: 12, rx: 2, style: "fill:" + fillVar }, extra || {}), s);
     return s;
   };
+  const facts = (host, items) => { host.innerHTML = ""; items.forEach(([k, v]) => host.appendChild(h("div", { className: "fact" }, `<p class="k">${k}</p><p class="v">${v}</p>`))); };
+  const ruleCheck = (c) => c.violations.length ? `${c.violations.length} violation${c.violations.length === 1 ? "" : "s"}` : `all ${c.rules_checked} met`;
+  const langNote = (lang) => lang === "Tulu" ? "Tulu (a recorded Tulu voice note with Kannada-script text)" : lang;
 
   // ------------------------------------------------------------ headline tiles
   const D = R.day_results, CP = D["Current practice"], ML = D["RAD-SMART (ML)"];
+  const LIVE = "RAD-SMART live re-planning + messages";
+  const DL = R.disruption_results.long, SL = R.disruption.long;
   const pctDown = (a, b) => Math.round(100 * (a - b) / a);
-  const tiles = [
-    ["Median wait, arrival to treatment", `<s>${f0(CP.wait_median)}</s> → ${f0(ML.wait_median)} min`, `${pctDown(CP.wait_median, ML.wait_median)}% shorter`],
-    ["90th-percentile wait", `<s>${f0(CP.wait_p90)}</s> → ${f0(ML.wait_p90)} min`, `${pctDown(CP.wait_p90, ML.wait_p90)}% shorter`],
-    ["Treated within ±15 min of their time", `<s>${f0(CP.within_15_pct)}%</s> → ${f0(ML.within_15_pct)}%`, "punctuality"],
-    ["Re-plan after a 30-min fault", `${f1(R.disruption.reoptimisation_seconds)} s`, `${R.disruption.patients_replanned} moved, ${R.disruption.patients_messaged} messaged`],
-  ];
-  tiles.forEach(([k, v, d]) => $("tiles").appendChild(h("div", { className: "tile" }, `<span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span>`)));
+  [["Median wait, arrival to treatment", `<s>${f0(CP.wait_median)}</s> → ${f0(ML.wait_median)} min`, `${pctDown(CP.wait_median, ML.wait_median)}% shorter, same patients`],
+   ["Average time in the department", `<s>${f0(CP.time_in_dept_mean)}</s> → ${f0(ML.time_in_dept_mean)} min`, "arrival to leaving, treatment included"],
+   ["Treated within ±15 min of their time", `<s>${f0(CP.within_15_pct)}%</s> → ${f0(ML.within_15_pct)}%`, "punctuality"],
+   ["Median wait after a 150-min fault", `<s>${f0(DL["Current practice"].wait_median)}</s> → ${f0(DL[LIVE].wait_median)} min`, `re-planned in ${f1(SL.reoptimisation_seconds)} s; new starts to the next day`]]
+    .forEach(([k, v, d]) => $("tiles").appendChild(h("div", { className: "tile" }, `<span class="k">${k}</span><span class="v">${v}</span><span class="d">${d}</span>`)));
 
   // ------------------------------------------------------------ generic line chart
   function lineChart(host, o) {
@@ -399,10 +422,6 @@ python run_poc.py</pre>
       const pts = a.points.map(([x, y]) => `${X(x)},${Y(y)}`);
       el("path", { d: `M${X(a.points[0][0])},${Y(y0)}L${pts.join("L")}L${X(a.points[a.points.length - 1][0])},${Y(y0)}Z`, style: "fill:" + a.fill }, svg);
     });
-    (o.refLines || []).forEach((r) => {
-      el("line", { x1: m.l, x2: m.l + iw, y1: Y(r.y), y2: Y(r.y), style: "stroke:var(--ink-2);stroke-width:1.25;stroke-dasharray:5 4" }, svg);
-      const t = el("text", { x: m.l + 6, y: Y(r.y) - 6, class: "lab" }, svg); t.textContent = r.label;
-    });
     o.series.forEach((s) => {
       el("path", { d: "M" + s.points.map(([x, y]) => `${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join("L"), class: "line s-" + s.cls }, svg);
       (s.marks || []).forEach(([x, y]) => el("circle", { cx: X(x), cy: Y(y), r: 5, class: "dot f-" + s.cls }, svg));
@@ -428,8 +447,9 @@ python run_poc.py</pre>
       xh.setAttribute("x1", X(x)); xh.setAttribute("x2", X(x)); xh.setAttribute("visibility", "visible");
       const vals = o.series.map((s, i) => {
         const v = s.at ? s.at(x) : valueAt(s.points, x);
-        dots[i].setAttribute("cx", X(x)); dots[i].setAttribute("cy", Y(v)); dots[i].setAttribute("visibility", "visible");
-        return v;
+        const inRange = x >= s.points[0][0] && x <= s.points[s.points.length - 1][0];
+        dots[i].setAttribute("cx", X(x)); dots[i].setAttribute("cy", Y(v)); dots[i].setAttribute("visibility", inRange ? "visible" : "hidden");
+        return inRange ? v : null;
       });
       tip.innerHTML = o.tip(x, vals);
       tip.hidden = false;
@@ -447,55 +467,94 @@ python run_poc.py</pre>
   const tipRows = (title, rows) => `<b>${title}</b>` + rows.map(([cls, name, v]) =>
     `<div class="row"><span><i class="sw ${cls}"></i>${esc(name)}</span><span class="num">${v}</span></div>`).join("");
 
+  // ------------------------------------------------------------ KPI tables
+  const KPI_DAY = [
+    ["wait_median", "Median wait, arrival to treatment room (min)", f1, "low"],
+    ["wait_p90", "90th-percentile wait (min)", f1, "low"],
+    ["excess_wait_median", "Median wait beyond the 20/45-min preparation (min)", f1, "low"],
+    ["within_15_pct", "Treated within ±15 min of their time", pct1, "high"],
+    ["within_30_pct", "Treated within ±30 min", pct1, "high"],
+    ["time_in_dept_mean", "Mean time in the department (min)", f1, "low"],
+    ["last_end", "Last patient finishes (average)", hhmm, "low"],
+    ["overtime_min", "Overtime after 01:00 (min per day)", f1, null],
+    ["new_starts_after_5pm", "New starts finishing after 17:00 (per day)", f1, "low"],
+    ["mhrc_missed_bus", "MHRC patients missing the 17:00 bus (per day)", f1, "low"],
+    ["transport_after_9pm", "Public-transport patients finishing after 21:00 (per day)", f1, "low"],
+    ["paying_within_15_pct", "Paying patients within 15 min of their preferred time", pct1, "high"],
+    ["complex_deferred", "Complex cases missing the 10:00–17:00 window (per day)", f1, "low"],
+    ["accessory_delays", "Accessory-related delays (per day)", f1, "low"],
+    ["urgent_same_day_pct", "Urgent starts treated by 18:00", pct0, null],
+  ];
+  const KPI_FAULT = KPI_DAY.filter((k) => k[0] !== "paying_within_15_pct" && k[0] !== "accessory_delays")
+    .concat([["deferred", "Patients moved to another day, after approval (per day)", f1, null]]);
+  function kpiTable(tb, res, cols, rows, caption) {
+    const names = cols.map((c) => c[0]);
+    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">${caption}</caption><thead><tr><th>Mean of 300 simulated days</th>` +
+      cols.map((c) => `<th class="n">${esc(c[1])}</th>`).join("") + "</tr></thead><tbody>";
+    rows.forEach(([k, label, fmt, better]) => {
+      const vals = names.map((n) => res[n][k]);
+      const r = vals.map((v) => Math.round(v * 10) / 10);
+      const best = better === "low" ? Math.min(...r) : better === "high" ? Math.max(...r) : null;
+      html += `<tr><td>${label}</td>` + vals.map((v, i) => `<td class="n${best !== null && r[i] === best ? " best" : ""}">${v == null || Number.isNaN(v) ? "–" : fmt(v)}</td>`).join("") + "</tr>";
+    });
+    tb.innerHTML = html + "</tbody>";
+  }
+
   // ------------------------------------------------------------ 1. waits
   const WAIT = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART (averages)", "avg", "RAD-SMART, average durations"], ["RAD-SMART (ML)", "ml", "RAD-SMART, ML durations"]];
   function drawWaits() {
     const series = WAIT.map(([k, cls]) => {
       const p = W.wait_percentiles[k];
-      const pts = p.map((v, i) => [v, i]).filter(([v]) => v <= 240);
-      return { cls, points: pts, marks: [[p[50], 50]] };
+      const pts = p.map((v, i) => [v, i]).filter(([v]) => v <= 300);
+      const j = pts.length; if (j < p.length) pts.push([300, j - 1 + (300 - p[j - 1]) / Math.max(1e-9, p[j] - p[j - 1])]);
+      const med = D[k].wait_median;
+      let y = 50; for (let i = 1; i < p.length; i++) if (p[i] >= med) { y = i - 1 + (med - p[i - 1]) / Math.max(1e-9, p[i] - p[i - 1]); break; }
+      return { cls, points: pts, marks: [[med, y]] };
     });
     lineChart($("ch-waits"), {
       label: "Share of patients who entered the treatment room within a given number of minutes of arriving",
-      x: [0, 240], y: [0, 100], xTicks: [0, 30, 60, 90, 120, 150, 180, 210, 240], yTicks: [0, 20, 40, 60, 80, 100],
-      xFmt: (v) => v, yFmt: (v) => v + "%", xLabel: "Minutes from arrival to entering the treatment room", yLabel: "Patients treated within",
+      x: [0, 300], y: [0, 100], xTicks: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300], yTicks: [0, 20, 40, 60, 80, 100],
+      xFmt: (v) => v, yFmt: (v) => v + "%", xLabel: $("ch-waits").clientWidth < 560 ? "Minutes from arrival (preparation included)" : "Minutes from arrival to entering the treatment room (preparation included)", yLabel: "Patients treated within",
       series, height: 340, snap: (x) => Math.round(x),
-      tip: (x, vals) => tipRows(`Within ${Math.round(x)} min`, WAIT.map(([k, cls, name], i) => [cls, name, f0(vals[i]) + "%"])),
+      tip: (x, vals) => tipRows(`Within ${Math.round(x)} min`, WAIT.map(([k, cls, name], i) => [cls, name, vals[i] == null ? "100%" : f0(vals[i]) + "%"])),
     });
     legend($("lg-waits"), WAIT.map(([k, cls, name]) => [cls, `${name}: median ${f1(D[k].wait_median)} min`]));
   }
-  const KPI = [
-    ["wait_median", "Median wait, arrival to room (min)", f1, "low"], ["wait_p90", "90th-percentile wait (min)", f1, "low"],
-    ["delay_median", "Median delay versus appointment (min)", f1, "low"], ["within_15_pct", "Treated within ±15 min", (v) => f1(v) + "%", "high"],
-    ["within_30_pct", "Treated within ±30 min", (v) => f1(v) + "%", "high"], ["time_in_dept_mean", "Mean time in department (min)", f1, "low"],
-    ["overtime_min", "Overtime (min per day)", f1, null], ["new_starts_after_5pm", "New starts after 5 PM (per day)", f1, null],
-    ["complex_deferred", "Complex cases deferred (per day)", f1, null], ["accessory_delays", "Accessory-related delays (per day)", f1, null],
-    ["urgent_same_day_pct", "Urgent patients treated the same day", (v) => f0(v) + "%", null],
-  ];
-  function kpiTable(tb, res, cols, caption) {
-    const names = cols.map((c) => c[0]);
-    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">${caption}</caption><thead><tr><th>Mean of 300 simulated days</th>` +
-      cols.map((c) => `<th class="n">${esc(c[1])}</th>`).join("") + "</tr></thead><tbody>";
-    KPI.forEach(([k, label, fmt, better]) => {
-      const vals = names.map((n) => res[n][k]);
-      const best = better === "low" ? Math.min(...vals) : better === "high" ? Math.max(...vals) : null;
-      html += `<tr><td>${label}</td>` + vals.map((v) => `<td class="n${best !== null && v === best ? " best" : ""}">${fmt(v)}</td>`).join("") + "</tr>";
+  kpiTable($("tb-waits"), D, [["Current practice", "Current practice"], ["RAD-SMART (averages)", "RAD-SMART, averages"], ["RAD-SMART (ML)", "RAD-SMART, ML"]], KPI_DAY,
+    "Bold marks the best value in each row where lower or higher is clearly better. Dots on the chart mark the typical day's median.");
+  (function bufferTable() {
+    const BT = R.buffer_tradeoff;
+    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">Holding machine time for same-day urgent starts (and imaging re-treatments) shortens waits but ends the day later. This is the department's choice, set as one rule; the plan on this page holds 40 minutes. All numbers are means over 300 simulated days.</caption>` +
+      `<thead><tr><th>Plan</th><th class="n">Median wait</th><th class="n">90th percentile</th><th class="n">Within ±15 min</th><th class="n">Last patient finishes</th><th class="n">Urgent by 18:00</th></tr></thead><tbody>`;
+    BT.forEach((r) => {
+      html += `<tr><td>${esc(r.policy)}</td><td class="n">${f1(r.wait_median)} min</td><td class="n">${f1(r.wait_p90)} min</td><td class="n">${pct1(r.within_15_pct)}</td><td class="n">${esc(r.last_end)}</td><td class="n">${pct0(r.urgent_same_day_pct)}</td></tr>`;
     });
-    tb.innerHTML = html + "</tbody>";
-  }
-  kpiTable($("tb-waits"), D, [["Current practice", "Current practice"], ["RAD-SMART (averages)", "RAD-SMART, averages"], ["RAD-SMART (ML)", "RAD-SMART, ML"]],
-    "Bold marks the best value in each row where lower or higher is clearly better.");
+    $("tb-buffer").innerHTML = html + "</tbody>";
+  })();
 
   // ------------------------------------------------------------ 2. the day
-  const S = W.schedule, DEP = W.department, F = W.fault;
+  const S = W.schedule, DEP = W.department, SC = W.scenarios, P = R.plan;
+  facts($("facts-day"), [
+    ["Hard rules re-checked independently", ruleCheck(R.plan_check.ml)],
+    ["Sessions after 21:00 given to flexible patients", `${P.sessions_after_21_flexible} of ${P.sessions_after_21}`],
+    ["Paying patients within 15 min of their preferred time", `${P.paying_within_15_min} of ${P.paying_with_preference}`],
+    ["Planned last session ends", P.planned_last_end],
+  ]);
+  const FLEX = ["inpatient", "dormitory", "lives nearby"];
   const FILTERS = [["all", "All patients", () => true], ["new", "New starts", (r) => r.cat === "new_start"], ["complex", "Complex", (r) => r.cat === "complex"],
-    ["elderly", "Elderly", (r) => r.flags.includes("elderly")], ["transport", "Public transport", (r) => r.flags.includes("public transport")],
-    ["inpatient", "Inpatients", (r) => r.flags.includes("inpatient")], ["paying", "Paying", (r) => r.flags.includes("paying")],
-    ["board", "Breast board", (r) => r.accessories.includes("BREAST_BOARD")], ["abc", "ABC device", (r) => r.accessories.includes("ABC")]];
+    ["mhrc", "MHRC", (r) => r.flags.includes("MHRC")], ["transport", "Public transport", (r) => r.flags.includes("public transport")],
+    ["flex", "Inpatient, dormitory, nearby", (r) => FLEX.some((f) => r.flags.includes(f))], ["older", "Older (70+)", (r) => r.flags.includes("older")],
+    ["paying", "Paying", (r) => r.flags.includes("paying")], ["pelvic", "Pelvic (reports 45 min early)", (r) => r.pelvic],
+    ["board", "Breast board", (r) => r.accessories.includes("BREAST_BOARD")], ["abc", "ABC", (r) => r.accessories.includes("ABC")]];
   const CAT = { routine: "Routine", new_start: "New start", complex: "Complex" };
-  const ACC = { BREAST_BOARD: "breast board", ABC: "ABC device" };
+  const ACC = { BREAST_BOARD: "breast board", ABC: "ABC" };
   const state = { mode: "plan", filter: "all", sel: (S.find((r) => r.cat === "new_start") || S[0]).pid };
-  const startOf = (r) => (state.mode === "fault" && r.replanned != null ? r.replanned : r.start);
+  const sc = (r) => (state.mode === "plan" ? null : r.scen[state.mode]);
+  const isOff = (r) => { const s = sc(r); return !!(s && s.deferred); };
+  const startOf = (r) => { const s = sc(r); return s && s.t != null ? s.t : r.start; };
+  const isMoved = (r) => { const s = sc(r); return !!(s && s.t != null && Math.abs(s.t - r.start) >= 1); };
+  const leadOf = (r) => r.start - r.report;
+  const DAY_END = Math.max(DEP.regular_end, ...S.flatMap((r) => [r.start, ...Object.values(r.scen || {}).map((s) => (s.t == null ? r.start : s.t))].map((t) => t + r.minutes + 10)));
   const matches = (r) => FILTERS.find((f) => f[0] === state.filter)[2](r);
 
   FILTERS.forEach(([key, label]) => {
@@ -504,31 +563,38 @@ python run_poc.py</pre>
     b.addEventListener("click", () => { state.filter = key; [...$("chips").children].forEach((c) => c.setAttribute("aria-pressed", String(c === b))); drawDay(); drawDayTable(); });
     $("chips").appendChild(b);
   });
-  const setMode = (mode) => { state.mode = mode; $("mode-plan").setAttribute("aria-pressed", String(mode === "plan")); $("mode-fault").setAttribute("aria-pressed", String(mode === "fault")); drawDay(); drawDetail(); drawDayTable(); };
-  $("mode-plan").addEventListener("click", () => setMode("plan"));
-  $("mode-fault").addEventListener("click", () => setMode("fault"));
+  const modeButtons = [...document.querySelectorAll("[data-mode]")];
+  modeButtons.forEach((b) => b.addEventListener("click", () => {
+    state.mode = b.dataset.mode;
+    modeButtons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    drawDay(); drawDetail(); drawDayTable();
+  }));
 
   function drawDayLegend() {
     const items = [[boxSample("var(--accent)"), "Routine"], [boxSample("var(--new)"), "New start"], [boxSample("var(--complex)"), "Complex"],
-      [boxSample("var(--block)"), "Blood irradiation"], [boxSample("none", { style: "fill:none;stroke:var(--muted);stroke-dasharray:3 2" }), "Urgent hold"],
+      [boxSample("var(--block)"), "Blood irradiation"], [boxSample("none", { style: "fill:none;stroke:var(--muted);stroke-dasharray:3 2" }), "Urgent-start hold"],
       [boxSample("var(--block-soft)", { style: "fill:var(--block-soft);stroke:var(--block)" }), "CT-simulator booking"]];
-    if (state.mode === "fault") items.push([boxSample("none", { style: "fill:none;stroke:var(--ink);stroke-width:1.5" }), "Moved"], [(() => { const s = el("svg", { width: 14, height: 14, viewBox: "0 0 14 14", "aria-hidden": "true" }); el("circle", { cx: 7, cy: 7, r: 3.5, style: "fill:var(--ink)" }, s); return s; })(), "Messaged"]);
+    if (state.mode !== "plan") {
+      items.push([boxSample("none", { style: "fill:none;stroke:var(--ink);stroke-width:1.5" }), "Moved"],
+        [(() => { const s = el("svg", { width: 14, height: 14, viewBox: "0 0 14 14", "aria-hidden": "true" }); el("circle", { cx: 7, cy: 7, r: 3.5, style: "fill:var(--ink)" }, s); return s; })(), "Messaged"]);
+      if (S.some(isOff)) items.push([boxSample("none", { style: "fill:none;stroke:var(--ink-2);stroke-width:1.5;stroke-dasharray:3 2" }), "Moved to another day"]);
+    }
     legend($("lg-day"), items);
   }
 
   function drawDay() {
     drawDayLegend();
     const host = $("ch-day");
-    const width = Math.max(760, host.clientWidth);
-    const m = { l: 128, r: 12, t: 44, b: 30 };
-    const lanes = [["VERSA", "Versa HD", 58], ["ABC", "ABC device (1)", 30], ["BREAST_BOARD", "Breast boards (2)", 30]];
+    const width = Math.max(1040, host.clientWidth);
+    const m = { l: 132, r: 14, t: 50, b: 46 };
+    const lanes = [["VERSA", "Versa HD", 58], ["ABC", "ABC (1 unit)", 30], ["BREAST_BOARD", "Breast board (1 unit)", 30]];
     const gap = 16;
     const height = m.t + lanes.reduce((a, l) => a + l[2], 0) + gap * (lanes.length - 1) + m.b;
-    const x0 = 7 * 60 + 15, x1 = 21 * 60;
+    const x0 = DEP.day_start - 15, x1 = DAY_END;
     const iw = width - m.l - m.r;
     const X = (v) => m.l + (v - x0) / (x1 - x0) * iw;
     host.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, width, height, role: "img", "aria-label": "Timeline of one optimised treatment day on the Versa HD, with the ABC device and breast-board lanes" }, host);
+    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, width, height, role: "img", "aria-label": "Timeline of one optimised treatment day on the Versa HD, with the ABC and breast-board lanes" }, host);
     const defs = el("defs", {}, svg);
     const pat = el("pattern", { id: "hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
     el("rect", { width: 6, height: 6, style: "fill:var(--block-soft)" }, pat);
@@ -536,22 +602,30 @@ python run_poc.py</pre>
     const laneY = {}; let y = m.t;
     lanes.forEach(([k, , hgt]) => { laneY[k] = [y, hgt]; y += hgt + gap; });
     const bottom = y - gap;
-    // senior-staff window bracket and protected block
+    const [vy, vh] = laneY.VERSA;
+    let t;
+    // senior-staff window bracket, protected block, MHRC hour, deadlines
     const [sw0, sw1] = DEP.senior_staff_window;
     el("line", { x1: X(sw0), x2: X(sw1), y1: 14, y2: 14, style: "stroke:var(--ink-2);stroke-width:1" }, svg);
     el("line", { x1: X(sw0), x2: X(sw0), y1: 10, y2: 18, style: "stroke:var(--ink-2)" }, svg);
     el("line", { x1: X(sw1), x2: X(sw1), y1: 10, y2: 18, style: "stroke:var(--ink-2)" }, svg);
-    let t = el("text", { x: X(sw0) + 6, y: 10, class: "lab" }, svg); t.textContent = "Senior staff present 10:00–17:00 (complex cases)";
+    t = el("text", { x: X(sw0) + 6, y: 10, class: "lab" }, svg); t.textContent = "Complex cases 10:00–17:00 (senior staff)";
     const [pb0, pb1] = DEP.protected_block;
-    el("rect", { x: X(pb0), y: m.t - 18, width: X(pb1) - X(pb0), height: laneY.VERSA[1] + 18, class: "protect" }, svg);
-    t = el("text", { x: X(pb0) + 4, y: m.t - 5 }, svg); t.textContent = "protected block";
-    for (let hr = 8; hr <= 21; hr++) {
+    el("rect", { x: X(pb0), y: m.t - 18, width: X(pb1) - X(pb0), height: vh + 18, class: "protect" }, svg);
+    t = el("text", { x: X(pb0) + 4, y: m.t - 5 }, svg); t.textContent = "complex block";
+    const [mh0] = DEP.mhrc_window;
+    el("rect", { x: X(mh0), y: m.t - 18, width: X(mh0 + 60) - X(mh0), height: vh + 18, class: "mhrcband" }, svg);
+    t = el("text", { x: X(mh0) + 4, y: m.t - 5 }, svg); t.textContent = "MHRC";
+    const pt = DEP.public_transport_latest_end;
+    el("line", { x1: X(pt), x2: X(pt), y1: m.t - 18, y2: bottom, style: "stroke:var(--ink-2);stroke-width:1;stroke-dasharray:4 3" }, svg);
+    t = el("text", { x: X(pt) + 4, y: m.t - 5 }, svg); t.textContent = "public transport home by 21:00";
+    for (let hr = 9; hr <= Math.floor(x1 / 60); hr++) {
       el("line", { x1: X(hr * 60), x2: X(hr * 60), y1: m.t, y2: bottom, class: "grid" }, svg);
       t = el("text", { x: X(hr * 60), y: bottom + 18, "text-anchor": "middle" }, svg); t.textContent = hhmm(hr * 60);
     }
     const nsEnd = DEP.new_start_latest_end;
-    el("line", { x1: X(nsEnd), x2: X(nsEnd), y1: m.t - 18, y2: bottom, style: "stroke:var(--new);stroke-width:1.25;stroke-dasharray:4 3" }, svg);
-    t = el("text", { x: X(nsEnd) + 4, y: m.t - 5 }, svg); t.textContent = "new-start cut-off";
+    el("line", { x1: X(nsEnd), x2: X(nsEnd), y1: m.t, y2: bottom + 4, style: "stroke:var(--new);stroke-width:1.25;stroke-dasharray:4 3" }, svg);
+    t = el("text", { x: X(nsEnd), y: bottom + 34, "text-anchor": "middle", style: "fill:var(--new)" }, svg); t.textContent = "new starts by 17:00";
     lanes.forEach(([k, label, hgt]) => {
       const [ly] = laneY[k];
       el("line", { x1: m.l, x2: m.l + iw, y1: ly + hgt, y2: ly + hgt, class: "axis" }, svg);
@@ -567,47 +641,49 @@ python run_poc.py</pre>
       tipHost.style.top = Math.max(0, ev.clientY - hr.top + 16) + "px";
     };
     const hideTip = () => { tipHost.hidden = true; };
-    const [vy, vh] = laneY.VERSA;
     DEP.machine_blocks.forEach((b) => {
       const r = el("rect", { x: X(b.start), y: vy + 4, width: X(b.end) - X(b.start), height: vh - 8, rx: 3, class: "blk" }, svg);
-      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>${esc(b.label)}</b><br><span class="num">${hhmm(b.start)}–${hhmm(b.end)}</span> · machine reserved`));
+      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>${esc(b.label)}</b><br><span class="num">${hhmm(b.start)}–${hhmm(b.end)}</span> · machine reserved daily`));
       r.addEventListener("pointerleave", hideTip);
     });
     DEP.urgent_holds.filter((u) => u.machine === "VERSA").forEach((u) => {
       const r = el("rect", { x: X(u.start), y: vy + 4, width: X(u.start + u.minutes) - X(u.start), height: vh - 8, rx: 3, class: "hold" }, svg);
       r.style.pointerEvents = "all";
-      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>Urgent hold</b><br><span class="num">${hhmm(u.start)}–${hhmm(u.start + u.minutes)}</span> · kept free for a same-day urgent start`));
+      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>Urgent-start hold</b><br><span class="num">${hhmm(u.start)}–${hhmm(u.start + u.minutes)}</span> · kept for a same-day urgent start or an imaging re-treatment; used for catch-up if nobody needs it`));
       r.addEventListener("pointerleave", hideTip);
     });
     DEP.ct_sim_bookings.forEach((b) => {
       const [ay, ah] = laneY[b.accessory];
       const r = el("rect", { x: X(b.start), y: ay + 3, width: X(b.end) - X(b.start), height: ah - 6, rx: 2, class: "ctsim" }, svg);
-      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>CT simulator: ${esc(b.label)}</b><br><span class="num">${hhmm(b.start)}–${hhmm(b.end)}</span> · the ${ACC[b.accessory]} is in the CT room`));
+      r.addEventListener("pointermove", (ev) => showTip(ev, `<b>CT simulator: ${esc(b.label)}</b><br><span class="num">${hhmm(b.start)}–${hhmm(b.end)}</span> · the ${ACC[b.accessory]} is in the CT room (2 min to move back)`));
       r.addEventListener("pointerleave", hideTip);
     });
-    if (state.mode === "fault") {
+    if (state.mode !== "plan") {
+      const F = SC[state.mode];
       el("rect", { x: X(F.start), y: m.t - 18, width: X(F.start + F.minutes) - X(F.start), height: bottom - m.t + 18, class: "faultband" }, svg);
-      t = el("text", { x: X(F.start) + 4, y: m.t + laneY.VERSA[1] + 13, class: "faultlab" }, svg); t.textContent = "machine fault";
+      t = el("text", { x: X(F.start) + 4, y: vy + vh + 13, class: "faultlab" }, svg); t.textContent = "machine fault";
     }
     // sessions
     const sessTip = (r) => {
+      if (isOff(r)) return `<b class="num">${r.pid}</b> · ${CAT[r.cat]}<br>Moved to the next working day (planned <span class="num">${hhmm(r.start)}</span>)<br><i>Select for details</i>`;
       const s0 = startOf(r);
-      let x = `<b class="num">${hhmm(s0)} · ${r.pid}</b><br>${esc(r.technique)}, fraction ${r.fraction} · ${CAT[r.cat]}<br><span class="num">${f1(r.minutes)}</span> min planned`;
-      if (state.mode === "fault" && r.replanned != null && Math.abs(r.replanned - r.start) >= 1) x += `<br>moved from <span class="num">${hhmm(r.start)}</span>${r.notified ? " · messaged" : ""}`;
+      let x = `<b class="num">${hhmm(s0)} · ${r.pid}</b><br>${esc(r.technique)}, fraction ${r.fraction} · ${CAT[r.cat]}<br><span class="num">${f1(r.minutes)}</span> min · reports <span class="num">${hhmm(s0 - leadOf(r))}</span>`;
+      if (isMoved(r)) x += `<br>moved from <span class="num">${hhmm(r.start)}</span>${sc(r).notified ? " · messaged" : ""}`;
       return x + "<br><i>Select for the reasons</i>";
     };
     S.forEach((r) => {
-      const s0 = startOf(r), w = Math.max(2, X(s0 + r.minutes) - X(s0));
-      const cls = `sess ${r.cat}${matches(r) ? "" : " dim"}${r.pid === state.sel ? " sel" : ""}`;
+      const off = isOff(r);
+      const s0 = off ? r.start : startOf(r), w = Math.max(2, X(s0 + r.minutes) - X(s0));
+      const cls = `sess ${r.cat}${off ? " off" : ""}${matches(r) ? "" : " dim"}${r.pid === state.sel ? " sel" : ""}`;
       const rects = [el("rect", { x: X(s0), y: vy + 4, width: w, height: vh - 8, rx: 2, class: cls }, svg)];
-      r.accessories.forEach((a) => {
+      if (!off) r.accessories.forEach((a) => {
         if (!laneY[a]) return;
         const [ay, ah] = laneY[a];
         rects.push(el("rect", { x: X(s0), y: ay + 3, width: w, height: ah - 6, rx: 2, class: cls }, svg));
       });
-      if (state.mode === "fault" && r.replanned != null && Math.abs(r.replanned - r.start) >= 1 && matches(r)) {
+      if (isMoved(r) && matches(r)) {
         el("rect", { x: X(s0) + 0.75, y: vy + 4.75, width: Math.max(1, w - 1.5), height: vh - 9.5, rx: 2, class: "moved" }, svg);
-        if (r.notified) el("circle", { cx: X(s0) + w / 2, cy: vy + vh + 6, r: 2.8, class: "told" }, svg);
+        if (sc(r).notified) el("circle", { cx: X(s0) + w / 2, cy: vy + vh + 6, r: 2.8, class: "told" }, svg);
       }
       rects.forEach((rc) => {
         rc.addEventListener("pointermove", (ev) => showTip(ev, sessTip(r)));
@@ -621,90 +697,115 @@ python run_poc.py</pre>
     const r = S.find((x) => x.pid === state.sel);
     const d = $("detail");
     const flags = r.flags.filter((f) => f !== "new start" && f !== "complex").concat(r.accessories.map((a) => ACC[a]));
+    const s = sc(r);
     let change = "";
-    if (state.mode === "fault") {
-      if (r.replanned == null) change = `<p class="change">Treated before the fault; unchanged.</p>`;
-      else if (Math.abs(r.replanned - r.start) < 1) change = `<p class="change">Unchanged by the re-plan.</p>`;
-      else change = `<p class="change moved">Re-planned from <span class="num">${hhmm(r.start)}</span> to <span class="num">${hhmm(r.replanned)}</span> (${r.replanned > r.start ? "+" : ""}${f0(r.replanned - r.start)} min). ` +
-        (r.notified ? `Told by message in ${esc(r.language)}.` : "Not messaged: too little notice, so staff keep the original time as the earliest start.") + "</p>";
+    if (s) {
+      if (s.deferred) change = `<p class="change moved">${s.postponed ? "New start moved to the next working day: the downtime is over two hours, and only urgent palliative starts go ahead." : "Proposed for deferral: the day cannot hold every patient."} The oncologist or senior RTT approves. ` +
+        (s.notified ? `Told by message in ${esc(langNote(r.language))}.` : "Told in person: already on the way or in the department.") + "</p>";
+      else if (s.t == null) change = `<p class="change">Treated before the fault; unchanged.</p>`;
+      else if (!isMoved(r)) change = `<p class="change">Unchanged by the re-plan.</p>`;
+      else change = `<p class="change moved">Re-planned from <span class="num">${hhmm(r.start)}</span> to <span class="num">${hhmm(s.t)}</span> (${s.t > r.start ? "+" : ""}${f0(s.t - r.start)} min). ` +
+        (s.notified ? `Told by message in ${esc(langNote(r.language))}.` : "Not messaged: too little notice, so staff treat them as soon as the machine is back.") + "</p>";
     }
-    d.innerHTML = `<p class="sub">Selected session</p>
-      <p class="when">${hhmm(startOf(r))} <span style="font-size:15px;color:var(--muted)">· ${r.pid}</span></p>
-      <p class="what">${esc(r.technique)}, fraction ${r.fraction} · <b style="color:var(--ink);font-weight:600">${CAT[r.cat]}</b><br><span class="num">${f1(r.minutes)}</span> min planned · usually reports <span class="num">${hhmm(r.usual)}</span></p>
+    const off = isOff(r), s0 = startOf(r);
+    d.innerHTML = `<div><p class="sub">Selected session</p>
+      <p class="when">${off ? "Next day" : hhmm(s0)} <span style="font-size:15px;color:var(--muted)">· ${r.pid}</span></p>
+      <p class="what">${esc(r.technique)}, fraction ${r.fraction} · <b style="color:var(--ink);font-weight:600">${CAT[r.cat]}</b><br><span class="num">${f1(r.minutes)}</span> min planned` +
+      (off ? "" : ` · reports <span class="num">${hhmm(s0 - leadOf(r))}</span>${r.pelvic ? " (drinks 500 mL of water on arrival)" : ""}`) +
+      (r.preferred != null ? `<br>prefers <span class="num">${hhmm(r.preferred)}</span>` : `<br>block booking today: <span class="num">${hhmm(r.usual)}</span>`) + `</p>
       ${flags.length ? `<div class="pills">${flags.map((f) => `<span class="pill">${esc(f)}</span>`).join("")}</div>` : ""}
-      ${change}
-      <p class="sub">Why this time</p>
+      ${change}</div>
+      <div><p class="sub">Why this time${s ? " (evening plan)" : ""}</p>
       <ul>${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
-      <p class="note" style="font-size:13px">Messages in ${esc(r.language)}. Reason codes like these ground the copilot's plain-language answers.</p>`;
+      <p class="note" style="font-size:13px">Messages in ${esc(langNote(r.language))}. Reason codes like these ground the copilot's plain-language answers.</p></div>`;
   }
 
   function drawDayTable() {
-    const rows = S.filter(matches).slice().sort((a, b) => startOf(a) - startOf(b));
+    const rows = S.filter(matches).slice().sort((a, b) => (isOff(a) ? 1e9 : startOf(a)) - (isOff(b) ? 1e9 : startOf(b)));
     $("count").textContent = rows.length;
-    let html = `<thead><tr><th class="n">Time</th><th>Patient</th><th>Technique</th><th class="n">Fraction</th><th class="n">Minutes</th><th>Flags</th><th>Why</th></tr></thead><tbody>`;
+    let html = `<thead><tr><th class="n">Slot</th><th class="n">Reports</th><th>Patient</th><th>Technique</th><th class="n">Fraction</th><th class="n">Minutes</th><th>Flags</th><th>Language</th><th>Why</th></tr></thead><tbody>`;
     rows.forEach((r) => {
+      const off = isOff(r);
       const flags = r.flags.concat(r.accessories.map((a) => ACC[a])).join(", ");
-      html += `<tr class="pick${r.pid === state.sel ? " sel" : ""}" data-pid="${r.pid}" tabindex="0"><td class="n">${hhmm(startOf(r))}</td><td class="mono">${r.pid}</td><td>${esc(r.technique)}</td><td class="n">${r.fraction}</td><td class="n">${f1(r.minutes)}</td><td>${esc(flags)}</td><td>${esc(r.reasons.join("; "))}</td></tr>`;
+      html += `<tr class="pick${r.pid === state.sel ? " sel" : ""}" data-pid="${r.pid}" tabindex="0"><td class="n">${off ? "next day" : hhmm(startOf(r))}</td><td class="n">${off ? "–" : hhmm(startOf(r) - leadOf(r))}</td><td class="mono">${r.pid}</td><td>${esc(r.technique)}</td><td class="n">${r.fraction}</td><td class="n">${f1(r.minutes)}</td><td>${esc(flags)}</td><td>${esc(r.language)}</td><td>${esc(r.reasons.join("; "))}</td></tr>`;
     });
     $("tb-day").innerHTML = html + "</tbody>";
   }
   $("tb-day").addEventListener("click", (ev) => { const tr = ev.target.closest("tr[data-pid]"); if (tr) { state.sel = tr.dataset.pid; drawDay(); drawDetail(); drawDayTable(); } });
   $("tb-day").addEventListener("keydown", (ev) => { if (ev.key !== "Enter" && ev.key !== " ") return; const tr = ev.target.closest("tr[data-pid]"); if (tr) { ev.preventDefault(); state.sel = tr.dataset.pid; drawDay(); drawDetail(); drawDayTable(); } });
 
-  // ------------------------------------------------------------ 3. fault
-  const FAULTP = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART plan, no re-planning", "avg", "RAD-SMART plan, no re-planning"], ["RAD-SMART live re-planning + messages", "ml", "RAD-SMART live re-planning + messages"]];
-  const NORMP = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART (averages)", "avg", "RAD-SMART, average durations"], ["RAD-SMART (ML)", "ml", "RAD-SMART, ML durations"]];
-  const DR = R.disruption_results;
-  let wrMode = "fault";
-  [["Re-plan time", `${f1(R.disruption.reoptimisation_seconds)} s`], ["Patients moved, and messaged", `${R.disruption.patients_replanned}, of whom ${R.disruption.patients_messaged} messaged`],
-   ["Median wait under the fault", `${f0(DR["Current practice"].wait_median)} → ${f0(DR["RAD-SMART live re-planning + messages"].wait_median)} min`]]
-    .forEach(([k, v]) => $("facts-fault").appendChild(h("div", { className: "fact" }, `<p class="k">${k}</p><p class="v">${v}</p>`)));
+  // ------------------------------------------------------------ 3. downtime
+  const FAULTP = [["Current practice", "base", "Current practice (modelled)"], ["RAD-SMART plan, no re-planning", "avg", "RAD-SMART plan, no re-planning"], [LIVE, "ml", "RAD-SMART live re-planning + messages"]];
+  const NORMP = WAIT;
+  let wrMode = "short";
+  function drawFaultFacts() {
+    if (wrMode === "normal") {
+      facts($("facts-fault"), [["Evening plan solved in", `${f1(R.solver.ml.seconds)} s`], ["Hard rules re-checked", ruleCheck(R.plan_check.ml)],
+        ["Median wait", `${f0(CP.wait_median)} → ${f0(ML.wait_median)} min`], ["Last patient finishes", `${hhmm(CP.last_end)} vs ${hhmm(ML.last_end)}`]]);
+      return;
+    }
+    const s = R.disruption[wrMode], dr = R.disruption_results[wrMode];
+    const ns = s.new_starts_moved_to_next_day.length, dp = s.deferral_proposals.length;
+    facts($("facts-fault"), [["Re-plan time", `${f1(s.reoptimisation_seconds)} s`], ["Patients moved, and messaged", `${s.patients_moved}, ${s.patients_messaged} messaged`],
+      ["Moved to another day", ns || dp ? `${ns} new start${ns === 1 ? "" : "s"}${dp ? `, ${dp} other` : ""}` : "nobody"],
+      ["Median wait", `${f0(dr["Current practice"].wait_median)} → ${f0(dr[LIVE].wait_median)} min`]]);
+  }
   function drawWR() {
-    const set = wrMode === "fault" ? FAULTP : NORMP, src = wrMode === "fault" ? W.fault_waiting_room : W.waiting_room;
+    const set = wrMode === "normal" ? NORMP : FAULTP, src = wrMode === "normal" ? W.waiting_room : SC[wrMode].waiting_room;
     const grid = src.grid;
     const series = set.map(([k, cls]) => ({ cls, points: grid.map((g, i) => [g, src.series[k][i]]) }));
     const ymax = Math.ceil(Math.max(...series.flatMap((s) => s.points.map((p) => p[1]))) / 5) * 5;
     const yTicks = []; for (let v = 0; v <= ymax; v += 5) yTicks.push(v);
+    const F = wrMode === "normal" ? null : SC[wrMode];
     lineChart($("ch-wr"), {
       label: "Mean number of patients waiting in the department through the day",
-      x: [grid[0], 21.5 * 60], y: [0, ymax], xTicks: [7, 9, 11, 13, 15, 17, 19, 21].map((x) => x * 60), yTicks,
+      x: [DEP.day_start - 60, DEP.hard_end + 30], y: [0, ymax], xTicks: [8, 11, 14, 17, 20, 23, 26].map((x) => x * 60), yTicks,
       xFmt: hhmm, yFmt: (v) => v, yLabel: "Patients waiting (mean)", series, height: 320, snap: (x) => Math.round(x / 5) * 5,
-      bands: wrMode === "fault" ? [{ from: F.start, to: F.start + F.minutes, cls: "faultband", label: "fault", labelCls: "faultlab" }] : [],
-      tip: (x, vals) => tipRows(`${hhmm(x)}: patients waiting`, set.map(([k, cls, name], i) => [cls, name, f1(vals[i])])),
+      bands: F ? [{ from: F.start, to: F.start + F.minutes, cls: "faultband", label: "fault", labelCls: "faultlab" }] : [],
+      tip: (x, vals) => tipRows(`${hhmm(x)}: patients waiting`, set.map(([k, cls, name], i) => [cls, name, vals[i] == null ? "–" : f1(vals[i])])),
     });
     legend($("lg-wr"), set.map(([, cls, name]) => [cls, name]));
-    $("wr-normal").setAttribute("aria-pressed", String(wrMode === "normal"));
-    $("wr-fault").setAttribute("aria-pressed", String(wrMode === "fault"));
+    document.querySelectorAll("[data-wr]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.wr === wrMode)));
+    drawFaultFacts();
+    if (wrMode === "normal") kpiTable($("tb-fault"), D, NORMP.map(([k, , n]) => [k, n.replace(" (modelled)", "")]), KPI_DAY, "A normal day with no fault, for comparison.");
+    else kpiTable($("tb-fault"), R.disruption_results[wrMode], FAULTP.map(([k, , n]) => [k, n.replace(" (modelled)", "")]), KPI_FAULT,
+      `The same ${SC[wrMode].label} in all 300 simulated days. Rule applied: ${esc(R.disruption[wrMode].rule)}. Current practice is modelled without re-planning: everyone waits for the machine.`);
   }
-  $("wr-normal").addEventListener("click", () => { wrMode = "normal"; drawWR(); });
-  $("wr-fault").addEventListener("click", () => { wrMode = "fault"; drawWR(); });
-  kpiTable($("tb-fault"), DR, FAULTP.map(([k, , n]) => [k, n.replace(" (modelled)", "")]),
-    "The same 30-minute fault at 11:00 in all 300 simulated days. The trade-off is visible: a little more overtime, in exchange for no late new starts and no deferred complex cases.");
+  document.querySelectorAll("[data-wr]").forEach((b) => b.addEventListener("click", () => { wrMode = b.dataset.wr; drawWR(); }));
 
   // ------------------------------------------------------------ 4. forecast
-  const FC = W.forecast, MS = Object.keys(FC.labels);
+  const FC = W.forecast, MS = Object.keys(FC.labels), RF = R.forecast;
+  facts($("facts-fc"), [
+    ["Peak planned load with RAD-SMART", MS.map((mk) => `${FC.labels[mk]} ${RF.rad_smart_peak_pct[mk]}%`).join(", ")],
+    ["Peak with equal head-count", `${RF.headcount_peak_pct.VERSA}% on the Versa HD`],
+    ["Versa HD on the TBI days (reduced capacity)", `${RF.rad_smart_tbi_peak_pct}% vs ${RF.headcount_tbi_peak_pct}%`],
+    ["Days from plan ready to first fraction", `${RF.rad_smart_mean_days_to_start ? f1(RF.rad_smart_mean_days_to_start) : "0"} vs ${f1(RF.headcount_mean_days_to_start)} working days`],
+  ]);
   function drawFC() {
     const host = $("ch-fc"); host.innerHTML = "";
-    const days = FC.days.map((d, i) => i + 1);
+    const tb = FC.tbi_days.map((k) => k + 1);
     MS.forEach((mk) => {
       const box = h("div", {});
       box.appendChild(h("h3", { style: "margin:0 0 6px;font-size:15px" }, esc(FC.labels[mk])));
       const ch = h("div", { className: "chart" }); box.appendChild(ch); host.appendChild(box);
-      const cap = FC.capacity[mk], pc = (v) => 100 * v / cap;
+      const flat = FC.capacity[mk], pc = (v) => 100 * v / flat;
       const committed = FC.committed[mk].map((v, i) => [i + 1, pc(v)]);
       const rad = FC.rad_smart[mk].map((v, i) => [i + 1, pc(v)]).slice(2);
       const head = FC.headcount[mk].map((v, i) => [i + 1, pc(v)]).slice(2);
+      const cap = []; FC.capacity_by_day[mk].forEach((v, i) => { cap.push([Math.max(1, i + 0.5), pc(v)], [Math.min(15, i + 1.5), pc(v)]); });
       const ymax = Math.max(160, Math.ceil(Math.max(...head.map((p) => p[1])) / 20) * 20);
+      const hasTbi = mk === "VERSA";
       lineChart(ch, {
         label: `Planned load on ${FC.labels[mk]} over 15 working days`,
         x: [1, 15], y: [0, ymax], xTicks: [1, 3, 5, 7, 9, 11, 13, 15], yTicks: [0, 50, 100, 150].filter((v) => v <= ymax),
         xFmt: (v) => "D" + v, yFmt: (v) => v + "%", height: 250, snap: (x) => Math.round(x),
-        areas: [{ points: committed, fill: "var(--block-soft)" }], refLines: [{ y: 100, label: "capacity" }],
-        series: [{ cls: "base", points: head }, { cls: "ml", points: rad }],
+        bands: hasTbi ? [{ from: tb[0] - 0.5, to: tb[tb.length - 1] + 0.5, cls: "tbiband", label: "TBI" }] : [],
+        areas: [{ points: committed, fill: "var(--block-soft)" }],
+        series: [{ cls: "cap", points: cap }, { cls: "base", points: head }, { cls: "ml", points: rad }],
         tip: (x, vals) => {
-          const i = Math.round(x) - 1;
-          const decided = i >= 2;
-          return `<b>${esc(FC.days[i])}</b>` +
+          const i = Math.round(x) - 1, decided = i >= 2, tbi = FC.tbi_days.includes(i) && hasTbi;
+          return `<b>${esc(FC.days[i])}${tbi ? " · TBI" : ""}</b>` +
+            `<div class="row"><span>Capacity</span><span class="num">${f0(pc(FC.capacity_by_day[mk][i]))}%</span></div>` +
             `<div class="row"><span>Committed by current patients</span><span class="num">${f0(pc(FC.committed[mk][i]))}%</span></div>` +
             `<div class="row"><span>Patients finishing</span><span class="num">${FC.completing[mk][i]}</span></div>` +
             (decided ? `<div class="row"><span><i class="sw base"></i>Head-count plan</span><span class="num">${f0(pc(FC.headcount[mk][i]))}%</span></div>` +
@@ -713,19 +814,20 @@ python run_poc.py</pre>
         },
       });
     });
-    legend($("lg-fc"), [[boxSample("var(--block-soft)", { style: "fill:var(--block-soft);stroke:var(--block)" }), "Committed by patients on treatment"], ["base", "Equal head-count, start when ready"], ["ml", "RAD-SMART recommendation"]]);
+    legend($("lg-fc"), [[boxSample("var(--block-soft)", { style: "fill:var(--block-soft);stroke:var(--block)" }), "Committed by patients on treatment"], ["cap", "Capacity (less TBI slots)"],
+      ["base", "Equal head-count, start when ready (manual taper before TBI)"], ["ml", "RAD-SMART recommendation"]]);
   }
   (function fcTable() {
-    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">Committed load counts only patients already on treatment; days 1–2 are already booked. ${R.forecast.pipeline_patients} new patients in the pipeline; ${R.forecast.still_waiting_at_horizon} still waiting at the end of the horizon.</caption>` +
+    let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">Load is the share of a normal day's capacity committed by patients already on treatment; days 1–2 are already booked. ${RF.pipeline_patients} new patients in the pipeline; ${RF.still_waiting_at_horizon} still waiting at the end of the horizon. TBI: ${RF.tbi.minutes_per_day} minutes a day on the ${FC.labels[RF.tbi.machine]}.</caption>` +
       `<thead><tr><th>Working day</th>` + MS.map((mk) => `<th class="n">${FC.labels[mk]} load</th><th class="n">Finishing</th><th class="n">New starts</th>`).join("") + `</tr></thead><tbody>`;
-    for (let i = 0; i < 10; i++) {
-      html += `<tr><td>${esc(FC.days[i])}</td>` + MS.map((mk) => `<td class="n">${f0(100 * FC.committed[mk][i] / FC.capacity[mk])}%</td><td class="n">${FC.completing[mk][i]}</td><td class="n">${i < 2 ? "booked" : FC.recommended_starts[mk][i]}</td>`).join("") + `</tr>`;
-    }
+    FC.days.forEach((day, i) => {
+      html += `<tr><td>${esc(day)}${FC.tbi_days.includes(i) ? " · TBI" : ""}</td>` + MS.map((mk) => `<td class="n">${f0(100 * FC.committed[mk][i] / FC.capacity[mk])}%</td><td class="n">${FC.completing[mk][i]}</td><td class="n">${i < 2 ? "booked" : FC.recommended_starts[mk][i]}</td>`).join("") + `</tr>`;
+    });
     $("tb-fc").innerHTML = html + "</tbody>";
   })();
 
   // ------------------------------------------------------------ 5. minutes
-  const DM = [["Lookup table (averages)", "avg", "Average table"], ["Quantile gradient boosting", "ml", "ML model (quantile gradient boosting)"]];
+  const DM = [["Lookup table (averages)", "avg", "Average table"], ["Quantile gradient boosting", "ml", "ML model (gradient boosting)"]];
   function drawMin() {
     const series = DM.map(([k, cls]) => ({ cls, points: W.duration_abs_error_percentiles[k].map((v, i) => [v, i]).filter(([v]) => v <= 12) }));
     lineChart($("ch-min"), {
@@ -733,7 +835,7 @@ python run_poc.py</pre>
       x: [0, 12], y: [0, 100], xTicks: [0, 2, 4, 6, 8, 10, 12], yTicks: [0, 20, 40, 60, 80, 100],
       xFmt: (v) => v, yFmt: (v) => v + "%", xLabel: "Absolute error of predicted session length (minutes)", yLabel: "Sessions within",
       series, height: 300, snap: (x) => Math.round(x * 4) / 4,
-      tip: (x, vals) => tipRows(`Within ${x.toFixed(2).replace(/\.?0+$/, "")} min`, DM.map(([k, cls, name], i) => [cls, name, f0(vals[i]) + "%"])),
+      tip: (x, vals) => tipRows(`Within ${x.toFixed(2).replace(/\.?0+$/, "")} min`, DM.map(([k, cls, name], i) => [cls, name, vals[i] == null ? "100%" : f0(vals[i]) + "%"])),
     });
     const dm = R.duration_model;
     legend($("lg-min"), DM.map(([k, cls, name]) => [cls, `${name}: mean error ${dm[k].mae_min.toFixed(1)} min, ${f0(dm[k].within_3min_pct)}% within 3 min`]));
@@ -741,13 +843,15 @@ python run_poc.py</pre>
 
   // ------------------------------------------------------------ about
   const A = R.assumptions, DAY = R.day;
-  [`${DAY.patients} patients on one machine: ${DAY.new_starts} new starts, ${DAY.complex} complex, ${DAY.expected_machine_minutes} of ${DAY.available_minutes} minutes (${DAY.load_pct}% load).`,
-   `Operating day ${A.operating_day}; blood irradiation ${A.blood_irradiation}; senior staff ${A.senior_staff_window}; protected block ${A.protected_block}; new starts by ${A.new_start_cut_off} with a ${A.deadline_buffer_min}-minute buffer.`,
-   `Arrivals ${A.arrival_offset}; ${Math.round(A.no_show_rate * 100)}% no-shows; ${Math.round(A.message_compliance * 100)}% of patients act on an updated time; urgent starts ${A.urgent_same_day_starts_per_day}.`,
-   "The day simulation covers one machine; the two-machine test covers the forecast only.",
-   "Real gains depend on how much of today's waiting comes from scheduling; the pilot measures a real baseline first."]
-    .forEach((t) => $("assumptions").appendChild(h("li", { textContent: t })));
-  $("timing").textContent = `This run: day plan solved to proven optimum in ${f1(R.solver.averages.seconds)} s (averages) and ${f1(R.solver.ml.seconds)} s (ML), zero unscheduled. Timings vary with the computer's load.`;
+  [`${DAY.patients} patients planned on one machine, plus 0–3 same-day urgent starts: ${DAY.new_starts} new starts, ${DAY.complex} complex, ${DAY.expected_machine_minutes} of ${DAY.available_minutes} machine-minutes (${DAY.load_pct}% load).`,
+   `Operating day ${A.operating_day}; blood irradiation ${A.blood_irradiation}; complex cases ${A.senior_staff_window} (protected block ${A.protected_block}); new starts by ${A.new_start_cut_off}; urgent starts by ${A.urgent_cut_off}; MHRC ${A.mhrc}; public transport ${A.public_transport}.`,
+   `Reporting: ${A.reporting}. Accessories: ${A.accessories}.`,
+   `Arrivals ${A.arrival_offset}; ${Math.round(A.no_show_rate * 100)}% no-shows; ${Math.round(A.message_compliance * 100)}% act on an updated time; urgent starts ${A.urgent_same_day_starts_per_day}; imaging holds: ${A.imaging_holds}.`,
+   "Rules come from the department's answers. Session lengths and patient mixes are illustrative: there are no workflow timestamps yet, so the pilot starts from the department's own estimates and measures a real baseline first.",
+   "The day simulation covers one machine; the two-machine test covers the forecast only."]
+    .forEach((x) => $("assumptions").appendChild(h("li", { textContent: x.replace(/(\d\d:\d\d)-(\d\d:\d\d)/g, "$1–$2") })));
+  const SV = R.solver.ml;
+  $("timing").textContent = `This run: the evening plan was solved ${SV.status === "optimal" ? "to a proven optimum" : `within ${SV.proven_gap_pct}% of the optimum`} in ${f1(SV.seconds)} s, with ${SV.unscheduled.length} patients left unplanned; an independent checker re-verified ${R.plan_check.ml.rules_checked} hard rules on ${R.plan_check.ml.sessions_checked} sessions: ${ruleCheck(R.plan_check.ml)}. Timings vary with the computer's load.`;
 
   // ------------------------------------------------------------ render + resize
   const drawAll = () => { drawWaits(); drawDay(); drawWR(); drawFC(); drawMin(); };

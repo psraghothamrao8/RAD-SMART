@@ -1,68 +1,88 @@
-appointment,patient,technique,fraction,planned_min,flags,current_reporting_time,why
-07:30,P014,VMAT,12/30,5.9,,07:30,within 30 min of usual time 07:30
-07:36,P034,IMRT,22/30,7.9,,07:30,within 30 min of usual time 07:30
-07:44,P015,Breast (breast board),13/18,9.6,public transport; BREAST_BOARD,07:30,public transport: finish by 18:00 | within 30 min of usual time 07:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-07:54,P058,IMRT,30/32,9.5,,07:30,within 30 min of usual time 07:30
-08:04,P048,Palliative 2D/3D,2/5,4.3,paying,08:30,within 30 min of usual time 08:30
-08:08,P028,3D-CRT,3/30,4.9,public transport,08:30,public transport: finish by 17:00 | within 30 min of usual time 08:30
-08:12,P019,Palliative 2D/3D,4/6,3.3,public transport,08:30,public transport: finish by 17:45 | within 30 min of usual time 08:30
-08:16,P067,3D-CRT,19/28,5.7,elderly; public transport,08:30,public transport: finish by 16:45 | within 30 min of usual time 08:30
-08:22,P057,VMAT,6/29,8.6,elderly; dormitory; paying,07:30,within 30 min of requested time 08:00
-08:30,P021,IMRT,8/31,8.8,public transport; paying,07:30,public transport: finish by 17:15 | within 30 min of requested time 08:00
-08:38,P055,3D-CRT,6/24,5.2,,08:30,within 30 min of usual time 08:30
-08:44,P044,3D-CRT,15/30,6.0,,08:30,within 30 min of usual time 08:30
-08:50,P010,Breast (breast board),2/18,7.0,BREAST_BOARD,08:30,within 30 min of usual time 08:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-08:56,P063,IMRT,29/30,7.7,,08:30,within 30 min of usual time 08:30
-09:04,P026,3D-CRT,17/23,7.5,,08:30,34 min later than usual time 08:30
-09:12,P040,IMRT,14/34,8.4,paying,08:30,42 min later than usual time 08:30
-09:20,P029,IMRT,11/34,9.7,public transport,08:30,public transport: finish by 17:15 | 50 min later than usual time 08:30
-09:30,P008,VMAT,11/25,6.7,public transport; paying,08:30,public transport: finish by 17:45 | within 30 min of requested time 09:00
-09:36,P031,Breast (breast board),17/17,5.6,BREAST_BOARD,09:30,within 30 min of usual time 09:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-09:42,P047,VMAT,17/28,5.0,,09:30,within 30 min of usual time 09:30
-09:48,P061,3D-CRT,2/24,7.4,elderly,09:30,within 30 min of usual time 09:30
-09:56,P042,VMAT,12/28,7.1,,09:30,within 30 min of usual time 09:30
-10:04,P050,Palliative 2D/3D,2/6,4.5,,10:30,within 30 min of usual time 10:30
-10:08,P013,VMAT,17/26,6.0,elderly; public transport,10:30,public transport: finish by 18:00 | within 30 min of usual time 10:30
-10:14,P020,VMAT,29/30,6.6,,10:30,within 30 min of usual time 10:30
-10:20,P037,Breast (breast board),12/15,6.9,BREAST_BOARD,10:30,within 30 min of usual time 10:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-10:26,P003,VMAT,1/32,18.8,new start; paying,10:30,new start: finish by 17:00 | within 30 min of usual time 10:30
-10:44,P033,IMRT,2/30,7.7,public transport,10:30,public transport: finish by 17:45 | within 30 min of usual time 10:30
-10:52,P036,VMAT,20/30,7.1,,10:30,within 30 min of usual time 10:30
-11:00,P005,3D-CRT,1/27,14.8,new start,11:30,new start: finish by 17:00 | within 30 min of usual time 11:30
-11:14,P024,VMAT,28/28,7.3,,10:30,44 min later than usual time 10:30
-11:22,P032,Breast (breast board),15/23,10.2,BREAST_BOARD,10:30,52 min later than usual time 10:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-11:32,P018,3D-CRT,4/21,6.5,public transport,11:30,public transport: finish by 17:30 | within 30 min of usual time 11:30
-11:38,P023,VMAT,12/31,7.2,public transport; paying,11:30,public transport: finish by 17:00 | within 30 min of usual time 11:30
-11:46,P011,3D-CRT,12/30,8.9,,11:30,within 30 min of usual time 11:30
-11:54,P060,3D-CRT,5/25,6.6,inpatient,12:30,36 min earlier than usual time 12:30 | inpatient: ward window 10:00-16:00
-12:00,P002,Craniospinal (CSI),14/30,26.1,complex; public transport; paying,11:30,complex procedure: senior staff 10:00-17:00 | public transport: finish by 17:30 | within 30 min of usual time 11:30
-12:26,P007,SBRT,1/4,37.8,new start; complex; elderly; public transport,11:30,complex procedure: senior staff 10:00-17:00 | new start: finish by 17:00 | public transport: finish by 16:15 | 56 min later than usual time 11:30
-13:04,P066,3D-CRT,13/23,5.1,paying,12:30,34 min later than usual time 12:30
-13:10,P012,Breast (breast board),18/23,8.0,elderly; paying; BREAST_BOARD,14:00,50 min earlier than usual time 14:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-13:18,P022,Breast (breast board),7/23,5.6,public transport; BREAST_BOARD,14:00,public transport: finish by 17:45 | 42 min earlier than usual time 14:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-13:24,P049,3D-CRT,17/20,5.4,public transport; paying,14:00,public transport: finish by 18:30 | 36 min earlier than usual time 14:00
-14:00,P006,Breast (breast board),1/21,18.6,new start; BREAST_BOARD,11:30,new start: finish by 17:00 | 150 min later than usual time 11:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-14:18,P053,VMAT,29/32,7.2,public transport,14:00,public transport: finish by 18:30 | within 30 min of usual time 14:00
-14:26,P016,VMAT,5/25,8.6,inpatient,14:00,within 30 min of usual time 14:00 | inpatient: ward window 10:00-16:00
-14:34,P062,3D-CRT,14/30,5.6,public transport; paying,19:00,public transport: finish by 16:15 | 296 min earlier than requested time 19:30
-15:00,P004,IMRT,1/35,20.8,new start,10:30,new start: finish by 17:00 | 270 min later than usual time 10:30
-15:20,P001,SRT,4/5,25.2,complex; paying,10:30,complex procedure: senior staff 10:00-17:00 | 290 min later than usual time 10:30
-15:46,P027,Breast (breast board),6/23,6.0,public transport; BREAST_BOARD,15:00,public transport: finish by 18:30 | 46 min later than usual time 15:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-15:52,P045,Breast (breast board),16/17,11.7,inpatient; BREAST_BOARD,15:00,52 min later than usual time 15:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided) | inpatient: ward window 10:00-16:00
-16:04,P056,VMAT,20/25,6.8,,14:00,124 min later than usual time 14:00
-16:30,P059,Breast (breast board),6/17,15.7,inpatient; BREAST_BOARD,12:30,240 min later than usual time 12:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided) | inpatient: ward window 10:00-16:00
-16:46,P046,Breast (breast board),3/16,15.5,inpatient; BREAST_BOARD,14:00,166 min later than usual time 14:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided) | inpatient: ward window 10:00-16:00
-17:02,P051,VMAT,6/27,16.4,inpatient,11:30,332 min later than usual time 11:30 | inpatient: ward window 10:00-16:00
-17:18,P039,Breast (breast board),10/18,5.6,BREAST_BOARD,15:00,138 min later than usual time 15:00 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-17:24,P017,VMAT,6/27,17.8,inpatient,11:30,354 min later than usual time 11:30 | inpatient: ward window 10:00-16:00
-17:42,P035,VMAT,7/27,7.3,,16:00,102 min later than usual time 16:00
-17:50,P043,3D-CRT,25/27,4.9,paying,17:00,within 30 min of requested time 17:30
-17:54,P065,VMAT,13/25,5.9,paying,17:00,within 30 min of requested time 17:30
-18:00,P030,Breast DIBH (ABC),21/25,12.9,ABC; BREAST_BOARD,15:00,"180 min later than usual time 15:00 | accessory check: ABC, BREAST_BOARD free (CT-sim bookings avoided)"
-18:12,P009,Breast DIBH (ABC),11/16,11.4,ABC; BREAST_BOARD,08:30,"582 min later than usual time 08:30 | accessory check: ABC, BREAST_BOARD free (CT-sim bookings avoided)"
-18:24,P025,IMRT,3/32,10.7,elderly; paying,19:00,36 min earlier than usual time 19:00
-18:34,P038,3D-CRT,8/23,13.6,,09:30,544 min later than usual time 09:30
-18:48,P054,Breast (breast board),2/15,6.0,paying; BREAST_BOARD,18:00,within 30 min of requested time 18:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-18:54,P041,VMAT,12/28,8.0,paying,18:00,within 30 min of requested time 18:30
-19:02,P064,Breast (breast board),9/19,16.2,BREAST_BOARD,10:30,512 min later than usual time 10:30 | accessory check: BREAST_BOARD free (CT-sim bookings avoided)
-19:18,P052,IMRT,3/34,8.0,dormitory,09:30,588 min later than usual time 09:30
+slot,report_by,patient,technique,fraction,planned_min,flags,language,current_reporting_time,why
+08:30,08:10,P018,Palliative 2D/3D,3/4,5.7,,Tulu,08:30,within 30 min of usual time 08:30 | report at 08:10 (20 min before)
+08:36,08:16,P067,Palliative 2D/3D,3/4,7.2,older; public transport; paying,Kannada,08:30,public transport: finish by 21:00 | within 15 min of preferred time 08:30 | older patient: earlier slot | report at 08:16 (20 min before)
+08:44,08:24,P060,Breast (breast board),12/17,8.7,dormitory; paying; breast board,Kannada,08:30,within 15 min of preferred time 08:30 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 08:24 (20 min before)
+08:52,08:07,P051,3D-CRT,3/25,6.2,pelvic,Kannada,08:30,within 30 min of usual time 08:30 | report at 08:07 (45 min before: drink 500 mL of water on arrival)
+08:58,08:38,P078,IMRT,29/30,10.8,public transport; paying,Kannada,08:30,public transport: finish by 21:00 | within 30 min of usual time 08:30 | report at 08:38 (20 min before)
+09:08,08:48,P009,Palliative 2D/3D,5/5,6.0,,Tulu,09:30,within 30 min of usual time 09:30 | report at 08:48 (20 min before)
+09:14,08:54,P085,Palliative 2D/3D,8/8,8.1,older; public transport,Tulu,09:30,public transport: finish by 21:00 | within 30 min of usual time 09:30 | older patient: earlier slot | report at 08:54 (20 min before)
+09:22,09:02,P058,IMRT,23/33,8.5,paying,Kannada,09:30,within 15 min of preferred time 09:30 | report at 09:02 (20 min before)
+09:30,09:10,P056,Palliative 2D/3D,3/6,8.3,lives nearby; paying,Kannada,09:30,within 15 min of preferred time 09:30 | report at 09:10 (20 min before)
+09:38,08:53,P053,VMAT,4/31,9.9,lives nearby; paying; pelvic,Kannada,09:30,within 15 min of preferred time 09:30 | report at 08:53 (45 min before: drink 500 mL of water on arrival)
+09:48,09:03,P026,3D-CRT,11/29,8.3,paying; pelvic,Kannada,09:30,within 30 min of usual time 09:30 | report at 09:03 (45 min before: drink 500 mL of water on arrival)
+09:56,09:36,P057,IMRT,25/33,10.8,older; public transport,Kannada,09:30,public transport: finish by 21:00 | within 30 min of usual time 09:30 | older patient: earlier slot | report at 09:36 (20 min before)
+10:08,09:48,P038,Breast DIBH (ABC),11/19,11.0,paying; ABC; breast board,Kannada,10:30,within 30 min of usual time 10:30 | accessory check: ABC and breast board free (CT-simulator bookings and reservations respected) | report at 09:48 (20 min before)
+10:20,10:00,P070,Palliative 2D/3D,4/4,5.5,public transport; paying,Malayalam,10:30,public transport: finish by 21:00 | within 15 min of preferred time 10:30 | report at 10:00 (20 min before)
+10:26,09:41,P003,VMAT,1/33,25.8,new start; lives nearby; pelvic,Kannada,10:30,new start: finish by 17:00 | within 30 min of usual time 10:30 | report at 09:41 (45 min before: drink 500 mL of water on arrival)
+10:52,10:32,P077,Palliative 2D/3D,4/9,5.3,public transport; paying,Kannada,10:30,public transport: finish by 21:00 | within 30 min of usual time 10:30 | report at 10:32 (20 min before)
+10:58,10:13,P086,3D-CRT,24/26,9.6,pelvic,Kannada,10:30,within 30 min of usual time 10:30 | report at 10:13 (45 min before: drink 500 mL of water on arrival)
+11:08,10:48,P074,IMRT,30/33,10.6,paying,Kannada,10:30,38 min later than usual time 10:30 | report at 10:48 (20 min before)
+11:18,10:58,P061,Breast (breast board),2/25,7.2,public transport; breast board,Tulu,11:30,public transport: finish by 21:00 | within 30 min of usual time 11:30 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 10:58 (20 min before)
+11:26,11:06,P050,IMRT,24/32,10.2,,Kannada,10:30,56 min later than usual time 10:30 | report at 11:06 (20 min before)
+11:36,10:51,P081,IMRT,25/30,8.8,paying; pelvic,Malayalam,11:30,within 30 min of usual time 11:30 | report at 10:51 (45 min before: drink 500 mL of water on arrival)
+11:44,10:59,P024,VMAT,14/31,9.7,public transport; pelvic,Kannada,11:30,public transport: finish by 21:00 | within 30 min of usual time 11:30 | report at 10:59 (45 min before: drink 500 mL of water on arrival)
+11:54,11:34,P040,Palliative 2D/3D,2/2,5.5,public transport,Kannada,12:30,public transport: finish by 21:00 | 36 min earlier than usual time 12:30 | report at 11:34 (20 min before)
+12:00,11:40,P002,Craniospinal (CSI),14/25,25.0,complex; dormitory; paying,Kannada,11:30,complex procedure: senior staff 10:00-17:00 | within 30 min of usual time 11:30 | report at 11:40 (20 min before)
+12:26,12:06,P007,SBRT,1/4,39.8,new start; complex; public transport,Kannada,11:30,complex procedure: senior staff 10:00-17:00 | new start: finish by 17:00 | public transport: finish by 21:00 | 56 min later than usual time 11:30 | report at 12:06 (20 min before)
+13:06,12:46,P062,VMAT,28/31,11.4,older,Kannada,12:30,36 min later than usual time 12:30 | report at 12:46 (20 min before)
+13:18,12:33,P055,3D-CRT,23/27,7.3,older; dormitory; pelvic,Tulu,23:00,582 min earlier than usual time 23:00 | report at 12:33 (45 min before: drink 500 mL of water on arrival)
+14:00,13:40,P006,Breast (breast board),1/19,24.4,new start; public transport; breast board,Kannada,14:00,new start: finish by 17:00 | public transport: finish by 21:00 | within 30 min of usual time 14:00 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 13:40 (20 min before)
+14:24,13:39,P020,VMAT,29/30,8.3,public transport; pelvic,Kannada,12:30,public transport: finish by 21:00 | 114 min later than usual time 12:30 | report at 13:39 (45 min before: drink 500 mL of water on arrival)
+14:32,14:12,P044,3D-CRT,17/21,7.4,public transport,Kannada,14:00,public transport: finish by 21:00 | 32 min later than usual time 14:00 | report at 14:12 (20 min before)
+15:00,14:40,P001,SRT,4/5,27.1,complex; public transport; paying,Kannada,11:30,complex procedure: senior staff 10:00-17:00 | public transport: finish by 21:00 | 210 min later than usual time 11:30 | report at 14:40 (20 min before)
+15:28,14:43,P005,3D-CRT,1/29,20.3,new start; pelvic,Kannada,14:00,new start: finish by 17:00 | 88 min later than usual time 14:00 | report at 14:43 (45 min before: drink 500 mL of water on arrival)
+15:48,15:28,P004,IMRT,1/33,28.6,new start; dormitory,Tulu,11:30,new start: finish by 17:00 | 258 min later than usual time 11:30 | report at 15:28 (20 min before)
+16:16,15:56,P015,Breast (breast board),19/21,8.2,older; MHRC; paying; breast board,English,16:00,"MHRC: protected slot 16:00-17:00, back on the 17:00 bus | within 30 min of usual time 16:00 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 15:56 (20 min before)"
+16:24,16:04,P052,Palliative 2D/3D,9/9,7.0,MHRC,Malayalam,16:00,"MHRC: protected slot 16:00-17:00, back on the 17:00 bus | within 30 min of usual time 16:00 | report at 16:04 (20 min before)"
+16:32,16:12,P047,3D-CRT,14/30,7.5,MHRC,Kannada,16:00,"MHRC: protected slot 16:00-17:00, back on the 17:00 bus | 32 min later than usual time 16:00 | report at 16:12 (20 min before)"
+16:40,15:55,P037,VMAT,3/33,9.9,lives nearby; paying; pelvic,Tulu,09:30,430 min later than preferred time 09:30 | report at 15:55 (45 min before: drink 500 mL of water on arrival)
+16:50,16:30,P023,Breast (breast board),15/17,6.1,public transport; paying; breast board,Kannada,15:00,public transport: finish by 21:00 | 110 min later than usual time 15:00 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 16:30 (20 min before)
+17:20,16:35,P049,VMAT,23/26,8.9,older; pelvic,Tulu,17:00,within 30 min of usual time 17:00 | report at 16:35 (45 min before: drink 500 mL of water on arrival)
+17:28,17:08,P072,Palliative 2D/3D,2/2,7.1,,Kannada,15:00,148 min later than usual time 15:00 | report at 17:08 (20 min before)
+17:36,16:51,P084,3D-CRT,7/23,7.1,public transport; pelvic,Kannada,17:00,public transport: finish by 21:00 | 36 min later than usual time 17:00 | report at 16:51 (45 min before: drink 500 mL of water on arrival)
+17:44,17:24,P021,3D-CRT,8/27,6.4,lives nearby; paying,Kannada,17:00,within 15 min of preferred time 17:30 | report at 17:24 (20 min before)
+17:50,17:30,P045,VMAT,31/32,7.2,,Malayalam,15:00,170 min later than usual time 15:00 | report at 17:30 (20 min before)
+17:58,17:38,P017,Breast (breast board),15/17,8.7,public transport; paying; breast board,Kannada,17:00,public transport: finish by 21:00 | 28 min later than preferred time 17:30 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 17:38 (20 min before)
+18:06,17:46,P046,Breast DIBH (ABC),16/17,13.8,older; public transport; paying; ABC; breast board,Kannada,17:00,public transport: finish by 21:00 | 36 min later than preferred time 17:30 | accessory check: ABC and breast board free (CT-simulator bookings and reservations respected) | report at 17:46 (20 min before)
+18:20,18:00,P041,VMAT,7/26,9.5,older; lives nearby; paying,Kannada,18:00,within 15 min of preferred time 18:30 | report at 18:00 (20 min before)
+18:30,17:45,P011,3D-CRT,10/23,7.6,pelvic,Kannada,15:00,210 min later than usual time 15:00 | report at 17:45 (45 min before: drink 500 mL of water on arrival)
+18:38,18:18,P029,3D-CRT,6/29,7.1,public transport; paying,Tulu,18:00,public transport: finish by 21:00 | within 15 min of preferred time 18:30 | report at 18:18 (20 min before)
+18:46,18:26,P073,3D-CRT,20/24,7.8,public transport; paying,Tulu,18:00,public transport: finish by 21:00 | 16 min later than preferred time 18:30 | report at 18:26 (20 min before)
+18:54,18:34,P034,IMRT,3/34,9.7,paying,English,18:00,24 min later than preferred time 18:30 | report at 18:34 (20 min before)
+19:04,18:44,P087,Palliative 2D/3D,2/4,5.3,public transport,Tulu,18:00,public transport: finish by 21:00 | 64 min later than usual time 18:00 | report at 18:44 (20 min before)
+19:10,18:25,P064,IMRT,21/31,8.8,public transport; paying; pelvic,Tulu,14:00,public transport: finish by 21:00 | 310 min later than usual time 14:00 | report at 18:25 (45 min before: drink 500 mL of water on arrival)
+19:18,18:58,P082,Breast (breast board),18/19,7.2,public transport; breast board,Kannada,17:00,public transport: finish by 21:00 | 138 min later than usual time 17:00 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 18:58 (20 min before)
+19:26,19:06,P080,VMAT,16/33,8.7,paying,Tulu,17:00,146 min later than usual time 17:00 | report at 19:06 (20 min before)
+19:34,18:49,P065,3D-CRT,16/22,6.1,paying; pelvic,Hindi,19:00,within 15 min of preferred time 19:30 | report at 18:49 (45 min before: drink 500 mL of water on arrival)
+19:40,19:20,P010,Breast (breast board),2/18,8.6,paying; breast board,Kannada,19:00,within 15 min of preferred time 19:30 | accessory check: breast board free (CT-simulator bookings and reservations respected) | report at 19:20 (20 min before)
+19:48,19:28,P030,Breast DIBH (ABC),24/25,12.6,public transport; paying; ABC; breast board,English,19:00,public transport: finish by 21:00 | 18 min later than preferred time 19:30 | accessory check: ABC and breast board free (CT-simulator bookings and reservations respected) | report at 19:28 (20 min before)
+20:00,19:40,P035,3D-CRT,5/20,7.8,,Tulu,15:00,300 min later than usual time 15:00 | report at 19:40 (20 min before)
+20:08,19:23,P054,VMAT,18/33,9.2,public transport; pelvic,Tulu,17:00,public transport: finish by 21:00 | 188 min later than usual time 17:00 | report at 19:23 (45 min before: drink 500 mL of water on arrival)
+20:18,19:58,P063,IMRT,14/30,11.3,public transport,Malayalam,10:30,public transport: finish by 21:00 | 588 min later than usual time 10:30 | report at 19:58 (20 min before)
+20:30,20:10,P032,IMRT,29/34,9.6,,Malayalam,12:30,480 min later than usual time 12:30 | report at 20:10 (20 min before)
+20:40,20:20,P036,IMRT,18/30,11.4,,Tulu,12:30,490 min later than usual time 12:30 | report at 20:20 (20 min before)
+20:52,20:32,P012,IMRT,31/32,9.9,,Hindi,21:00,within 30 min of usual time 21:00 | report at 20:32 (20 min before)
+21:02,20:42,P048,3D-CRT,17/20,6.7,lives nearby,Tulu,17:00,"242 min later than usual time 17:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 20:42 (20 min before)"
+21:08,20:48,P008,VMAT,11/25,8.6,lives nearby,Tulu,17:00,"248 min later than usual time 17:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 20:48 (20 min before)"
+21:16,20:31,P043,3D-CRT,25/30,8.4,dormitory; pelvic,Kannada,19:00,"136 min later than usual time 19:00 | dormitory: late-evening slot, keeps earlier slots for stricter constraints | report at 20:31 (45 min before: drink 500 mL of water on arrival)"
+21:24,20:39,P066,VMAT,10/30,7.6,inpatient; pelvic,Kannada,20:00,"84 min later than usual time 20:00 | inpatient: late-evening slot, keeps earlier slots for stricter constraints | report at 20:39 (45 min before: drink 500 mL of water on arrival)"
+21:32,21:12,P033,IMRT,2/35,8.3,lives nearby,Tulu,20:00,"92 min later than usual time 20:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 21:12 (20 min before)"
+21:40,21:20,P083,Breast (breast board),24/25,8.7,inpatient; breast board,Malayalam,21:00,"40 min later than usual time 21:00 | accessory check: breast board free (CT-simulator bookings and reservations respected) | inpatient: late-evening slot, keeps earlier slots for stricter constraints | report at 21:20 (20 min before)"
+21:48,21:03,P042,IMRT,27/34,8.9,lives nearby; pelvic,Kannada,21:00,"48 min later than usual time 21:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 21:03 (45 min before: drink 500 mL of water on arrival)"
+21:56,21:11,P071,IMRT,25/30,8.7,lives nearby; paying; pelvic,Kannada,21:00,"56 min later than usual time 21:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 21:11 (45 min before: drink 500 mL of water on arrival)"
+22:04,21:44,P019,VMAT,17/25,9.8,dormitory,English,19:00,"184 min later than usual time 19:00 | dormitory: late-evening slot, keeps earlier slots for stricter constraints | report at 21:44 (20 min before)"
+22:14,21:54,P059,VMAT,22/27,9.8,lives nearby,Kannada,21:00,"74 min later than usual time 21:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 21:54 (20 min before)"
+22:24,21:39,P079,3D-CRT,12/25,6.1,dormitory; pelvic,Tulu,22:00,"within 30 min of usual time 22:00 | dormitory: late-evening slot, keeps earlier slots for stricter constraints | report at 21:39 (45 min before: drink 500 mL of water on arrival)"
+22:30,21:45,P068,3D-CRT,2/30,7.2,dormitory; pelvic,Kannada,22:00,"within 30 min of usual time 22:00 | dormitory: late-evening slot, keeps earlier slots for stricter constraints | report at 21:45 (45 min before: drink 500 mL of water on arrival)"
+22:38,22:18,P022,Breast (breast board),12/15,7.5,lives nearby; breast board,English,22:00,"38 min later than usual time 22:00 | accessory check: breast board free (CT-simulator bookings and reservations respected) | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 22:18 (20 min before)"
+22:46,22:01,P031,VMAT,26/32,9.9,lives nearby; pelvic,Kannada,21:00,"106 min later than usual time 21:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 22:01 (45 min before: drink 500 mL of water on arrival)"
+22:56,22:36,P025,Palliative 2D/3D,5/10,6.4,lives nearby,Malayalam,23:00,"within 30 min of usual time 23:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 22:36 (20 min before)"
+23:02,22:17,P075,VMAT,7/29,8.3,lives nearby; pelvic,Kannada,23:00,"within 30 min of usual time 23:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 22:17 (45 min before: drink 500 mL of water on arrival)"
+23:10,22:25,P016,3D-CRT,27/28,10.9,inpatient; pelvic,Kannada,20:00,"190 min later than usual time 20:00 | inpatient: late-evening slot, keeps earlier slots for stricter constraints | report at 22:25 (45 min before: drink 500 mL of water on arrival)"
+23:20,23:00,P069,IMRT,22/34,10.2,dormitory,Tulu,18:00,"320 min later than usual time 18:00 | dormitory: late-evening slot, keeps earlier slots for stricter constraints | report at 23:00 (20 min before)"
+23:30,23:10,P027,VMAT,6/31,12.5,inpatient,Kannada,18:00,"330 min later than usual time 18:00 | inpatient: late-evening slot, keeps earlier slots for stricter constraints | report at 23:10 (20 min before)"
+23:42,23:22,P028,Breast DIBH (ABC),6/15,11.1,lives nearby; ABC; breast board,Kannada,21:00,"162 min later than usual time 21:00 | accessory check: ABC and breast board free (CT-simulator bookings and reservations respected) | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 23:22 (20 min before)"
+23:54,23:34,P013,IMRT,23/35,11.0,inpatient,Kannada,21:00,"174 min later than usual time 21:00 | inpatient: late-evening slot, keeps earlier slots for stricter constraints | report at 23:34 (20 min before)"
+00:06,23:46,P039,IMRT,4/32,11.7,lives nearby; paying,Kannada,22:00,"126 min later than usual time 22:00 | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 23:46 (20 min before)"
+00:18,23:58,P014,IMRT,7/32,14.2,dormitory,Tulu,22:00,"138 min later than usual time 22:00 | dormitory: late-evening slot, keeps earlier slots for stricter constraints | report at 23:58 (20 min before)"
+00:32,00:12,P076,Breast DIBH (ABC),5/25,13.1,lives nearby; ABC; breast board,Malayalam,20:00,"272 min later than usual time 20:00 | accessory check: ABC and breast board free (CT-simulator bookings and reservations respected) | lives nearby: late-evening slot, keeps earlier slots for stricter constraints | report at 00:12 (20 min before)"

@@ -18,7 +18,7 @@ standalone = (
     '<!doctype html>\n<html lang="en">\n<meta charset="utf-8">\n'
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
     '<meta name="description" content="Interactive results from the RAD-SMART proof of concept on synthetic data: '
-    'waits, an optimised treatment day, machine-fault recovery and two-machine new-start planning.">\n'
+    'waits, an optimised treatment day under the department rules, machine-downtime recovery and two-machine new-start planning around TBI.">\n'
     + page + "\n</html>\n"
 )
 

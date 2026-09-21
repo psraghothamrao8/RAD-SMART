@@ -4,7 +4,7 @@
 
 Health-a-thon 2026 · Cancer track · Doctor / care-team facing use case 04: Clinic Operations & Patient Flow
 
-Problem owner and doctor partner: Dr Akshay Dinesan, Manipal · Technology team: [names to be added] · Version 1.0, September 2026
+Problem owner and doctor partner: Dr Akshay Dinesan, Manipal · Technology team: [names to be added] · Version 1.1, 21 September 2026 (updated with the department's answers)
 
 > **Assistive, not diagnostic.** RAD-SMART plans *when* and *on which machine* a session takes place. It never decides whether, how or how much a patient is treated. Urgency, technique and machine eligibility are always entered by clinicians and physicists, every plan is a proposal until a person approves it, and every action is logged. All data in this report are synthetic.
 
@@ -12,32 +12,44 @@ Problem owner and doctor partner: Dr Akshay Dinesan, Manipal · Technology team:
 
 ## 1. Executive summary
 
-**The problem.** A radiotherapy machine treats 70–90 patients a day, most of them every working day for weeks. Today, radiation therapy technologists (RTTs) give out appointment times by hand, without a measure of how many machine-minutes each patient actually needs. Too many patients are told to come at the same time, so they wait, sometimes for hours, every day of a 5–7 week course. The department also has to fit in new starts before 5 PM, complex procedures while senior staff are present, a fixed blood-irradiation slot, accessories shared with the CT simulator, same-day urgent patients, machine faults, and soon a second machine with different capabilities. As the problem statement says, this is not appointment booking. It is dynamic allocation of machine time, staff and shared resources under many constraints.
+**The problem.** A radiotherapy machine treats 70–90 patients a day, most of them every working day for weeks. In our department one Versa HD runs from 08:30 until about 01:00 in three RTT shifts, with a ceiling of 90 patients a day, and a second machine arrives in early 2027. Radiation therapy technologists (RTTs) give out appointment times by hand, without a measure of how many machine-minutes each patient actually needs. Too many patients are told to come at the same time, so they wait, sometimes for hours, every day of a 5–7 week course. The department must also finish new starts by 17:00, keep complex procedures inside 10:00–17:00 while senior staff are present, keep 13:30–14:00 for blood irradiation, share one breast board and one ABC unit with the CT simulator, treat MHRC patients in time for the 17:00 hospital bus, get public-transport patients home by 21:00, fit same-day urgent starts before 18:00, run total body irradiation (TBI) courses, and recover from machine faults. As the problem statement says, this is not appointment booking. It is dynamic allocation of machine time, staff and shared resources under many constraints.
 
 **Our answer.** RAD-SMART is an operational layer between the patient list and the machines, built as a hybrid AI system with four parts:
 
-1. **Predict.** A machine-learning model predicts each session's machine-minutes as a typical value (P50) and a cautious value (P80). It starts from the department's average tables and learns from every day's timestamps.
-2. **Optimise.** A constraint-optimisation engine turns those minutes into a minute-level plan for each machine. Hard rules (new starts before 5 PM, complex cases in the senior-staff window, the blood slot, accessory limits) cannot be broken, because the solver will not produce a plan that breaks them.
-3. **Simulate.** A digital twin of the department stress-tests every plan against late arrivals, overruns, urgent add-ons and machine faults. The same engine gives a three-week machine-load forecast and a two-day-ahead advice on how many new patients to start on each machine.
-4. **Explain and converse.** A copilot on Sarvam AI's Indian-language models explains every placement in plain language and turns rule changes typed in plain language into versioned, validated configuration. It also sends patients and caregivers their time, and live updates, by WhatsApp, SMS or voice call in their own language. The copilot never makes a scheduling decision.
+1. **Predict.** A machine-learning model predicts each session's machine-minutes: the expected value used for planning and a cautious value (P80) used to flag fragile plans. The department records no workflow timestamps yet, so RAD-SMART starts from the department's own estimate table and learns once check-in and room timestamps are captured.
+2. **Optimise.** A constraint-optimisation engine turns those minutes into a minute-level plan for each machine. Hard rules cannot be broken, because the solver will not produce a plan that breaks them, and an independent checker re-verifies every plan. These rules include new starts by 17:00, complex cases in 10:00–17:00, the blood slot, MHRC slots and the 17:00 bus, public transport home by 21:00, and one breast board and one ABC unit shared with the CT simulator.
+3. **Simulate.** A digital twin of the department stress-tests every plan against late arrivals, overruns, urgent starts, imaging holds and machine faults. The same engine gives a three-week machine-load forecast that plans new starts around TBI courses, and advises two days ahead how many new patients to start on each machine.
+4. **Explain and converse.** A copilot on Sarvam AI's Indian-language models explains every placement in plain language and turns rule changes typed in plain language into versioned, validated configuration. It sends patients and caregivers their reporting time and live updates by WhatsApp, SMS or voice call, in Kannada, Tulu, Malayalam, Hindi or English. The copilot never makes a scheduling decision.
 
-**The evidence so far.** We built a working proof of concept (PoC) in Python and tested it on synthetic data: a 67-patient, 90%-loaded day on a Versa HD, simulated 300 times with realistic randomness.
+**The evidence so far.** We built a working proof of concept (PoC) in Python and tested it on synthetic data under the department's own rules (its answers of 21 September 2026). The test is an 87-patient day on the Versa HD from 08:30 to 01:00, loaded to 92.7%, simulated 300 times with realistic randomness.
 
 | What we measured (synthetic, 300 simulated days) | Current practice (modelled) | RAD-SMART |
 |---|---|---|
-| Median wait, arrival to entering the treatment room | 71 min | **19 min (−73%)** |
-| 90th-percentile wait | 227 min | **52 min (−77%)** |
-| Patients treated within ±15 min of their time | 16% | **62%** |
-| Average time spent in the department | 117 min | **34 min** |
-| New starts after 5 PM, complex cases deferred, accessory clashes | occasional | **none** |
-| 30-minute machine fault at 11:00: median wait | 93 min | **19 min** with live re-planning (4 s) |
-| Two-machine new-start planning: peak planned load | 156% on one machine | **100% on both** |
+| Median wait from arrival to entering the treatment room (preparation time included) | 100 min | **33 min (−67%)** |
+| 90th-percentile wait | 173 min | **62 min (−64%)** |
+| Patients treated within ±15 min of their time | 10% | **73%** |
+| Average time spent in the department | 110 min | **47 min** |
+| Paying patients within 15 min of their preferred time | 16% | **52%** |
+| Hard rules in the evening plan (independent check) | not checked | **all 7 met** |
+| 45-minute fault at 11:00: median wait | 144 min | **40 min**, re-planned in 26 s |
+| 150-minute fault at 10:00: median wait | 216 min | **35 min**; 5 new starts moved to the next day |
+| Two machines and a TBI week: peak planned load | 154% on the Versa HD | **98% and 99%** |
 
-Two findings matter most for a real rollout. First, the optimiser using only average durations already cuts the median wait from 71 to 22 minutes, so the department benefits from day one, before any machine learning has been trained. Machine learning then adds punctuality (54.8% → 62.4% of patients within ±15 minutes). Second, hard rules held in every simulated day.
+Three findings matter most for a real rollout.
 
-**The pilot.** 90 days on the Versa HD: two weeks measuring the baseline, three weeks in shadow mode, then eight weeks live. The primary KPI is median waiting time from arrival to linac entry, with a target reduction of at least 40%. It needs about ₹2–3 lakh of hardware and messaging costs and works with the Excel lists, paper registers and WhatsApp the department already uses.
+1. **Benefits from day one.** The optimiser using only average durations already cuts the median wait from 100 to 35 minutes, so the department benefits before any timestamps exist. Machine learning then adds punctuality (70.4% → 72.6% within ±15 minutes).
+2. **The department chooses when the day ends.** Holding 40 minutes for urgent starts gives the shortest waits, but the last patient finishes later than today (00:53 against 00:29). Holding nothing ends the day at 00:17, earlier than today, with a 43-minute median wait.
+3. **Rules and recovery.** Every hard rule held in every plan, and both downtime re-plans follow the department's own rules.
 
-**Why this can win.** It solves a daily, high-frequency pain for thousands of patients and their caregivers. It uses AI where each technique is strongest: machine learning to predict, mathematical optimisation to guarantee, simulation to test, and a language model to explain and talk to people. It stays inside the hackathon's guardrails by design, and it already produces measured results rather than a mock-up.
+**The pilot.** 90 days on the Versa HD:
+
+- two weeks capturing timestamps and measuring the baseline (none are recorded today);
+- three weeks in shadow mode;
+- eight weeks live, with a designated senior RTT or oncologist approving every plan.
+
+The primary KPI is median waiting time from arrival to linac entry, with a target reduction of at least 40%. It needs about ₹2–3 lakh of hardware and messaging costs and works with the Excel lists, paper registers and WhatsApp the department already uses.
+
+**Why this can win.** It solves a daily, high-frequency pain for thousands of patients and their caregivers. It uses AI where each technique is strongest: machine learning to predict, mathematical optimisation to guarantee, simulation to test, and a language model to explain and talk to people. It stays inside the hackathon's guardrails by design, it is built on the department's own rules, and it already produces measured results rather than a mock-up.
 
 <!-- pagebreak -->
 
@@ -49,22 +61,33 @@ Radiotherapy differs from a normal outpatient clinic. A patient attends every wo
 
 Appointment times are given by hand. They are not based on how long each treatment takes or how loaded the machine is. As a result, too many patients are asked to report in the same period and other periods sit under-used. Patients have an appointment yet still face long, unpredictable waits.
 
+**Our department.** One Elekta Versa HD runs from 08:30 until about 01:00–02:00 in three RTT shifts, with an operational ceiling of 90 patients a day. A second machine arrives in early 2027, and its capability matrix is still being agreed. Most patients speak Kannada or Tulu; a few speak English, Hindi or Malayalam. No workflow timestamps are recorded today.
+
 ### 2.2 Constraints the plan must respect
 
-The problem statement lists these rules. We classify each as hard (never broken) or soft (traded off), and every one of them is editable configuration, not code.
+The problem statement lists the rules, and the department confirmed and extended them on 21 September 2026 (Appendix B). We classify each as hard (never broken) or soft (traded off), and every one of them is editable configuration, not code.
 
-| Rule | Type | How RAD-SMART treats it |
+| Rule (department's answer) | Type | How RAD-SMART treats it |
 |---|---|---|
-| Complex treatments (SBRT, SRT, TBI, CSI) need senior staff, 10 AM – 5 PM | Hard | Session must start and end inside the window, with a safety buffer |
-| Protected slot for complex procedures, 12:00 – 1:30 PM | Soft (configurable to hard) | Complex cases are pulled into it; routine patients are discouraged from it |
-| New starts completed before 5 PM | Hard | Planned to finish at least 25 min before the cut-off (buffer configurable) |
-| Blood irradiation slot, 1:30 – 2 PM | Hard | Machine blocked |
-| Shared accessories (breast boards, ABC) also booked by the CT simulator | Hard | Counted per unit, including CT-simulator bookings and transfer time |
-| Urgent / palliative same-day starts | Hard (capacity held) | Holds reserved in the afternoon; released if unused |
-| Priority groups: paying, elderly, inpatient, MHRC / hospice, dormitory, public transport | Soft, with hard limits where logistics demand | Weighted preferences; the latest-return time for transport-dependent patients is hard |
-| Machine capability (Versa HD vs Halcyon) | Hard | Eligibility matrix maintained by physics |
-| Machine downtime and delays | Event | Triggers minimum-disruption re-planning |
+| Operating day 08:30 to about 01:00–02:00, three RTT shifts, ceiling of 90 patients a day | Hard | Regular day to 01:00; overtime penalised; hard stop at 02:00 |
+| Complex treatments (SBRT, SRT, TBI, CSI) need senior staff, 10:00–17:00 | Hard | Session starts and ends inside the window, with a 25-min safety buffer |
+| Protected complex slot 12:00–13:30 | Soft, released if unused | Complex cases are pulled into it; other patients use it when no complex case needs it |
+| New starts completed by 17:00 | Hard | Planned to finish at least 25 min before the cut-off (buffer configurable) |
+| Urgent same-day starts: 0–3 a day, arriving in the afternoon | Hard: treated before 18:00 | Two 20-min holds (14:40 and 17:00) that ward and dormitory patients can use on standby; used for catch-up if nobody needs them |
+| Blood irradiation, every day on the Versa HD, 13:30–14:00 | Hard | Machine blocked |
+| One breast board and one ABC unit, shared with the CT simulator (open 11:00–18:00); transfer under 2 min | Hard | Counted per unit, with CT-simulator bookings, the 2-min transfer and the linac's reservations (Section 6.7) |
+| Paying patients get their preferred time as far as possible | Hard for the department; modelled as a strong preference | Four times the normal weight, 15-min tolerance; the plan reports how many got their time |
+| MHRC patients: protected 16:00–17:00 slots; must finish for the 17:00 hospital bus | Hard; slots released if unused | Treated between 16:00 and 16:45 after the bus arrives at 15:45 |
+| Public-transport patients finish before 21:00 | Hard | Latest end 21:00 |
+| Older patients: earlier or convenient slots | Soft | Cost for every minute after 13:00 |
+| Inpatients, dormitory residents and patients living nearby are flexible | Soft | They take the late-evening slots; when the machine runs ahead, ward and dormitory patients are called in and nearby patients get a "come early" message |
+| Patients report at least 20 min before their slot; pelvic patients (cervix, endometrium, rectum, anal canal, bladder) drink 500 mL of water, wait 30 min and report 45 min before | Instruction to patients | Every message gives the reporting time and preparation; waits are measured from arrival, so they include it |
+| Imaging review: the oncologist may decline to treat; the patient is repositioned and treated at once or later the same day | Event; buffer needed | Re-queued automatically; the urgent holds and the late evening absorb re-treatments |
+| TBI: two fractions a day of 60–90 min (first in the morning and in the evening), about every 2–3 months, known a month ahead; new starts tapered from a week before | Hard (planned) | Slots blocked on TBI days; the forecast holds back exactly the new starts that would not fit |
+| Machine capability (Versa HD, second machine from early 2027) | Hard | Eligibility matrix from physics; pending departmental consensus |
+| Machine downtime: 30–60 min, and over 120 min | Event with rules | The department's downtime rules (Section 6.5) |
 | Staff overtime | Soft | Penalised in the objective |
+| Approval of the next-day plan and of live changes | Human | A designated senior RTT or oncologist approves |
 
 ### 2.3 Evidence from India and elsewhere
 
@@ -83,7 +106,7 @@ For patients, the plan means predictability: they arrive close to their real tre
 |---|---|
 | Non-clinical, operational workflow problem | Scheduling, queueing and resource tracking. It uses operational tags only: technique, fraction number, accessories, logistics flags |
 | Out of scope: diagnosis, treatment recommendations, clinical decision support, risk scoring, interpretation of medical data | It does not read images, doses, diagnoses or notes, and it does not decide urgency or eligibility. Clinicians and physicists enter those |
-| Human override on every automated step | Every plan and re-plan is a proposal; the RTT lead approves or edits it in one tap and the reason is captured |
+| Human override on every automated step | Every plan and re-plan is a proposal; a designated senior RTT or oncologist approves or edits it in one tap and the reason is captured |
 | Audit trail | Append-only log of plans, edits, overrides, rule versions, messages and model versions |
 | Measurable KPI with baseline | Median wait from arrival to linac entry, with a 2-week baseline; secondary and balancing KPIs in Section 8 |
 | Pilot evidence in 60–90 days | 90-day plan: baseline, shadow mode, then live, analysed as an interrupted time series |
@@ -100,7 +123,7 @@ For patients, the plan means predictability: they arrive close to their real tre
 
 **Duration prediction works.** Models trained on positioning and treatment times predict session length well enough to schedule by the minute [13], and earlier regression-tree models reached 84% accuracy for treatment duration [14].
 
-**New AI methods are being tried, with trade-offs.** Deep reinforcement learning has been applied to integrated pre-treatment and treatment scheduling [15]. A 2026 preprint tests large language models directly as radiotherapy schedulers under realistic constraints [16]. Neither gives the verifiable guarantee a department needs for rules such as "no new start after 5 PM".
+**New AI methods are being tried, with trade-offs.** Deep reinforcement learning has been applied to integrated pre-treatment and treatment scheduling [15]. A 2026 preprint tests large language models directly as radiotherapy schedulers under realistic constraints [16]. Neither gives the verifiable guarantee a department needs for rules such as "no new start after 17:00".
 
 **The gap RAD-SMART fills.**
 
@@ -151,15 +174,15 @@ Scores run from 1 (poor) to 5 (excellent). The hybrid scores lower only on feasi
 ![The daily loop. Blue steps are automated; orange steps are decisions made by people.](figures/fig0_daily-loop.png){width=6.7}
 
 1. **Two working days ahead.** The capacity forecast projects each machine's committed minutes from every patient's remaining fractions, counts completions, and recommends how many new patients to start on each machine. The oncologist or head of department confirms who starts and when.
-2. **Evening before.** The duration model predicts each session's minutes. The optimiser builds the plan, and the digital twin checks how robust it is. The RTT lead reviews, edits and approves it. Patients receive their time in their own language.
-3. **During the day.** QR check-in and room entry and exit are logged. A delay, fault, no-show, urgent add-on or a patient's "running late" reply triggers a re-plan proposal within seconds. When the RTT approves it, affected patients who can still act on it are messaged.
+2. **Evening before.** The duration model predicts each session's minutes. The optimiser builds the plan, and the digital twin checks how robust it is. The designated senior RTT or oncologist reviews, edits and approves it. Patients receive their reporting time in their own language.
+3. **During the day.** QR check-in and room entry and exit are logged. A delay, fault, no-show, urgent add-on or a patient's "running late" reply triggers a re-plan proposal within seconds. When the approver accepts it, affected patients who can still act on it are messaged.
 4. **After the day.** Actual and predicted minutes are stored. The model is retrained weekly, and a new version goes live only after human approval. The KPI dashboard updates, and the department reviews overrides and their reasons.
 
 ### 6.3 Module 1: Predict machine-minutes
 
 - **Inputs** are operational tags already on the treatment card: technique (palliative, 3D-CRT, IMRT, VMAT, breast, breast with DIBH/ABC, SBRT, SRT, CSI, TBI), site group, fraction number (first fraction or not), imaging (none, kV or CBCT), mobility (walking, wheelchair or stretcher), accessories and machine.
-- **Model.** A gradient-boosted regressor with quantile loss gives P50 (typical) and P80 (cautious) minutes. By default the plan uses P50 and can use P80 for long or variable sessions such as new starts and complex cases. The P80 is also used to warn when a plan is fragile.
-- **Cold start.** Until enough history exists, the department's own average table is used. The PoC shows that the optimiser plus averages already captures most of the benefit (Section 7).
+- **Model.** Gradient-boosted regressors give the expected minutes, the median (P50) and a cautious value (P80). The plan reserves the expected minutes, because session times are right-skewed and planning at the median would under-book the day. It can use P80 for long or variable sessions such as new starts and complex cases, and P80 also flags fragile plans.
+- **Cold start.** The department records no timestamps today, so RAD-SMART starts from the department's own estimate table (minutes per technique, first fraction and accessory). The PoC shows that the optimiser plus averages already captures most of the benefit (Section 7). Timestamp capture starts on day 1 of the pilot.
 - **Learning loop.** Every session's actual time is logged by QR or tablet taps, or from OIS timestamps where available. The model is retrained weekly with a drift report, and a new version goes live only after human approval.
 
 ### 6.4 Module 2: Optimise the day
@@ -169,46 +192,62 @@ Scores run from 1 (poor) to 5 (excellent). The hybrid scores lower only on feasi
 ```
 Decide   start time and machine for each session (or "unscheduled", heavily penalised)
 Subject to (hard):
-  - one session at a time per machine; machine blocks (blood irradiation, QA, faults)
+  - one session at a time per machine; operating day 08:30 to 02:00
+  - machine blocks: blood irradiation 13:30-14:00, TBI slots, QA, faults
   - machine eligibility from the physics capability matrix
-  - complex sessions inside the senior-staff window (10:00-17:00, minus buffer),
-    at most N complex sessions at once
-  - new starts finish by 17:00 minus a 25-min buffer
-  - accessory units: sessions using an accessory + CT-simulator bookings <= units,
-    including transfer time between rooms
-  - patient hard windows: inpatient ward window, hospice vehicle window,
-    last bus / train minus buffer
-  - capacity holds for same-day urgent starts
-Minimise (soft):
-    w1 x minutes away from requested / usual time (beyond a tolerance)
-  + w2 x elderly after 1 PM  + w3 x transport-dependent after noon
-  + w4 x complex outside the 12:00-13:30 protected block + w5 x routine inside it
-  + w6 x overtime minutes    + w7 x movement from already-published times (live mode)
-  + 1000 x unscheduled sessions (x5 for new starts and complex)
+  - complex sessions inside 10:00-17:00 (senior staff), with a 25-min buffer
+  - new starts finish by 17:00 minus a 25-min buffer; urgent starts by 18:00
+  - MHRC patients in the 16:00-17:00 slots, finished for the 17:00 bus
+  - public-transport patients finish by 21:00
+  - accessory units (1 breast board, 1 ABC): linac sessions + CT-simulator
+    bookings <= units, with 2-min transfers and the linac's reservations
+  - capacity holds for same-day urgent starts (released if unused)
+Minimise (soft, per 10 minutes):
+    w1 x time away from the usual / preferred time beyond a tolerance
+         (paying patients: 4x weight, 15-min tolerance; flexible patients: 0.2x)
+  + w2 x older patients after 13:00
+  + w3 x non-flexible patients finishing after 21:00 + w4 x anyone after 23:00
+  + w5 x MHRC patients waiting after 16:00
+  + w6 x complex minutes outside the 12:00-13:30 protected block
+  + w7 x overtime after 01:00
+  + (live mode) w8 x minutes moved for patients who can still be told
+              + w9 x extra waiting of patients already in the department
+  + 1000 x unscheduled sessions (x5 for new starts and complex cases)
 ```
 
 All weights, windows and buffers are configuration that the department can see and change.
 
-**Solving a 70–90-patient day in seconds.** A single large model over a whole day is slow. RAD-SMART solves it coarse-to-fine in two stages.
+**Solving a 70–90-patient day in under a minute.** A single large model over a whole day is slow. RAD-SMART solves it coarse-to-fine in two stages.
 
-1. Stage 1 levels the load in 15-minute buckets. Complex cases and new starts, the "big rocks", are placed as whole units, and routine patients are spread continuously.
+1. Stage 1 levels the load in 15-minute buckets. Complex cases, new starts and MHRC patients, the "big rocks", are placed as whole units, and routine patients are spread continuously.
 2. Stage 2a places the big rocks exactly, near their stage-1 bucket, and locks them.
 3. Stage 2b places everyone else on the 2-minute grid, within ±50 minutes of their bucket.
-4. If a patient cannot be placed, that patient's window is opened fully and the other windows are doubled, and the solver tries again.
+4. If a patient cannot be placed, that patient's window is opened fully and the solver tries again.
 
-On the PoC day this reaches a proven optimum in 2–8 seconds on a laptop with the open-source HiGHS solver (up to 24 seconds when the laptop was busy).
+On a laptop with the open-source HiGHS solver, the machine-learning plan for the PoC's 87-patient day reached a proven optimum in 20.0 s, and the average-table plan stopped at its time limit after 44.3 s with a plan proven within 2.5% of the optimum. Neither left a patient unplanned. The model has about 4,600 variables and 1,662 constraints. Timings vary with the laptop's load.
 
-**Reason codes.** Every placement comes with machine-readable reasons, such as "new start: finish by 17:00", "public transport: finish by 17:45", "34 min later than usual time 08:30", or "accessory check: breast board free (CT-sim bookings avoided)". These drive the RTT console and ground the copilot's explanations.
+**Reason codes.** Every placement comes with machine-readable reasons, such as "new start: finish by 17:00", "MHRC: protected slot 16:00–17:00, back on the 17:00 bus", "public transport: finish by 21:00", "report at 09:41 (45 min before: drink 500 mL of water on arrival)", "accessory check: breast board free (CT-simulator bookings and reservations respected)" or "dormitory: late-evening slot, keeps earlier slots for stricter constraints". These drive the RTT console and ground the copilot's explanations.
 
 ### 6.5 Module 3: Live re-planning
 
-When an event arrives (machine fault, overrun, no-show, urgent add-on, or a patient replying "running late"), RAD-SMART does the following:
+When an event arrives (machine fault, overrun, no-show, urgent add-on, imaging hold, or a patient replying "running late"), RAD-SMART does the following:
 
-- It freezes what has already started, and re-solves the rest of the day with an extra cost for moving any patient away from the time they were already given.
-- It never asks a patient to come *earlier* than they were told unless they can be reached in time. Patients who cannot be reached keep their published time as their earliest start.
+- It freezes what has already started and re-solves the rest of the day.
+- It costs two kinds of change differently. Every minute of delay for a patient already in the department, or on the way, is a minute in the waiting room, so that waiting is costed heavily, and steeply beyond an hour. A patient still at home can be told a new time, so moving them costs less. The people already waiting are treated first.
+- It never asks a patient to come *earlier* than they were told unless they can be reached in time.
 - It messages only patients whose appointment is at least 45 minutes away and whose time moves by at least 5 minutes, so it does not flood patients or staff.
-- It keeps every hard rule. For example, a new start pushed by a fault still finishes before 5 PM.
-- It presents the change to the RTT as a proposal, showing the patients affected and the minutes moved, and waits for approval.
+- It keeps every hard rule. For example, a new start pushed by a fault still finishes by 17:00.
+- It presents the change as a proposal to the designated senior RTT or oncologist, showing the patients affected, the minutes moved and any deferral, and waits for approval.
+
+**The department's downtime rules** are built in:
+
+| Downtime | Department's rule | What RAD-SMART does |
+|---|---|---|
+| 30–60 min | Nobody is sent home. All ongoing patients are treated the same day. A few new starts may be deferred. The schedule is re-planned | Re-plans with every ongoing patient kept in the day (overtime allowed to 02:00). It proposes deferring a new start only if that start can no longer finish by 17:00 |
+| Over 120 min | Some patients may be deferred or sent home after oncologist review. New starts are postponed to the next day, except urgent palliative starts. The oncologist or designated senior RTT approves | Moves non-urgent new starts to the next day and re-plans everyone else. Deferrals are proposed only if the day cannot hold everyone, and patients who can still be told come first. Nobody already waiting or on the MHRC bus is proposed |
+| 60–120 min | Not specified | Uses the shorter-downtime rule; the approver can switch to the longer-downtime rule with one tap |
+
+**Imaging review holds.** After imaging, the oncologist may decline to treat. The patient is then repositioned and treated at once, or treated later the same day. RAD-SMART re-queues the patient automatically, and the urgent holds and the late evening give the buffer the department asked for.
 
 ### 6.6 Module 4: Capacity forecast and new-start advisor
 
@@ -218,11 +257,22 @@ For each machine and each of the next 15 working days, RAD-SMART does the follow
 2. It counts the patients completing each day.
 3. It takes the pipeline of patients whose plans will be ready and assigns start days from two working days ahead, each patient to the eligible machine with the most free minutes. It keeps every day of their course within a target utilisation (92%) after reserving capacity for urgent starts.
 
-The output reads like the example in the problem statement, for instance "Wednesday: several patients completing, recommend 7 new starts on Versa HD, 9 on Halcyon". Clinicians decide *which* patients start. RAD-SMART advises *how many* and *where*, balanced by minutes rather than head-count.
+The output reads like the example in the problem statement, for instance "Wednesday: several patients completing, recommend 5 new starts on Versa HD, 12 on Halcyon". Clinicians decide *which* patients start. RAD-SMART advises *how many* and *where*, balanced by minutes rather than head-count.
+
+**TBI courses.** Total body irradiation takes two fractions a day of 60–90 minutes, the first of the morning and one in the evening. It comes about every 2–3 months and is known a month ahead. Today the department tapers new starts by hand from a week before. RAD-SMART takes the TBI slots off that machine's capacity on the TBI days and holds back exactly the new starts whose courses would not fit.
+
+**The second machine.** Its capability matrix is still being agreed by the department. RAD-SMART only ever allocates by the matrix the physicists approve; the PoC uses a placeholder.
 
 ### 6.7 Module 5: Shared resource tracking
 
-Accessories such as breast boards, the ABC device and immobilisation devices are modelled as limited resources shared with the CT simulator. The CT-simulator's own bookings are entered by the simulator staff or imported from its list. Each accessory carries a QR tag scanned when it leaves or arrives in a room, so the system knows where it is. Conflicts are prevented in the plan, and anything that happens live (an accessory not returned, for example) raises an alert before the patient is called.
+The department has one breast board and one ABC unit. Both are shared by the linac and the CT simulator, which runs from 11:00 to 18:00, and moving one between rooms takes under 2 minutes. The department reserves them for the linac at set times:
+
+- both accessories before 11:00;
+- both accessories from 16:00 to 17:00, for new starts and MHRC patients;
+- the ABC from 12:00 to 13:30;
+- the breast board, on the linac only, after 18:00.
+
+A reserved accessory can be released to the CT simulator when the linac does not need it. RAD-SMART models each unit, the CT-simulator bookings, the transfer time and the reservations. Simulator staff enter the bookings or they are imported from the simulator's list, and each one is checked against the reservations. Each accessory carries a QR tag scanned when it leaves or arrives in a room, so the system knows where it is. Conflicts are prevented in the plan. Anything that happens live, such as an accessory not returned, raises an alert before the patient is called.
 
 ### 6.8 Module 6: Copilot and multilingual communication (Sarvam AI)
 
@@ -232,7 +282,7 @@ Accessories such as breast boards, the ABC device and immobilisation devices are
 - *"What happens if we start 3 extra patients on Wednesday?"* The copilot calls the forecast and simulation tools and summarises the result.
 
 **For patients and caregivers:**
-- **Evening-before message** with the next day's time, in the patient's chosen language and channel: WhatsApp, SMS, or an automated voice call for patients who do not read messages.
+- **Evening-before message** with the next day's reporting time and preparation, such as "please come at 09:41 and drink 500 mL of water when you arrive" for pelvic patients. It uses the patient's chosen language and channel: WhatsApp, SMS, or an automated voice call for patients who do not read messages.
 - **Live updates** when the day moves: "The machine is running about 30 minutes late. Your new time is 11:25. You do not need to come earlier."
 - **Voice replies.** A patient can say "the bus is late, I will be 20 minutes late" in their own language. Speech-to-text and intent detection turn it into an event on the RTT console.
 - **Caregiver copy.** With the patient's consent, the same message goes to a family member.
@@ -243,10 +293,12 @@ Accessories such as breast boards, the ABC device and immobilisation devices are
 | Need | Sarvam component |
 |---|---|
 | Copilot reasoning and tool calling | Sarvam-105B (128K context; 10 Indian languages + English) |
-| Voice calls to patients | Bulbul v3 text-to-speech (11 languages) |
-| Understanding spoken replies | Saaras v3 speech-to-text (23 languages, code-mixed speech) |
+| Voice calls to patients | Bulbul v3 text-to-speech (11 languages, including Kannada, Malayalam, Hindi and English) [23] |
+| Understanding spoken replies | Saaras v3 speech-to-text (the 22 scheduled Indian languages and English, code-mixed speech) [24] |
 | Message translation | Sarvam Translate / Mayura |
 | Paper register import | Sarvam Vision (document OCR, 23 languages) |
+
+**Tulu.** Many of the department's patients speak Tulu, which is usually written in Kannada script. Sarvam's current models do not cover it: Bulbul v3 speaks 11 languages [23], and Saaras v3 transcribes the 22 scheduled Indian languages and English [24]. Tulu is not among either. RAD-SMART therefore sends Tulu speakers the text in Kannada script with a short voice note. Tulu-speaking staff record the note once for each approved template, and the time is filled in from recorded number clips. Patients who prefer it get Kannada speech instead. Spoken replies in Tulu reach the RTT console as audio for a staff member to hear. If Sarvam or another provider adds Tulu, generated speech replaces the recorded clips.
 
 **Guardrails for the language model:**
 - The LLM runs through an allow-list of tools orchestrated with LangGraph. It can read plans and propose rule changes, but it cannot write a schedule or send a message on its own.
@@ -256,7 +308,7 @@ Accessories such as breast boards, the ABC device and immobilisation devices are
 
 ### 6.9 Safety, override and audit
 
-- Every automated output is a proposal, including plans, re-plans, new-start advice, rule changes and new model versions.
+- Every automated output is a proposal, including plans, re-plans, deferrals, new-start advice, rule changes and new model versions. As the department specified, a designated senior RTT or oncologist approves the next-day plan and every live change.
 - An override takes one tap and asks for a reason (a pick-list plus optional free text). Overrides feed weekly review and model learning.
 - An independent checker, separate from the solver, re-verifies every hard rule before a plan can be published.
 - The append-only audit log records who did what and when, which rule and model versions were used, and every message sent.
@@ -268,112 +320,205 @@ Accessories such as breast boards, the ABC device and immobilisation devices are
 
 ### 7.1 What we built and how we tested it
 
-The PoC (folder `poc/`) implements Modules 1, 2, 3 and 4 in about 1,700 lines of Python. It uses scikit-learn for the quantile model, SciPy's interface to the open-source HiGHS solver for the MILP, and NumPy for the simulator. All patients are synthetic.
+The PoC (folder `poc/`) implements Modules 1, 2, 3 and 4 in about 2,300 lines of Python. It uses scikit-learn for the duration models, SciPy's interface to the open-source HiGHS solver for the MILP, and NumPy for the simulator. All patients are synthetic. The department's answers of 21 September 2026 are coded as configuration.
 
-- **Synthetic department.** The operating day runs 07:30–20:30 with overtime allowed to 21:30. It includes the blood-irradiation slot 13:30–14:00, the senior-staff window 10:00–17:00, the protected block 12:00–13:30, a 17:00 new-start cut-off with a 25-minute buffer, two urgent holds, one ABC unit and two breast boards, and CT-simulator accessory bookings.
-- **Test day.** 67 patients on the Versa HD (5 new starts, 3 complex, 18 dependent on public transport, 18 paying, 7 elderly, 7 inpatients, 17 using a breast board, 2 using ABC). They need 676 of 750 available minutes, a load of 90.1%.
-- **Current practice (modelled).** Patients are given hourly block times, weighted towards the morning, and treated first-come-first-served, as is typical for manual allocation. This baseline is our assumption. The pilot's two-week baseline will replace it with measured data.
-- **Randomness.** Each simulated day draws real session times from a lognormal spread around each technique's true median. Patients arrive on average 10 minutes early (standard deviation 12). 2% do not attend, 85% follow an updated time when told, and there are on average 1.2 urgent same-day starts. The same random draws are used for every policy (common random numbers), so the comparisons are fair.
-- **KPI definitions** follow Munshi et al. [3]: gross wait (WTG) runs from arrival to linac entry, and net wait (WTN) from appointment to linac entry.
+- **Synthetic department, with the department's rules:**
+  - operating day 08:30–01:00, with overtime to 02:00;
+  - blood irradiation 13:30–14:00;
+  - complex cases in 10:00–17:00, with the 12:00–13:30 protected block;
+  - new starts finish by 17:00, with a 25-minute buffer;
+  - urgent starts by 18:00, with 20-minute holds at 14:40 and 17:00;
+  - MHRC patients in the 16:00–17:00 slots, arriving by bus at 15:45 and finished by 16:55;
+  - public-transport patients finished by 21:00;
+  - one breast board and one ABC unit shared with the CT simulator (11:00–18:00), with the department's reservations, a 2-minute transfer, and five CT-simulator accessory bookings checked against the reservations.
+- **Test day.** 87 patients on the Versa HD. They need 890 of 960 available minutes, a load of 92.7%, plus 0–3 urgent starts.
+  - Mix: 5 new starts, 3 complex, 3 MHRC and 26 public transport.
+  - 34 flexible patients: 5 inpatients, 10 dormitory residents and 19 living nearby.
+  - 31 paying (17 with a preferred time), 9 older and 26 pelvic.
+  - Accessories: 15 breast board, 5 ABC.
+  - Languages: 49 Kannada, 22 Tulu, 9 Malayalam, 5 English, 2 Hindi.
+- **Session lengths are illustrative.** The department has no timestamps yet, so the synthetic techniques' median minutes are our estimates. They will be replaced by the department's estimate table and then by measured times.
+- **Current practice (modelled).** Patients get hourly block times from 08:30 to 23:00, weighted towards the morning. Complex cases and new starts get late-morning or early-afternoon blocks, MHRC patients 16:00, and flexible patients the evening. Treatment is first-come-first-served, and patients arrive around their block time. This baseline is our assumption; the pilot's baseline weeks will replace it with measured data.
+- **RAD-SMART.** Each patient is told a reporting time 20 minutes before the slot. Pelvic patients are told 45 minutes before: they drink 500 mL of water and wait 30 minutes. When the machine runs ahead, ward and dormitory patients are called in, and patients living nearby get a "come early" message.
+- **Randomness.**
+  - Lognormal session times.
+  - Arrivals follow a normal distribution around the reporting time (mean 5 min early, SD 12 min, clipped to 40 min early or 25 min late).
+  - 2% no-shows; 85% of patients act on an updated time.
+  - 0–3 urgent starts a day (Poisson 1.2, capped at 3), ready between 13:00 and 16:30.
+  - 2% imaging holds: half are repositioned at once (+8 min), half are treated 45 minutes later.
+  - The same random draws are used for every policy (common random numbers), so the comparisons are fair.
+- **Waits** run from arrival to entering the treatment room, so they include the 20- or 45-minute preparation time, as in Munshi et al. [3]. We also report the wait beyond that preparation.
+- **Independent rule checker.** A function separate from the solver re-verifies 7 hard rules on every plan: one patient at a time, the blood slot, the complex window, new starts by 17:00, MHRC slots, public transport by 21:00, and accessories never double-booked with the CT simulator.
 
 ### 7.2 Predicting machine-minutes
 
-![Error of predicted session length on 2,000 held-out synthetic sessions: lookup table of averages versus quantile gradient boosting.](figures/fig6_duration_prediction.png){width=5.6}
+![Error of predicted session length on 2,000 held-out synthetic sessions: lookup table of averages versus gradient boosting.](figures/fig6_duration_prediction.png){width=5.6}
 
 | Model | Mean absolute error | Within 2 min | Within 3 min | P80 coverage (target 80%) |
 |---|---|---|---|---|
-| Lookup table of averages | 2.43 min | 54.3% | 73.5% | 80.1% |
-| Quantile gradient boosting | **1.92 min** | **67.9%** | **82.3%** | 78.2% |
+| Lookup table of averages | 2.62 min | 50.9% | 70.1% | 80.4% |
+| Quantile gradient boosting | **2.15 min** | **62.0%** | **78.3%** | 78.5% |
 
-Trained on 12,000 synthetic historical sessions, the model learns effects the average table misses, such as first-fraction extra time, CBCT versus kV imaging, wheelchair and stretcher transfers, and Halcyon's faster delivery.
+Trained on 12,000 synthetic historical sessions, the model learns effects the average table misses, such as first-fraction extra time, CBCT versus kV imaging, wheelchair and stretcher transfers, and faster delivery on the second machine. Plans reserve the model's expected minutes.
 
 ### 7.3 The optimised day
 
-![One optimised day on the Versa HD. Complex cases sit inside the protected block and senior-staff window, new starts finish before 17:00, and accessories never clash with CT-simulator bookings.](figures/fig3_optimised_day.png){width=6.7}
+![One optimised day on the Versa HD, 08:30 to 00:45. Complex cases stay inside 10:00–17:00, new starts finish by 17:00, MHRC patients are treated in their 16:00–17:00 slots, public-transport patients finish by 21:00, and the single breast board and ABC unit never clash with CT-simulator bookings.](figures/fig3_optimised_day.png){width=6.7}
 
-Both planning modes, average tables and machine learning, reached a **proven optimal** plan with **zero unscheduled patients**. Averages took 2.1 seconds and machine learning 8.2 seconds (timings vary with the laptop's load; our slowest run took 24 seconds), for a model of about 6,000 variables and 1,327 constraints on a laptop. A sample of the plan, with reason codes, is in Appendix C.
+On a laptop with the open-source HiGHS solver, the machine-learning plan for the PoC's 87-patient day reached a proven optimum in 20.0 s, and the average-table plan stopped at its time limit after 44.3 s with a plan proven within 2.5% of the optimum. Neither left a patient unplanned. The model has about 4,600 variables and 1,662 constraints. Timings vary with the laptop's load. The independent checker found all 7 hard rules met on all 87 sessions. The plan also shows how the soft rules were traded off:
+
+- 24 of the 25 sessions after 21:00 went to flexible patients (inpatients, dormitory residents and people living nearby).
+- 11 of the 17 paying patients with a preferred time got it within 15 minutes.
+- The three MHRC patients are treated at 16:16, 16:24 and 16:32.
+- 2 of the 3 complex cases sit in the 12:00–13:30 block.
+- The last session is planned to end at 00:45.
+
+A sample of the plan, with reason codes, is in Appendix C.
 
 ### 7.4 Waiting times over 300 simulated days
 
-![Share of patients who entered the treatment room within a given number of minutes of arriving.](figures/fig1_wait_distribution.png){width=5.8}
+![Share of patients who entered the treatment room within a given number of minutes of arriving. The 20- or 45-minute preparation is included.](figures/fig1_wait_distribution.png){width=5.8}
 
 ![Mean number of patients waiting in the department through the day.](figures/fig2_waiting_room.png){width=5.8}
 
 | Metric (mean of 300 simulated days) | Current practice | RAD-SMART, averages | RAD-SMART, ML |
 |---|---|---|---|
-| Median wait, arrival to room (min) | 70.8 | 22.5 | **19.2** |
-| 95% range of daily median wait (min) | 50.1–106.3 | | 6.5–38.1 |
-| 90th-percentile wait (min) | 226.5 | 60.5 | **52.0** |
-| Median delay versus appointment (min) | 66.0 | 13.8 | **10.0** |
-| Treated within ±15 min of appointment | 15.5% | 54.8% | **62.4%** |
-| Treated within ±30 min of appointment | 27.7% | 74.6% | **81.9%** |
-| Mean time in department (min) | 117.1 | 38.7 | **34.4** |
-| Overtime (min per day) | 0.2 | 0.3 | 0.4 |
-| New starts finishing after 5 PM (per day) | 0.1 | 0 | 0 |
-| Complex cases deferred (per day) | 0.1 | 0.1 | 0 |
-| Accessory-related delays (per day) | 0.1 | 0 | 0 |
-| Delay to blood-irradiation slot (min) | 2.3 | 1.0 | 2.2 |
-| Urgent patients treated the same day | 100% | 100% | 100% |
+| Median wait, arrival to treatment room (min) | 100.0 | 35.1 | **32.8** |
+| 95% range of daily median wait (min) | 50.7–151.1 | 24.8–56.7 | 23.5–52.2 |
+| 90th-percentile wait (min) | 172.9 | 64.7 | **61.6** |
+| Median wait beyond the 20/45-min preparation (min) | 83.7 | 19.2 | **16.6** |
+| Median delay versus appointment (min) | 93.8 | 5.4 | **3.5** |
+| Treated within ±15 min of appointment | 9.6% | 70.4% | **72.6%** |
+| Treated within ±30 min of appointment | 17.7% | 89.3% | **90.6%** |
+| Mean time in department (min) | 110.3 | 49.1 | **47.3** |
+| Last patient finishes (average) | 00:29 | 00:46 | 00:53 |
+| Overtime after 01:00 (min per day) | 3.4 | 3.0 | 3.9 |
+| New starts finishing after 17:00 (per day) | 1.2 | 0.4 | **0.2** |
+| Complex cases outside 10:00–17:00 (per day) | **0.0** | 0.1 | **0.0** |
+| MHRC patients missing the 17:00 bus (per day) | **0.1** | 0.2 | **0.1** |
+| Public-transport patients finishing after 21:00 (per day) | 0.6 | **0.1** | **0.1** |
+| Paying patients within 15 min of their preferred time | 15.8% | 49.3% | **52.5%** |
+| Accessory-related delays (per day) | 3.1 | **0.9** | 1.3 |
+| Delay to the blood-irradiation slot (min) | 1.2 | 0.4 | 0.9 |
+| Urgent starts treated by 18:00 | 100% | 100% | 100% |
+| Imaging holds (per day) | 1.8 | 1.8 | 1.8 |
 
-The same patients get the same machine time with no added overtime, yet waits fall by about three-quarters, because patients are told to come when the machine will actually be free. The waiting room holds about 2–4 people instead of up to 17.
+The same patients get the same machine time, yet the median wait falls by about two-thirds, because patients are told to come when the machine will actually be free. Beyond the 20- or 45-minute preparation, the typical patient waits 17 minutes instead of 84. The waiting room holds about 2–5 people instead of up to 14. The last patient finishes about 24 minutes later than in current practice, because 40 minutes are held for urgent starts; Section 7.5 shows that this is the department's choice. Bold marks the best value where lower or higher is clearly better.
 
-### 7.5 Recovering from a machine fault
+### 7.5 How much capacity to hold for urgent starts
 
-We injected a 30-minute Versa HD fault at 11:00 into every simulated day and compared three responses. In the first, no plan is changed. In the second, the RAD-SMART plan is kept but nobody is told. In the third, RAD-SMART re-plans live and messages the patients who can still act on the change.
+Holding machine time for same-day urgent starts and imaging re-treatments shortens waits, because a late-afternoon urgent patient does not push everyone behind them. But it ends the day later. We re-planned the same day with 40, 20 and 0 minutes held and simulated each plan 300 times.
 
-![Mean patients waiting when the machine fails at 11:00 for 30 minutes.](figures/fig4b_fault_waiting_room.png){width=5.8}
+| Plan | Median wait (min) | 90th percentile (min) | Within ±15 min | Last patient finishes | Overtime (min per day) | Urgent starts by 18:00 |
+|---|---|---|---|---|---|---|
+| Current practice | 100.0 | 172.9 | 9.6% | 00:29 | 3.4 | 100% |
+| 40 min held (two 20-min holds) | 32.8 | 61.6 | 72.6% | 00:53 | 3.9 | 100% |
+| 20 min held (one hold at 14:40) | 38.6 | 68.2 | 65.7% | 00:40 | 2.6 | 100% |
+| Nothing held | 42.7 | 73.4 | 61.4% | 00:17 | 0.7 | 100% |
 
-![Median and 90th-percentile waits under the fault.](figures/fig4_fault_recovery.png){width=5.8}
+Every RAD-SMART option is far better than current practice. Holding nothing finishes the day at 00:17, earlier than today's 00:29, with a 43-minute median wait. Holding 40 minutes gives a 33-minute median wait and finishes at 00:53. The department sets this as one rule in the Rule Studio and can change it by day of the week.
 
-| Metric | Current practice | RAD-SMART plan, no re-planning | RAD-SMART live re-planning + messages |
+### 7.6 Machine downtime
+
+We injected each of the department's two downtime cases into every simulated day and compared three responses:
+
+1. No plan is changed.
+2. The RAD-SMART plan is kept but nobody is told.
+3. RAD-SMART re-plans live under the department's rules and messages the patients who can still act on the change.
+
+**45-minute fault at 11:00 (the 30–60-minute rule).**
+
+![Mean patients waiting when the machine fails at 11:00 for 45 minutes.](figures/fig4b_fault_waiting_room.png){width=5.8}
+
+| Metric (mean of 300 simulated days) | Current practice | RAD-SMART plan, no re-planning | RAD-SMART live re-planning + messages |
 |---|---|---|---|
-| Median wait (min) | 93.0 | 31.2 | **19.4** |
-| 90th-percentile wait (min) | 253.7 | 76.0 | **58.2** |
-| Treated within ±15 min | 14.3% | 46.2% | **60.9%** |
-| Mean time in department (min) | 133.4 | 46.5 | **40.6** |
-| Overtime (min per day) | 0.6 | 0.8 | 2.4 |
-| New starts after 5 PM / complex deferred (per day) | 0.2 / 0.2 | 0.1 / 0.2 | **0 / 0** |
+| Median wait (min) | 144.0 | 47.4 | **40.3** |
+| 90th-percentile wait (min) | 219.4 | 87.6 | **79.3** |
+| Treated within ±15 min | 8.6% | 51.4% | **61.1%** |
+| Mean time in department (min) | 147.1 | 62.9 | **57.3** |
+| Last patient finishes (average) | 01:11 | 01:09 | 01:22 |
+| Overtime after 01:00 (min per day) | 20.1 | 13.6 | 23.1 |
+| New starts finishing after 17:00 (per day) | 1.9 | 1.1 | **0.4** |
+| Complex cases outside 10:00–17:00 (per day) | 0.1 | 0.1 | **0.0** |
+| Public-transport patients finishing after 21:00 (per day) | 2.0 | 0.4 | **0.1** |
+| MHRC patients missing the 17:00 bus (per day) | **0.2** | **0.2** | **0.2** |
+| Patients moved to another day, after approval (per day) | 0.0 | 0.0 | 0.0 |
 
-The re-plan took **4.0 seconds** (12 seconds in our slowest run). It moved 38 patients and messaged 17 (those whose time changed by at least 5 minutes and who had at least 45 minutes' notice). The trade-off is visible and honest: about 2 minutes more overtime per day, in exchange for keeping every new start before 5 PM and every complex case in its window.
+The re-plan took **26.3 seconds**, within the 30-second target. It kept every ongoing patient and every new start in the day, as the rule requires. It moved 46 patients and messaged 41: those whose time changed by at least 5 minutes and who had at least 45 minutes' notice. Patients already in the department are treated first. The trade-off is visible: treating everyone the same day costs about 23 minutes of overtime after 01:00.
 
-### 7.6 Two-machine new-start planning
+**150-minute fault at 10:00 (the over-120-minute rule).**
 
-We tested the forecast on a synthetic two-machine department: 72 patients on treatment on the Versa HD, 105 on the Halcyon, and 84 patients in the planning pipeline over three weeks. RAD-SMART was compared with the common practice of splitting new patients equally by head-count and starting each as soon as they are ready.
+![Mean patients waiting when the machine fails at 10:00 for 150 minutes.](figures/fig4c_fault_waiting_room.png){width=5.8}
 
-![Three-week planned load per machine. The grey area is load already committed by patients on treatment.](figures/fig5_capacity_forecast.png){width=6.7}
+| Metric (mean of 300 simulated days) | Current practice | RAD-SMART plan, no re-planning | RAD-SMART live re-planning + messages |
+|---|---|---|---|
+| Median wait (min) | 215.7 | 108.5 | **35.0** |
+| 90th-percentile wait (min) | 305.1 | 211.2 | **75.3** |
+| Treated within ±15 min | 7.8% | 16.5% | **68.8%** |
+| Mean time in department (min) | 216.3 | 128.7 | **55.8** |
+| Last patient finishes (average) | 02:12 | 02:04 | 00:55 |
+| Overtime after 01:00 (min per day) | 72.6 | 64.6 | 4.6 |
+| New starts finishing after 17:00 (per day) | 2.6 | 2.8 | **0.0** |
+| Complex cases outside 10:00–17:00 (per day) | 1.3 | 1.2 | **0.1** |
+| Public-transport patients finishing after 21:00 (per day) | 5.0 | 3.0 | **0.0** |
+| MHRC patients missing the 17:00 bus (per day) | 0.4 | 0.5 | **0.2** |
+| Patients moved to another day, after approval (per day) | 0.0 | 0.0 | 5.0 |
 
-| Result | Equal head-count, start when ready | RAD-SMART recommendation |
+The re-plan took **3.7 seconds**. Following the rule, it moved the 5 non-urgent new starts to the next working day, for the oncologist or senior RTT to approve. It treated every other patient the same day, moved 15 and messaged 17, including the new starts who could still be told before leaving home. Without re-planning, the day runs to about 02:12. New starts and complex cases finish late, and public-transport patients miss their buses. With re-planning, the median wait stays at 35 minutes and the day ends at about 00:55.
+
+![Median wait under each response, for both faults.](figures/fig4_fault_recovery.png){width=5.8}
+
+### 7.7 Two machines, three weeks and a TBI course
+
+We tested the forecast on a synthetic two-machine department:
+
+- 79 patients on treatment on the Versa HD and 111 on the second machine (a Halcyon, as a placeholder until the capability matrix is agreed);
+- 99 patients in the planning pipeline over three weeks;
+- a TBI course on the Versa HD on days 11–13, taking 180 minutes a day.
+
+RAD-SMART was compared with the common practice of splitting new patients equally by head-count and starting each as soon as they are ready, with a manual taper before TBI (at most 2 new starts a day on days 6–13).
+
+![Three-week planned load per machine. The grey area is load already committed by patients on treatment; capacity drops on the TBI days.](figures/fig5_capacity_forecast.png){width=6.7}
+
+| Result | Equal head-count with a manual taper | RAD-SMART recommendation |
 |---|---|---|
-| Peak planned load, Versa HD | 156% | **100%** |
-| Peak planned load, Halcyon | 75% | **100%** |
-| Decision days over capacity, Versa HD | 13 of 13 | **0** |
-| Pipeline patients still waiting at the end of the horizon | n/a | **0** |
+| Peak planned load, Versa HD | 154% | **98%** |
+| Peak planned load, Halcyon | 95% | **99%** |
+| Versa HD on the TBI days (share of the reduced capacity) | 111% | **98%** |
+| Decision days over capacity, Versa HD | 10 of 13 | **0** |
+| Average working days from plan ready to first fraction | 1.7 | **0.0** |
+| Pipeline patients still waiting at the end of the horizon | 0 | **0** |
 
-Splitting by head-count overloads the slower Versa HD on every decision day while the Halcyon sits under-used, which is the "forty simple versus thirty complex" point made in the problem statement. Balancing by predicted minutes fills both machines to their target and starts everyone within the horizon. The advisor's first ten days:
+Splitting by head-count overloads the slower Versa HD while the second machine sits under-used, which is the "forty simple versus thirty complex" point made in the problem statement. The manual taper then delays starts and releases a backlog after TBI. Balancing by predicted minutes keeps both machines at their target, fits the TBI days exactly and starts every patient when their plan is ready. The advisor's three weeks:
 
 | Day | Versa HD load | Finishing | New starts | Halcyon load | Finishing | New starts |
 |---|---|---|---|---|---|---|
-| Mon 1 | 86% | 4 | – | 83% | 5 | – |
-| Tue 2 | 82% | 4 | – | 79% | 5 | – |
-| Wed 3 | 75% | 3 | **7** | 75% | 3 | **9** |
-| Thu 4 | 72% | 2 | 4 | 73% | 3 | 4 |
-| Fri 5 | 67% | 4 | 3 | 70% | 4 | 3 |
-| Mon 6 | 63% | 1 | 1 | 67% | 5 | 3 |
-| Tue 7 | 62% | 2 | 1 | 62% | 5 | 0 |
-| Wed 8 | 59% | 1 | 3 | 58% | 3 | 4 |
-| Thu 9 | 58% | 1 | 3 | 56% | 4 | 4 |
-| Fri 10 | 57% | 3 | 2 | 52% | 7 | 3 |
+| Mon (day 1) | 90% | 5 | – | 81% | 9 | – |
+| Tue (day 2) | 85% | 2 | – | 74% | 10 | – |
+| Wed (day 3) | 82% | 4 | 5 | 67% | 7 | 12 |
+| Thu (day 4) | 78% | 5 | 3 | 61% | 6 | 8 |
+| Fri (day 5) | 67% | 5 | 3 | 56% | 2 | 4 |
+| Mon (day 6) | 62% | 1 | 5 | 55% | 5 | 4 |
+| Tue (day 7) | 61% | 4 | 2 | 51% | 4 | 2 |
+| Wed (day 8) | 55% | 6 | 3 | 47% | 4 | 3 |
+| Thu (day 9) | 48% | 1 | 1 | 44% | 3 | 5 |
+| Fri (day 10) | 47% | 2 | 2 | 42% | 4 | 5 |
+| Mon (day 11) · TBI | 44% | 1 | 1 | 38% | 4 | 5 |
+| Tue (day 12) · TBI | 43% | 2 | 2 | 34% | 4 | 6 |
+| Wed (day 13) · TBI | 40% | 2 | 5 | 31% | 3 | 4 |
+| Thu (day 14) | 37% | 4 | 5 | 28% | 3 | 0 |
+| Fri (day 15) | 33% | 2 | 4 | 25% | 0 | 0 |
 
-"Load" is the share of capacity already committed by patients on treatment; "new starts" is the recommendation that fills the gap up to the target. Days 1 and 2 are already booked, because decisions are made two working days ahead.
+"Load" is the share of a normal day's capacity already committed by patients on treatment; "new starts" is the recommendation that fills the gap up to the target, after the TBI slots. Days 1 and 2 are already booked, because decisions are made two working days ahead.
 
-### 7.7 Limitations of the PoC
+### 7.8 Limitations of the PoC
 
-- All data are synthetic. The "current practice" baseline is a model of manual block booking, not a measurement at Manipal. The size of the real improvement depends on how much of today's waiting comes from scheduling rather than from other causes such as transport, machine QA or paperwork, which the pilot's baseline will reveal.
-- The simulation assumes 85% of patients act on updated times and that arrivals are about 10 minutes early. Both will be measured in the pilot.
+- All data are synthetic. The rules are the department's, but session lengths and the patient mix are our estimates, and the "current practice" baseline is a model of manual block booking, not a measurement at Manipal. The size of the real improvement depends on how much of today's waiting comes from scheduling rather than from other causes, such as transport, machine QA or paperwork. The pilot's baseline will reveal this.
+- The simulation assumes 85% of patients act on updated times, and that arrivals are centred 5 minutes before the reporting time. Both will be measured in the pilot.
 - The day simulation covers one machine. The two-machine test covers the forecast, not simultaneous live sequencing, which is part of the build sprint.
-- Solver times were measured on a laptop with an open-source MILP solver. Production will use OR-Tools CP-SAT, which is well suited to interval scheduling.
+- Solver times were measured on a laptop with an open-source MILP solver, and the average-table plan can stop at its time limit with a small proven gap. Production will use OR-Tools CP-SAT, which is well suited to interval scheduling.
 
-For these reasons the pilot target (at least 40% lower median wait) is set well below the PoC result (73% lower).
+For these reasons the pilot target (at least 40% lower median wait) is set well below the PoC result (67% lower).
 
 <!-- pagebreak -->
 
@@ -388,19 +533,24 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 | Secondary | Punctuality | % of sessions starting within ±15 and ±30 min of the appointment | ±15 min: from baseline to ≥ 50% |
 | Secondary | New starts on time | % of new starts finished before 17:00 | 100% |
 | Secondary | Complex cases in window | % of complex sessions inside the senior-staff window | 100% |
+| Secondary | MHRC patients on the bus | % of MHRC patients finished in time for the 17:00 bus | 100% |
+| Secondary | Public-transport patients home in time | % finished by 21:00 | 100% |
+| Secondary | Urgent starts on the same day | % of urgent starts treated by 18:00 | 100% |
 | Secondary | Daily overtime | Minutes after regular end | Not above baseline |
 | Secondary | Scheduling conflicts and accessory delays | Count per week | ≥ 80% fewer |
 | Secondary | Prediction accuracy | Mean absolute error; % within 3 min | MAE ≤ 2.5 min |
 | Secondary | Occupancy forecast error | Predicted versus actual daily machine-minutes | ≤ 10% |
 | Secondary | RTT scheduling effort | Self-reported minutes per day spent on appointments | ≥ 50% lower |
 | Balancing | Throughput | Patients treated per day | Not lower than baseline |
+| Balancing | End of the day | Time the last session ends | As the department chooses (Section 7.5) |
+| Balancing | Downtime handling | Patients deferred per fault, and approvals | Only as the downtime rules allow |
 | Balancing | Equity | Median wait by group: elderly, transport-dependent, language, paying versus non-paying | No group worse off |
 | Balancing | Human control | Override rate and reasons; plans approved without edits | Tracked; reviewed weekly |
 | Balancing | Patient experience | Short survey in the patient's language (predictability, stress) | Improvement over baseline |
 
 ### 8.2 Impact estimate (illustrative, conservative)
 
-- **Per patient.** If the in-department wait falls by even 30 minutes a day (the PoC suggests about 50), a 25-fraction course saves about 12.5 hours, and roughly as much again for the caregiver who comes along.
+- **Per patient.** If the in-department wait falls by even 30 minutes a day (the PoC suggests about 60), a 25-fraction course saves about 12.5 hours, and roughly as much again for the caregiver who comes along.
 - **Per machine per year.** 30 minutes × 80 patients × 250 working days = **10,000 patient-hours**, about 20,000 person-hours including caregivers.
 - **Capacity.** Balanced loading, fewer idle gaps and faster backfilling of no-shows free up machine time. As an illustration only, not a PoC result: if smarter scheduling recovered 5% of machine time across India's ~823 machines [6], that would equal about 41 machines, or roughly ₹800–1,000 crore of equipment at recent public-sector prices (two linacs at AIIMS Jhajjar cost about ₹50 crore [21]).
 - **Scale.** The rules are configuration, not code, so another department can adopt RAD-SMART by describing its own rules in the Rule Studio. The National Cancer Grid's 370+ member institutions, which serve about 60% of India's cancer patients, are the natural path to scale.
@@ -426,9 +576,9 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 
 | Week | Build | Doctor partner's role |
 |---|---|---|
-| W1 (5–11 Oct) | Data model and Excel import; rule configuration (YAML) with versioning; port the optimiser to OR-Tools CP-SAT; synthetic data generator calibrated with the department's averages | Confirm rules, windows, techniques and average times; answer the open questions (Appendix B) |
+| W1 (5–11 Oct) | Data model and Excel import; rule configuration (YAML) with versioning; port the optimiser to OR-Tools CP-SAT; synthetic data generator calibrated with the department's averages | Agree the departmental estimate table (minutes per technique, first fraction, accessory); settle the remaining open items (Appendix B) |
 | W2 (12–18 Oct) | RTT console: day timeline, live queue board, approve / edit / lock, override with reason, audit log; live re-planning; accessory tracking with QR tags | Walk-through with RTTs; check that the screens fit the real workflow |
-| W3 (19–25 Oct) | Sarvam integration: copilot ("why" answers, Rule Studio), WhatsApp / SMS / voice templates in 3–5 languages, spoken "running late" replies, OCR import of a paper register | Review message wording; arrange native-speaker checks of translations |
+| W3 (19–25 Oct) | Sarvam integration: copilot ("why" answers, Rule Studio), WhatsApp / SMS / voice templates in Kannada, Malayalam, Hindi and English, with recorded Tulu voice notes, spoken "running late" replies, OCR import of a paper register | Review message wording; arrange native-speaker checks of translations and the Tulu recordings |
 | W4 (26 Oct – 1 Nov) | Two-machine allocation; capacity forecast and new-start advisor; KPI and equity dashboard; digital-twin what-if screen | Validate forecast logic against real experience; agree KPI definitions |
 | W5 (2–8 Nov) | Hardening, independent rule checker, test suite, usability test with RTTs on synthetic data, demo video, final submission | Final clinical-fit review; co-present |
 
@@ -436,8 +586,8 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 
 1. Load a synthetic 80-patient day from an Excel list and a photo of a paper register.
 2. Generate and approve the plan, and show that hard rules hold and every placement has a reason.
-3. A patient's phone receives the time in Kannada, and a voice call plays in Malayalam.
-4. Inject a machine fault. The re-plan proposal arrives in seconds, the RTT approves it, and messages go out.
+3. A patient's phone receives the reporting time in Kannada script with a recorded Tulu voice note, and a voice call plays in Malayalam.
+4. Inject a 45-minute and then a 150-minute machine fault. Each re-plan proposal follows the department's downtime rule, the senior RTT approves it, and messages go out.
 5. A patient says "I'm stuck in traffic" by voice, and the queue adjusts.
 6. Ask the copilot "why was this patient moved?" and change a rule in plain language, with diff, approval and re-plan.
 7. Show the two-day-ahead new-start advice for two machines and the KPI dashboard.
@@ -446,13 +596,13 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 
 | Days | Phase | What happens |
 |---|---|---|
-| 1–14 | Baseline | QR check-in and room timestamps start, with no change to scheduling. This measures the true baseline and collects duration data |
+| 1–14 | Baseline | QR check-in and room timestamps start (none are recorded today), with no change to scheduling. This measures the true baseline and collects duration data. RAD-SMART plans from the department's estimate table until enough timestamps exist |
 | 15–35 | Shadow mode | RAD-SMART plans every evening. RTTs keep scheduling as usual and compare. Prediction accuracy and plan acceptability are measured |
-| 36–90 | Live on the Versa HD | RTT lead approves the plan each evening. Patients receive times and live updates. Re-planning is live. The model is retrained weekly |
+| 36–90 | Live on the Versa HD | The designated senior RTT or oncologist approves the plan each evening and every live change. Patients receive times and live updates. Re-planning is live. The model is retrained weekly |
 
 - **Analysis.** An interrupted time series (segmented regression) of daily median wait, with weekly statistical process control charts, plus before/after comparison of the secondary and balancing KPIs.
 - **Stopping rules.** If a hard rule is broken in practice, or balancing KPIs worsen for two consecutive weeks, the department reverts to manual mode, reviews the cause, and resumes only when it is fixed.
-- **After the pilot.** Extend to the Halcyon and multi-machine live sequencing, and add a read-only OIS feed.
+- **After the pilot.** Extend to the second machine (early 2027) once its capability matrix is agreed, add multi-machine live sequencing, and add a read-only OIS feed.
 
 ### 9.5 Team and roles
 
@@ -463,6 +613,7 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 | Optimisation and ML engineer | [name] | full sprint |
 | Full-stack and messaging engineer | [name] | full sprint |
 | RTT champion (pilot) | [to be nominated by the department] | about 1 h per week |
+| Plan approver | designated senior RTT or oncologist | daily during the live phase |
 | Medical physicist | [to be nominated] | machine capability matrix; rule review |
 | Hospital IT | [to be nominated] | server, network, security review |
 
@@ -494,13 +645,17 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 | FR18 | Export the audit trail |
 | FR19 | Provide a printable fallback schedule and a manual-mode switch |
 | FR20 | Retrain the model weekly with a drift report; human approval before a new model goes live |
+| FR21 | Apply the department's downtime rules (30–60 min, over 120 min) and route every deferral to the approver |
+| FR22 | Give every patient a reporting time and preparation instructions, such as bladder filling for pelvic patients |
+| FR23 | Plan TBI courses and adjust new-start capacity around them |
+| FR24 | Model accessory reservations for the linac and release them to the CT simulator when unused |
 
 ### 10.2 Non-functional requirements
 
 - **Performance.** Evening plan for 90 patients per machine in under 60 s; live re-plan in under 30 s; console responses under 1 s.
 - **Reliability.** Runs on the hospital LAN if the internet is down, with messages queued and an SMS or voice fallback. Nightly encrypted backup and a printable fallback list.
 - **Security and privacy.** On-premise deployment; role-based access; TLS; pseudonymised IDs in analytics; no personal identifiers sent to the language model; data minimisation and retention limits.
-- **Usability.** Designed for tablets with large touch targets. Staff interface in English and Kannada, and patient channels in the department's languages. Training takes under 30 minutes.
+- **Usability.** Designed for tablets with large touch targets. Staff interface in English and Kannada, and patient channels in Kannada, Tulu (recorded voice), Malayalam, Hindi and English. Training takes under 30 minutes.
 - **Auditability.** Append-only log; every plan reproducible from its inputs, rule version and model version.
 - **Portability.** All department rules are configuration; open-source core components.
 
@@ -515,10 +670,11 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 | First fraction, imaging type | yes; CBCT | Treatment card |
 | Accessories | breast board, ABC | Treatment card |
 | Mobility | wheelchair | RTT |
-| Logistics flags | inpatient, hospice / MHRC, dormitory, public transport with latest return time | Reception or RTT |
+| Logistics flags | inpatient, MHRC (hospital bus), dormitory, lives nearby, public transport with latest return time | Reception or RTT |
+| Preparation | pelvic bladder-filling protocol (reports 45 min early) | Treatment card |
 | Priority flags | elderly, paying (if the department keeps this policy) | Registration |
 | Requested or usual time | 09:00 | Patient or RTT |
-| Language, channel, caregiver contact | Kannada, voice | Patient (stored on the hospital server only) |
+| Language, channel, caregiver contact | Tulu, voice | Patient (stored on the hospital server only) |
 | Timestamps | arrival, room entry, room exit | QR check-in, tablet or OIS |
 
 No diagnoses, doses, images or clinical notes are collected.
@@ -532,7 +688,7 @@ No diagnoses, doses, images or clinical notes are collected.
 | Simulation | Python and NumPy discrete-event twin |
 | Backend | Python, FastAPI, PostgreSQL, background task queue |
 | Frontend | Web app (PWA) for tablets and a TV queue board |
-| Language and voice AI | Sarvam-105B, Bulbul v3, Saaras v3, Sarvam Translate / Mayura, Sarvam Vision |
+| Language and voice AI | Sarvam-105B, Bulbul v3, Saaras v3, Sarvam Translate / Mayura, Sarvam Vision; staff-recorded Tulu voice clips |
 | Agent orchestration | LangGraph with an allow-listed tool set; template fallback |
 | Messaging | WhatsApp Business Platform (utility templates); SMS through a DLT-registered gateway; cloud telephony for voice calls |
 | Deployment | Docker Compose on an on-premise server or hospital VM |
@@ -571,7 +727,7 @@ No diagnoses, doses, images or clinical notes are collected.
 | 1 | Staff do not adopt the plan or override it constantly | Medium / High | Co-design with RTTs, shadow mode first, one-tap override, weekly review of override reasons |
 | 2 | Patients do not read or act on messages | Medium / Medium | Voice calls, caregiver copy, own language, reception reminder; plan is robust at 85% compliance |
 | 3 | Duration predictions are poor at first | Medium / Medium | Start with average tables (already most of the gain); P80 buffers; weekly retraining |
-| 4 | Timestamps incomplete | Medium / High | QR check-in and tablet taps; OIS timestamps where available; data completeness tracked (target ≥ 90%) |
+| 4 | No timestamps exist today, and capture may be incomplete | High / High | Start from the department's estimate table; QR check-in and tablet taps from day 1; OIS timestamps where available; completeness tracked (target ≥ 90%) |
 | 5 | A hard rule is broken in practice | Low / High | Solver guarantees plus an independent checker; human approval; stopping rule |
 | 6 | The language model produces a wrong or unsafe answer | Medium / Medium | It never writes schedules; answers grounded in reason codes; fixed, approved message templates; logging |
 | 7 | Privacy breach or DPDP non-compliance | Low / High | On-premise; pseudonymisation; no identifiers to external APIs; consent; access control; audit |
@@ -580,6 +736,8 @@ No diagnoses, doses, images or clinical notes are collected.
 | 10 | Scope creep into clinical decisions | Low / High | Urgency, technique and eligibility always entered by clinicians; the system only advises on counts and timing |
 | 11 | Solver too slow on large or multi-machine days | Low / Medium | Two-stage decomposition; time limit with best plan and quality gap shown; CP-SAT |
 | 12 | Other changes during the pilot confound the result | Medium / Medium | Interrupted time-series design, a baseline period, balancing measures, honest reporting |
+| 13 | Tulu speakers are not reached well, because no speech model covers Tulu | Medium / Medium | Kannada-script text with staff-recorded Tulu voice notes; Kannada speech on request; reception reminder; recordings reviewed monthly |
+| 14 | Holding capacity for urgent starts makes the day end later | Medium / Low | The department chooses the hold (Section 7.5); unused holds are used for catch-up |
 
 ### 11.2 Ethics and regulation
 
@@ -596,8 +754,8 @@ No diagnoses, doses, images or clinical notes are collected.
 
 1. **Machine-minutes, not head-counts.** Quantile predictions (P50/P80) drive every decision, as the problem statement asks.
 2. **Guaranteed rules.** Hard constraints are enforced by an optimiser and re-checked independently. They are never left to an AI model's judgement.
-3. **Two-stage coarse-to-fine optimisation.** A 70–90-patient day is solved to a proven optimum in seconds with open-source tools.
-4. **Minimum-disruption live recovery.** Re-planning moves as few patients as possible, never calls anyone earlier than they can arrive, and messages only people who can act.
+3. **Two-stage coarse-to-fine optimisation.** A 70–90-patient day is solved to a proven optimum, or within a stated gap, in under a minute with open-source tools.
+4. **Minimum-disruption live recovery under the department's downtime rules.** Re-planning treats the people already waiting first, moves as few others as possible, never calls anyone earlier than they can arrive, and messages only people who can act.
 5. **A digital twin for every plan.** Each plan is tested against simulated reality before approval, and the same twin answers what-if questions.
 6. **Two-day-ahead new-start advisor** that balances machines by predicted minutes over a 15-day horizon.
 7. **Accessory tracking across departments**, including CT-simulator bookings and QR tags.
@@ -605,6 +763,7 @@ No diagnoses, doses, images or clinical notes are collected.
 9. **Voice-first, multilingual patient loop.** Built on Sarvam AI, with caregivers as first-class recipients and spoken "running late" replies.
 10. **Equity by design.** Priorities are visible weights and waits are monitored by patient group.
 11. **Meets the clinic where it is.** It works from Excel, paper (OCR) and WhatsApp, with OIS integration added later.
+12. **The department's own rules, as configuration.** MHRC bus slots, the 21:00 public-transport limit, accessory reservations, reporting and bladder-filling times, downtime rules and TBI tapering are all data the department can see and change.
 
 ---
 
@@ -632,6 +791,8 @@ No diagnoses, doses, images or clinical notes are collected.
 20. HiGHS: high-performance open-source linear optimisation software. [highs.dev](https://highs.dev/)
 21. Press Information Bureau. LINAC services inaugurated at National Cancer Institute, AIIMS Jhajjar (two linacs, about ₹50 crore). [pib.gov.in](https://www.pib.gov.in/PressReleasePage.aspx?PRID=1591673)
 22. Frimodig S, Enqvist P, Kronqvist J. A column generation approach for radiation therapy patient scheduling with planned machine unavailability and uncertain future arrivals. arXiv:2303.10985, 2023.
+23. InVideo. Sarvam Bulbul: Indian text-to-speech (languages supported). [invideo.io](https://invideo.io/blog/sarvam-bulbul-indian-tts/)
+24. AutoInterviewAI. Sarvam AI Bulbul and Saaras: Indic voice models review, 2026. [autointerviewai.com](https://www.autointerviewai.com/blog/sarvam-ai-bulbul-saaras-indic-voice-models-review-2026)
 
 <!-- pagebreak -->
 
@@ -646,40 +807,59 @@ No diagnoses, doses, images or clinical notes are collected.
 | Fraction | One daily treatment session in a course |
 | Linac | Linear accelerator, the treatment machine (here Versa HD and Halcyon) |
 | MILP | Mixed-integer linear programming, a method that finds the best plan under constraints |
-| MHRC | Institutional respite / hospice accommodation named in the problem statement |
+| MHRC | Institutional respite / hospice accommodation named in the problem statement; its patients travel on the hospital bus |
 | OIS | Oncology information system, such as MOSAIQ or ARIA |
 | P50 / P80 | The duration a session will not exceed in 50% / 80% of cases |
 | RTT | Radiation therapy technologist |
+| TBI | Total body irradiation: two long fractions a day for a few days |
 | WTG / WTN | Gross wait (arrival to linac entry) / net wait (appointment to linac entry) |
 
-## Appendix B. Open questions for the department
+## Appendix B. The department's answers (21 September 2026)
 
-1. **Complex-case window.** The problem statement mentions both 10 AM – 5 PM (senior staff) and a protected 12:00 – 1:30 PM slot. We model the first as hard and the second as preferred. Is that right?
-2. **Operating hours.** What are the machines' operating hours, shift pattern and overtime limit?
-3. **Accessories.** How many breast boards, ABC units and other shared devices are there, what are the CT-simulator booking patterns, and how long does moving an accessory between rooms take?
-4. **Paying patients.** Should their preference remain a priority, and how strong should it be relative to elderly and transport-dependent patients?
-5. **Urgent starts.** How many same-day urgent starts arrive per day, and at what times?
-6. **Blood irradiation.** Which machine is used for it, and is the slot every day?
-7. **Machines.** What is the capability matrix of Versa HD and Halcyon (techniques, imaging, accessories), and when does the second machine start clinical use?
-8. **Timestamps.** Where can arrival, room entry and room exit times come from today (OIS, paper or none)?
-9. **Languages.** Which languages do patients and caregivers use? We assume Kannada, Malayalam, Hindi, English and Konkani; is Tulu, usually written in Kannada script, needed as a voice option?
-10. **Transport.** Which bus and train times matter most for patients returning home?
-11. **Approvals.** Who approves the plan each evening and live changes during the day?
-12. **Data sharing.** Can anonymised historical timings be shared to calibrate the model during the build sprint?
+Dr Akshay Dinesan answered our open questions on behalf of the department. Every answer is now part of the PoC's configuration.
+
+| Question | Department's answer | How RAD-SMART uses it |
+|---|---|---|
+| Complex-case window | 10:00–17:00 is hard. 12:00–13:30 is preferred (soft). Protected slots are released if unused | Hard window; soft protected block, open to others when unused |
+| TBI | Two fractions a day of 60–90 min, first of the morning and in the evening; about every 2–3 months, known a month ahead; new starts tapered from a week before | TBI slots blocked; the forecast holds back exactly the new starts that would not fit |
+| Operating hours | Starts 08:30 and may run to about 01:00–02:00; three RTT shifts; ceiling of 90 patients a day; to be reassessed when the second machine arrives | Regular day to 01:00, hard stop 02:00; the test day stays within the ceiling (87 planned plus up to 3 urgent) |
+| Accessories | One breast board and one ABC unit, shared with the CT simulator (11:00–18:00); transfer under 2 min. Linac reservations: both before 11:00; both 16:00–17:00 for new starts and MHRC; ABC 12:00–13:30; breast board linac-only after 18:00; reserved accessories released to the CT simulator when unused | Units, transfers, reservations and CT bookings modelled; bookings checked |
+| Priority slots | Paying patients: preferred time as far as possible. MHRC: protected 16:00–17:00 slots, released if unused; must finish for the 17:00 bus. Public transport: finish before 21:00. Older patients: earlier or convenient slots. Inpatients, dormitory residents and patients living nearby: flexible, can take late-evening slots | Strong preference for paying patients; hard MHRC and 21:00 limits; soft older-patient preference; flexible patients take the late evening |
+| Urgent same-day starts | 0–3 a day, arriving in the afternoon; accommodated before 18:00 | Two 20-min holds; hard 18:00 limit |
+| Blood irradiation | Daily on the Versa HD, 13:30–14:00 | Machine blocked |
+| Second machine | Arrives early 2027; capability matrix pending departmental consensus | Placeholder eligibility in the forecast |
+| Timestamps | None recorded yet; start from departmental estimates and validate prospectively | Estimate table first; timestamp capture from day 1 of the pilot |
+| Languages | Mostly Kannada and Tulu; a few English, Hindi and Malayalam | Sarvam for Kannada, Malayalam, Hindi and English; recorded Tulu voice notes with Kannada-script text |
+| Approvals | Live changes and the next-day plan approved by a designated person (senior RTT or oncologist) | Every plan, re-plan and deferral waits for that approval |
+| Reporting | At least 20 min before the slot; pelvic patients (cervix, endometrium, rectum, anal canal, bladder) drink 500 mL of water, wait 30 min and report 45 min before | Reporting time and preparation in every message; waits include it |
+| Imaging review | The oncologist may decline to treat; the patient is repositioned and treated at once or later the same day; buffer capacity is needed | Re-queued automatically; holds and the late evening give the buffer |
+| Downtime of 30–60 min | Nobody sent home; a few new starts may be deferred; all ongoing patients treated the same day; the schedule is re-planned | Built in (Section 6.5) |
+| Downtime over 120 min | Some patients may be deferred or sent home after oncologist review; new starts postponed to the next day except urgent palliative; approved by the oncologist or designated senior RTT | Built in (Section 6.5) |
+| Data sharing | Anonymised historical data depends on the Head of Department | Build sprint uses synthetic data; no real data needed |
+
+**Still open:**
+
+1. The second machine's capability matrix (techniques, imaging, accessories), pending departmental consensus.
+2. Permission from the Head of Department to share anonymised historical timings, if any are later found in the OIS or registers.
+3. The department's estimate table: typical minutes per technique, first fraction and accessory.
+4. TBI details: the usual course length (we assumed 3 days) and exact slot times (we assumed 08:30–10:00 and 18:30–20:00).
+5. Downtime between 60 and 120 minutes: which rule applies (we use the shorter-downtime rule, with the approver able to switch).
+6. How often CT-simulator bookings need each accessory, so the reservations can be tuned.
 
 ## Appendix C. Sample of the optimised plan (synthetic)
 
-| Time | Patient | Technique | Fraction | Planned min | Flags | Old reporting time | Why |
-|---|---|---|---|---|---|---|---|
-| 07:30 | P014 | VMAT | 12/30 | 5.9 | | 07:30 | within 30 min of usual time 07:30 |
-| 07:44 | P015 | Breast (board) | 13/18 | 9.6 | public transport; breast board | 07:30 | finish by 18:00; breast board free (CT-sim bookings avoided) |
-| 08:08 | P028 | 3D-CRT | 3/30 | 4.9 | public transport | 08:30 | finish by 17:00; within 30 min of usual time |
-| 08:22 | P057 | VMAT | 6/29 | 8.6 | elderly; dormitory; paying | 07:30 | within 30 min of requested time 08:00 |
-| 09:04 | P026 | 3D-CRT | 17/23 | 7.5 | | 08:30 | 34 min later than usual time 08:30 |
-| 09:30 | P008 | VMAT | 11/25 | 6.7 | public transport; paying | 08:30 | within 30 min of requested time 09:00 |
-| 10:26 | P003 | VMAT, new start | 1/32 | 18.8 | new start; paying | 10:30 | new start: finish by 17:00 |
+| Time | Report by | Patient | Technique | Fraction | Planned min | Flags | Old reporting time | Why |
+|---|---|---|---|---|---|---|---|---|
+| 08:30 | 08:10 | P018 | Palliative 2D/3D | 3/4 | 5.7 |  | 08:30 | within 30 min of usual time 08:30; report at 08:10 (20 min before) |
+| 08:36 | 08:16 | P067 | Palliative 2D/3D | 3/4 | 7.2 | older; public transport; paying | 08:30 | public transport: finish by 21:00; within 15 min of preferred time 08:30; older patient: earlier slot; report at 08:16 (20 min before) |
+| 08:52 | 08:07 | P051 | 3D-CRT | 3/25 | 6.2 | pelvic | 08:30 | within 30 min of usual time 08:30; report at 08:07 (45 min before: drink 500 mL of water on arrival) |
+| 10:26 | 09:41 | P003 | VMAT | 1/33 | 25.8 | new start; lives nearby; pelvic | 10:30 | new start: finish by 17:00; within 30 min of usual time 10:30; report at 09:41 (45 min before: drink 500 mL of water on arrival) |
+| 12:00 | 11:40 | P002 | Craniospinal (CSI) | 14/25 | 25.0 | complex; dormitory; paying | 11:30 | complex procedure: senior staff 10:00-17:00; within 30 min of usual time 11:30; report at 11:40 (20 min before) |
+| 16:16 | 15:56 | P015 | Breast (breast board) | 19/21 | 8.2 | older; MHRC; paying; breast board | 16:00 | MHRC: protected slot 16:00-17:00, back on the 17:00 bus; within 30 min of usual time 16:00; accessory check: breast board free (CT-simulator bookings and reservations respected); report at 15:56 (20 min before) |
+| 19:04 | 18:44 | P087 | Palliative 2D/3D | 2/4 | 5.3 | public transport | 18:00 | public transport: finish by 21:00; 64 min later than usual time 18:00; report at 18:44 (20 min before) |
+| 21:32 | 21:12 | P033 | IMRT | 2/35 | 8.3 | lives nearby | 20:00 | 92 min later than usual time 20:00; lives nearby: late-evening slot, keeps earlier slots for stricter constraints; report at 21:12 (20 min before) |
 
-The full 67-patient plan is in `poc/results/schedule_rad_smart.csv`.
+The full 87-patient plan is in `poc/results/schedule_rad_smart.csv`.
 
 ## Appendix D. Reproducing the PoC
 
@@ -691,4 +871,4 @@ pip install -r requirements.txt
 python run_poc.py
 ```
 
-A full run takes under a minute on a laptop and writes `results/results.json`, `results/run_log.txt`, `results/schedule_rad_smart.csv`, `results/web_data.json` and all figures. Results are identical from run to run: random seeds are fixed and ties are broken by patient ID. Only solver timings vary.
+A full run takes about 4 minutes on a laptop and writes `results/results.json`, `results/run_log.txt`, `results/schedule_rad_smart.csv`, `results/web_data.json` and all figures. Random seeds are fixed and ties are broken by patient ID, so a run reproduces the same results, with one exception. When a solve stops at its time limit (here the average-table plan), the best plan found can differ slightly between runs, and so can the numbers that follow from it. Solver timings always vary.

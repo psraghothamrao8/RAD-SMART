@@ -32,7 +32,9 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 ## Headline PoC results (synthetic, 300 simulated days)
 
-- Median wait from arrival to the treatment room fell from 71 to 19 minutes, and the 90th percentile from 227 to 52 minutes.
-- Patients treated within ±15 minutes of their time rose from 16% to 62%, with no extra overtime and no broken rules.
-- After a 30-minute machine fault, the day is re-planned in about 4 seconds and the median wait is 19 minutes instead of 93.
-- Two-machine new-start planning keeps peak load at 100% on both machines, instead of 156% on one.
+Tested under the department's own rules (its answers of 21 September 2026) on an 87-patient day from 08:30 to 01:00:
+
+- The median wait from arrival to the treatment room fell from 100 to 33 minutes, and the 90th percentile from 173 to 62 minutes. Both include the 20- or 45-minute preparation time.
+- Patients treated within ±15 minutes of their time rose from 10% to 73%. The independent checker found all 7 hard rules met, including new starts by 17:00, MHRC patients on the 17:00 bus and public-transport patients home by 21:00.
+- After a 45-minute fault, everyone is still treated the same day and the median wait is 40 minutes instead of 144. After a 150-minute fault, new starts move to the next day and the median wait is 35 minutes instead of 216.
+- Two-machine new-start planning around a TBI course keeps peak load at 98–99%, instead of 154% on one machine.

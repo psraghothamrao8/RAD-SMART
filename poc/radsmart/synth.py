@@ -2,7 +2,9 @@
 
 The hackathon rules allow only fake or fully anonymised data, so every patient
 here is generated. Distributions follow the RAD-SMART problem statement
-(routine 7-15 min, new start / complex 20-60 min, 70-90 patients/day) and
+(routine 7-15 min, new start / complex 20-60 min), the department's answers
+(08:30 start, a ceiling of 90 patients a day, Kannada and Tulu speakers, MHRC
+and public-transport deadlines) and
 published data (mean set-up + treatment 15.1 +/- 10.9 min over 34,438 sessions,
 Munshi et al., JCRT 2021; first fractions longer, Xie et al., JACMP 2023).
 
@@ -50,14 +52,15 @@ IMAGING_BY_TECH = {
 ROUTINE_MIX = {"PALL": 0.13, "3DCRT": 0.19, "IMRT": 0.23, "VMAT": 0.24,
                "BREAST": 0.16, "BREAST_DIBH": 0.05}
 
-LANGUAGES = {"Kannada": 0.38, "Malayalam": 0.20, "Hindi": 0.14, "Konkani": 0.08,
-             "Tulu": 0.08, "English": 0.08, "Tamil": 0.02, "Telugu": 0.02}
+# Most patients speak Kannada and Tulu; a few English, Hindi and Malayalam.
+LANGUAGES = {"Kannada": 0.50, "Tulu": 0.30, "Malayalam": 0.08, "English": 0.07, "Hindi": 0.05}
 
 # Current practice: hourly reporting blocks, filled by head-count and skewed to
-# the morning ("too many patients asked to report during the same period").
-BASELINE_BLOCKS = ["07:30", "08:30", "09:30", "10:30", "11:30", "12:30",
-                   "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"]
-BASELINE_BLOCK_WEIGHTS = [13, 12, 12, 11, 9, 6, 8, 8, 7, 6, 4, 4]
+# the morning ("too many patients asked to report during the same period"),
+# with flexible patients (inpatients, dormitory, nearby) given the late slots.
+BASELINE_BLOCKS = ["08:30", "09:30", "10:30", "11:30", "12:30", "14:00", "15:00", "16:00",
+                   "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"]
+BASELINE_BLOCK_WEIGHTS = [10, 9, 8, 7, 5, 6, 6, 5, 5, 5, 5, 4, 4, 3, 2]
 
 
 @dataclass
@@ -74,13 +77,14 @@ class Patient:
     mobility: str
     imaging: str
     age: int
-    inpatient: bool = False
-    mhrc: bool = False            # hospice / respite centre resident
+    inpatient: bool = False       # flexible: may take late-evening slots
+    mhrc: bool = False            # Manipal Hospice and Respite Centre: 17:00 bus back
     dormitory: bool = False       # hospital dormitory resident (flexible)
-    transport: bool = False       # depends on public transport
-    latest_end: int | None = None  # must finish by (last bus), minutes
+    nearby: bool = False          # lives nearby (flexible)
+    transport: bool = False       # depends on public transport: finish by 21:00
+    latest_end: int | None = None  # must finish by, minutes
     paying: bool = False
-    requested: int | None = None  # explicit time request, minutes
+    requested: int | None = None  # paying patient's preferred time, minutes
     usual_time: int = 0           # current-practice reporting time
     language: str = "Kannada"
     urgent: bool = False          # same-day palliative start
@@ -92,12 +96,29 @@ class Patient:
         return self.age >= 70
 
     @property
+    def flexible(self) -> bool:
+        """Inpatients, dormitory residents and people living nearby can take
+        late-evening slots, freeing earlier ones for stricter constraints."""
+        return self.inpatient or self.dormitory or self.nearby
+
+    @property
+    def pelvic(self) -> bool:
+        """Pelvic radiotherapy: drinks 500 mL of water and waits 30 min first."""
+        return self.site == "PELVIS"
+
+    @property
+    def report_lead(self) -> int:
+        d = DEPARTMENT
+        return d["report_lead_pelvic_min"] if self.pelvic else d["report_lead_min"]
+
+    @property
     def remaining_after_today(self) -> int:
         return self.total_fx - self.fraction_no
 
     def to_dict(self) -> dict:
         d = asdict(self)
         d["elderly"] = self.elderly
+        d["pelvic"] = self.pelvic
         return d
 
 
@@ -157,14 +178,16 @@ def make_patient(rng, pid: str, technique: str, machine: str, new_start: bool,
         language=_pick(rng, LANGUAGES), eligible=list(t["machines"]),
     )
     if not inpatient:
-        p.mhrc = rng.random() < (0.12 if technique == "PALL" or p.elderly else 0.02)
+        p.mhrc = rng.random() < (0.10 if technique == "PALL" or p.elderly else 0.02)
         p.dormitory = (not p.mhrc) and rng.random() < 0.12
-        p.transport = (not p.mhrc) and (not p.dormitory) and rng.random() < 0.28
+        p.nearby = (not p.mhrc) and (not p.dormitory) and rng.random() < 0.25
+        p.transport = (not p.mhrc) and (not p.dormitory) and (not p.nearby) and rng.random() < 0.55
         if p.transport:
-            p.latest_end = hm("16:00") + 15 * int(rng.integers(0, 11))  # 16:00-18:30
+            p.latest_end = DEPARTMENT["public_transport_latest_end"]
         p.paying = rng.random() < 0.35
-        if p.paying and rng.random() < 0.4 and not t["complex"]:   # complex: booked by physics
-            p.requested = hm(str(rng.choice(["08:00", "09:00", "17:30", "18:30", "19:30"])))
+        if p.paying and rng.random() < 0.6 and not t["complex"] and not p.mhrc:
+            choices = ["08:30", "09:30", "10:30", "17:30", "18:30", "19:30"]   # complex: booked by physics
+            p.requested = hm(str(rng.choice(choices)))
     p.usual_time = _baseline_block(rng, p)
     return p
 
@@ -176,26 +199,29 @@ def _baseline_block(rng, p: Patient) -> int:
     ok = np.ones(len(blocks), dtype=bool)
     if p.requested is not None:
         return min(blocks, key=lambda b: abs(b - p.requested))
-    if p.complex or p.new_start:
+    if p.complex:
         ok = np.array([b in (hm("10:30"), hm("11:30"), hm("14:00")) for b in blocks])
+    elif p.new_start:
+        ok = np.array([b in (hm("10:30"), hm("11:30"), hm("14:00"), hm("15:00")) for b in blocks])
     elif p.mhrc:
-        ok = np.array([b in (hm("09:30"), hm("10:30")) for b in blocks])
-    elif p.inpatient:
-        ok = np.array([hm("10:30") <= b <= hm("15:00") for b in blocks])
+        ok = np.array([b == hm("16:00") for b in blocks])      # arrive by the MHRC bus
     elif p.transport:
-        ok = np.array([b <= min(p.latest_end - 60, hm("15:00")) for b in blocks])
-    elif p.dormitory:
-        w = w * np.linspace(0.6, 1.8, len(blocks))   # dormitory: later is fine
+        ok = np.array([b <= hm("19:00") for b in blocks])      # home by public transport
+    elif p.flexible:                                          # late evening is fine
+        w = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 3], dtype=float)
+    else:
+        ok = np.array([b <= hm("21:00") for b in blocks])
     w = w * ok
     return blocks[rng.choice(len(blocks), p=w / w.sum())]
 
 
 def make_day(seed: int = 7, machines=("VERSA",), target_load: float = 0.90,
              complex_mix=("SRT", "CSI"), new_start_mix=("VMAT", "IMRT", "3DCRT", "BREAST", "SBRT"),
-             routine_mix: dict | None = None) -> list[Patient]:
+             routine_mix: dict | None = None, n_patients: int | None = None) -> list[Patient]:
     """Build one treatment day for the given machines.
 
-    Routine patients are added until the expected machine load reaches
+    Routine patients are added until there are `n_patients` in total or, if
+    that is not given, until the expected machine load reaches
     `target_load` x available minutes on each machine.
     """
     rng = np.random.default_rng(seed)
@@ -219,7 +245,7 @@ def make_day(seed: int = 7, machines=("VERSA",), target_load: float = 0.90,
     for m in machines:
         avail = available_minutes(m)
         load = sum(expected_duration(p) for p in patients if p.machine == m)
-        while load < target_load * avail:
+        while (len(patients) < n_patients) if n_patients else (load < target_load * avail):
             tech = _pick(rng, routine_mix)
             if m not in TECHNIQUES[tech]["machines"]:
                 continue
@@ -236,8 +262,9 @@ def available_minutes(machine: str) -> float:
 
 
 def make_urgent(rng, start_id: int, machine: str = "VERSA", lam: float = 1.2) -> list[Patient]:
-    """Same-day palliative starts that appear during the day (unknown at 07:30)."""
-    k = rng.poisson(lam)
+    """Same-day palliative starts: 0-3 a day, arriving in the afternoon (unknown
+    when the day is planned), treated before 18:00."""
+    k = min(3, rng.poisson(lam))
     out = []
     for i in range(k):
         p = make_patient(rng, f"U{start_id + i:02d}", "PALL", machine, new_start=True)
@@ -245,7 +272,8 @@ def make_urgent(rng, start_id: int, machine: str = "VERSA", lam: float = 1.2) ->
         p.transport = False
         p.latest_end = None
         p.requested = None
-        p.ready_time = int(rng.uniform(hm("12:30"), hm("15:30")))
+        p.mhrc = p.dormitory = p.nearby = False
+        p.ready_time = int(rng.uniform(hm("13:00"), hm("16:30")))
         p.usual_time = p.ready_time
         out.append(p)
     return out
@@ -263,6 +291,6 @@ def make_history(seed: int = 11, n_sessions: int = 12000, machines=("VERSA", "HA
         p = make_patient(rng, f"H{i}", tech, m, new_start=rng.random() < 0.05)
         row = p.to_dict()
         row["duration"] = sample_duration(p, rng)
-        row["hour"] = int(rng.integers(8, 20))
+        row["hour"] = int(rng.integers(8, 25))
         rows.append(row)
     return rows

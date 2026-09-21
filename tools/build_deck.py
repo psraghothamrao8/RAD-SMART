@@ -23,10 +23,10 @@ deck = json.loads((src / "deck.json").read_text(encoding="utf-8"))
 
 # images uploaded to the artifact, and the report figures they came from
 BLOBS = {
-    "/_blob/d80b325c26fcae33771d7072b1b7afe3": "../figures/fig1_wait_distribution.png",
-    "/_blob/ea0ae55818df661f1ed7335c5dba6f56": "../figures/fig3_optimised_day.png",
-    "/_blob/ccb54142b0ea75dde3d11abdeb76ffbd": "../figures/fig4b_fault_waiting_room.png",
-    "/_blob/74a87289e26a480e869b54b1eaea073d": "../figures/fig5_capacity_forecast.png",
+    "/_blob/1e5107b2dbca1be2330a5eb608ec5795": "../figures/fig1_wait_distribution.png",
+    "/_blob/25c3c9ef31c5bb8ea625d623b8f4755f": "../figures/fig3_optimised_day.png",
+    "/_blob/d9563dfa3becc271462d1e3f5316ec9d": "../figures/fig4c_fault_waiting_room.png",
+    "/_blob/ddc7ca7e17059a694bd53325b4bac621": "../figures/fig5_capacity_forecast.png",
 }
 
 frames = []

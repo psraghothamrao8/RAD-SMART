@@ -18,17 +18,22 @@ Hard constraints - satisfied by construction, never traded off:
     same-day urgent holds, downtime) stay free
   * shared accessories: simultaneous use across machines and the CT simulator
     never exceeds the units owned (CT bookings padded with transfer time)
-  * complex procedures inside the senior-staff window, at most N at once
-    across all machines
-  * new starts finish before 17:00; public-transport patients finish before
-    their last bus; nothing runs past the hard end of day
+  * complex procedures inside the senior-staff window (10:00-17:00), at most
+    N at once across all machines
+  * new starts finish before 17:00; same-day urgent starts before 18:00;
+    public-transport patients before 21:00; MHRC patients inside their
+    16:00-17:00 slots, in time for the 17:00 bus; nothing past the hard end
 Soft goals (weighted objective; weights are department configuration):
-  * keep patients near their usual or requested time
-  * elderly and public-transport patients earlier in the day
-  * ward (inpatient) and hospice-vehicle (MHRC) windows
-  * complex procedures in the protected block; routine patients outside it
+  * paying patients at their preferred time wherever possible; everyone else
+    near their usual time
+  * older patients earlier in the day
+  * flexible patients (inpatients, dormitory, nearby) take the late evening;
+    others finish by 21:00 where possible; the day ends as early as it can
+  * complex procedures in the 12:00-13:30 protected block, which is released
+    to other patients when no complex case needs it
   * minimise overtime
-  * in re-optimisation mode, minimise changes to already-published times
+  * in re-optimisation mode, minimise changes to already-published times and,
+    above all, the extra waiting of patients who are already in the department
 
 Production recommendation: the same model maps one-to-one onto OR-Tools CP-SAT
 interval variables (NoOverlap + Cumulative), which removes the need for the
@@ -74,14 +79,15 @@ class Schedule:
 def planning_minutes(patients, predictor, policy: dict | None = None) -> dict:
     """Minutes to reserve per patient (pid -> minutes), from a duration predictor.
 
-    policy maps patient class -> 'p50' | 'p80'. Planning long or variable
-    sessions (new starts, complex) at P80 limits delay spill-over.
+    policy maps patient class -> 'mean' | 'p80'. Reserving the expected
+    (mean) minutes keeps the day's total right; P80 for long or variable
+    sessions limits delay spill-over.
     """
-    policy = policy or {"routine": "p50", "new_start": "p50", "complex": "p50"}
+    policy = policy or {"routine": "mean", "new_start": "mean", "complex": "mean"}
     if hasattr(predictor, "predict_many"):
-        p50 = predictor.predict_many(patients, 0.5)
+        p50 = predictor.predict_many(patients, "mean")
         p80 = predictor.predict_many(patients, 0.8)
-    else:
+    else:                               # lookup table: its "p50" is the average
         p50 = [predictor.p50(p) for p in patients]
         p80 = [predictor.p80(p) for p in patients]
     out = {}
@@ -117,14 +123,22 @@ class DayScheduler:
         self.g = self.d["grid_min"]
         self.t0 = self.d["day_start"]
         self.T = int((self.d["hard_end"] - self.t0) // self.g)
+        self._present = frozenset()
 
     # ---------------------------------------------------------------- helpers
     def slot_time(self, s: int) -> int:
         return self.t0 + s * self.g
 
-    def _blocks(self, machine, extra_blocks):
+    @staticmethod
+    def standby(p):
+        """Inpatients and dormitory residents are in the building, so they can
+        be booked into the urgent holds on standby: if an urgent patient comes,
+        they are simply treated a little later. Held capacity is never wasted."""
+        return (p.inpatient or p.dormitory) and not (p.new_start or p.complex or p.mhrc or p.urgent)
+
+    def _blocks(self, machine, extra_blocks, holds=True):
         blocks = [(b["start"], b["end"], b["label"]) for b in self.d["machines"][machine]["blocks"]]
-        for h in self.d.get("urgent_holds", []):
+        for h in self.d.get("urgent_holds", []) if holds else []:
             if h["machine"] == machine:
                 blocks.append((h["start"], h["start"] + h["minutes"], "Urgent hold"))
         blocks += list(extra_blocks.get(machine, []))
@@ -147,6 +161,13 @@ class DayScheduler:
         if p.transport and p.latest_end:
             hi = min(hi, p.latest_end - buf)
             why.append(f"public transport: finish by {fmt(p.latest_end)}")
+        if p.mhrc:
+            mlo, mhi = d["mhrc_window"]
+            lo, hi = max(lo, mlo), min(hi, mhi - d["mhrc_buffer_min"])
+            why.append(f"MHRC: protected slot {fmt(mlo)}-17:00, back on the 17:00 bus")
+        if p.urgent:
+            hi = min(hi, d["urgent_latest_end"])
+            why.append(f"urgent start: treat by {fmt(d['urgent_latest_end'])}")
         if p.ready_time:
             lo = max(lo, p.ready_time)
             why.append(f"ready at {fmt(p.ready_time)}")
@@ -159,29 +180,35 @@ class DayScheduler:
         d, w = self.d, self.d["weights"]
         c = 0.0
         target = p.requested if p.requested is not None else p.usual_time
+        paying = p.requested is not None
         weight = (w["pref_complex"] if p.complex
-                  else w["pref_requested"] if p.requested is not None
-                  else w["pref_flexible"] if p.dormitory else w["pref_general"])
-        c += weight * max(0.0, abs(start - target) - w["pref_tolerance"]) / 10
+                  else w["pref_paying"] if paying
+                  else w["pref_flexible"] if p.flexible else w["pref_general"])
+        tol = w["pref_tolerance_paying"] if paying else w["pref_tolerance"]
+        c += weight * max(0.0, abs(start - target) - tol) / 10
         if p.elderly:
             c += w["elderly_after_1pm"] * max(0, start - d["elderly_pref_before"]) / 10
-        if p.transport:
-            c += w["transport_after_noon"] * max(0, start - d["transport_pref_before"]) / 10
-        if p.inpatient:
-            lo, hi = d["inpatient_window"]
-            c += w["inpatient_outside"] * (max(0, lo - start) + max(0, end - hi)) / 10
+        if not p.flexible:
+            c += w["late_evening"] * max(0, end - d["late_evening_after"]) / 10
+        c += w["night"] * max(0, end - d["night_after"]) / 10
         if p.mhrc:
-            lo, hi = d["mhrc_window"]
-            c += w["mhrc_outside"] * (max(0, lo - start) + max(0, end - hi)) / 10
-        blo, bhi = d["protected_block"]
-        overlap = max(0, min(end, bhi) - max(start, blo))
+            c += w["mhrc_wait"] * max(0, start - d["mhrc_window"][0]) / 10
         if p.complex:
+            blo, bhi = d["protected_block"]
+            overlap = max(0, min(end, bhi) - max(start, blo))
             c += w["complex_outside_block"] * ((end - start) - overlap) / 10
-        else:
-            c += w["routine_in_block"] * overlap / 10
         c += w["overtime"] * max(0, end - d["regular_end"]) / 10
         if prev_time is not None and p.pid in prev_time:
-            c += w.get("move", 3.0) * abs(start - prev_time[p.pid]) / 10
+            if p.pid in self._present:
+                # already in the department (or on the way): every minute is a
+                # minute in the waiting room, and long waits are penalised steeply
+                late = max(0.0, start - prev_time[p.pid])
+                scale = 0.25 if p.flexible else 1.0   # ward, dormitory or home nearby
+                c += scale * (w["present_wait"] * late + w["present_long_wait"] * max(0.0, late - 60)) / 10
+            else:
+                shift = abs(start - prev_time[p.pid])
+                scale = 0.25 if p.flexible else 1.0
+                c += (w["move"] * shift + scale * w["move_long"] * max(0.0, shift - 60)) / 10
         c += 1e-4 * (start - self.t0)   # tie-break: earlier
         return c
 
@@ -197,7 +224,7 @@ class DayScheduler:
     # ------------------------------------------------------------------ solve
     def solve(self, patients, predictor, policy=None, locked=None, earliest=None,
               prev_time=None, extra_blocks=None, time_limit=20.0, gap=0.01,
-              machines_of=None):
+              machines_of=None, defer_cost=None, present=None):
         """Plan the day. Returns a Schedule with an Assignment per patient.
 
         locked:       pid -> (machine, start_minute)   human-fixed or in progress
@@ -205,16 +232,23 @@ class DayScheduler:
         prev_time:    pid -> minute                    published time (re-opt)
         extra_blocks: machine -> [(start, end, label)] downtime, faults
         machines_of:  pid -> [machines]                beam-matched pools
+        defer_cost:   pid -> cost of leaving p unplanned (a deferral proposal);
+                      lower = proposed first when not everyone fits
+        present:      pids already in the department or on the way (re-opt):
+                      their waiting is costed, instead of a move they can be told about
         """
+        self._present = frozenset(present or ())
         ctx = dict(locked=locked or {}, earliest=earliest or {}, prev_time=prev_time,
-                   extra_blocks=extra_blocks or {}, machines_of=machines_of or {})
+                   extra_blocks=extra_blocks or {}, machines_of=machines_of or {},
+                   defer_cost=defer_cost or {})
         dur = planning_minutes(patients, predictor, policy)
         tic = time.perf_counter()
         centre = self._stage1(patients, dur, ctx, time_limit)
-        # Stage 2a - "big rocks" (complex procedures, new starts) are placed
-        # exactly, near the bucket stage 1 reserved for them, then locked: the
-        # protected-slot idea from the problem statement.
-        rocks = [p for p in patients if (p.complex or p.new_start) and p.pid not in ctx["locked"]]
+        # Stage 2a - "big rocks" (complex procedures, new starts) and the
+        # tightly-windowed MHRC patients are placed exactly, near the bucket
+        # stage 1 reserved for them, then locked: the protected-slot idea.
+        rocks = [p for p in patients if (p.complex or p.new_start or p.mhrc)
+                 and p.pid not in ctx["locked"]]
         if rocks:
             fixed = [p for p in patients if p.pid in ctx["locked"]]
             s_rocks = self._stage2(rocks + fixed, dur, ctx, centre, time_limit, gap, self.WINDOW)
@@ -227,10 +261,10 @@ class DayScheduler:
                     ctx["locked"][p.pid] = (a.machine, a.start)
         # Stage 2b - everyone else, searched around their stage-1 bucket.
         sched = self._stage2(patients, dur, ctx, centre, time_limit, gap, self.WINDOW)
-        if sched.unscheduled():   # a window was too tight: open it and widen the rest
+        if sched.unscheduled():   # a window was too tight: open it for those patients only
             for pid in sched.unscheduled():
                 centre[pid] = None
-            sched = self._stage2(patients, dur, ctx, centre, time_limit, gap, 2 * self.WINDOW)
+            sched = self._stage2(patients, dur, ctx, centre, time_limit, gap, self.WINDOW)
         sched.solve_seconds = time.perf_counter() - tic
         return sched
 
@@ -243,7 +277,7 @@ class DayScheduler:
         for pi, p in enumerate(patients):
             lo, hi, _ = self._window(p, ctx["earliest"])
             for m in ctx["machines_of"].get(p.pid, [p.machine]):
-                blocks = self._blocks(m, ctx["extra_blocks"])
+                blocks = self._blocks(m, ctx["extra_blocks"], holds=not self.standby(p))
                 if p.pid in ctx["locked"]:
                     lm, ls = ctx["locked"][p.pid]
                     if lm == m:
@@ -326,7 +360,7 @@ class DayScheduler:
                 lo = max(lo, centre[p.pid] - window)
                 hi = min(hi, centre[p.pid] + self.BUCKET + window + dur[p.pid])
             for m in ctx["machines_of"].get(p.pid, [p.machine]):
-                blocks = self._blocks(m, ctx["extra_blocks"])
+                blocks = self._blocks(m, ctx["extra_blocks"], holds=not self.standby(p))
                 if p.pid in ctx["locked"]:
                     lm, ls = ctx["locked"][p.pid]
                     if lm != m:
@@ -348,7 +382,8 @@ class DayScheduler:
 
         nx, n_pat = len(var_p), len(patients)
         n = nx + n_pat
-        c = costs + [d["weights"]["unscheduled"] * (5 if (p.complex or p.new_start) else 1)
+        c = costs + [ctx["defer_cost"].get(p.pid, d["weights"]["unscheduled"]
+                                           * (5 if (p.complex or p.new_start) else 1))
                      for p in patients]
         rows, cols, vals, lb, ub = [], [], [], [], []
         for j, pi in enumerate(var_p):
@@ -407,22 +442,78 @@ class DayScheduler:
         d = self.d
         out = list(window_reasons)
         target = p.requested if p.requested is not None else p.usual_time
-        label = "requested" if p.requested is not None else "usual"
+        label = "preferred" if p.requested is not None else "usual"
+        tol = d["weights"]["pref_tolerance_paying" if p.requested is not None else "pref_tolerance"]
         delta = start - target
-        if abs(delta) > d["weights"]["pref_tolerance"]:
+        if abs(delta) > tol:
             out.append(f"{abs(delta):.0f} min {'later' if delta > 0 else 'earlier'} than "
                        f"{label} time {fmt(target)}")
         else:
-            out.append(f"within {d['weights']['pref_tolerance']} min of {label} time {fmt(target)}")
+            out.append(f"within {tol} min of {label} time {fmt(target)}")
         if p.accessories:
-            out.append("accessory check: " + ", ".join(p.accessories) + " free (CT-sim bookings avoided)")
-        if p.inpatient:
-            out.append("inpatient: ward window " + "-".join(fmt(t) for t in d["inpatient_window"]))
-        if p.mhrc:
-            out.append("hospice vehicle window " + "-".join(fmt(t) for t in d["mhrc_window"]))
+            names = {"BREAST_BOARD": "breast board", "ABC": "ABC"}
+            out.append("accessory check: " + " and ".join(names.get(a, a) for a in p.accessories)
+                       + " free (CT-simulator bookings and reservations respected)")
+        if p.flexible and end > d["late_evening_after"]:
+            kind = "inpatient" if p.inpatient else "dormitory" if p.dormitory else "lives nearby"
+            out.append(f"{kind}: late-evening slot, keeps earlier slots for stricter constraints")
+        if p.elderly and start <= d["elderly_pref_before"]:
+            out.append("older patient: earlier slot")
+        lead = p.report_lead
+        out.append(f"report at {fmt(start - lead)} ({lead} min before"
+                   + (": drink 500 mL of water on arrival)" if p.pelvic else ")"))
+        for h in d.get("urgent_holds", []):
+            if start < h["start"] + h["minutes"] and end > h["start"]:
+                out.append("on standby in the urgent-start hold: treated a little later if an "
+                           "urgent patient arrives")
         if end > d["regular_end"]:
             out.append(f"runs {end - d['regular_end']:.0f} min into overtime")
         if prev_time and p.pid in prev_time and abs(start - prev_time[p.pid]) >= 1:
             out.append(f"moved {start - prev_time[p.pid]:+.0f} min from published time "
                        f"{fmt(prev_time[p.pid])}")
         return out
+
+
+def check_plan(patients, schedule, dept: dict | None = None) -> dict:
+    """Independent check of every hard rule in a published plan.
+
+    Written separately from the optimiser (the "rule checker" in the design):
+    a plan is only offered for approval if this finds no violation.
+    """
+    d = dept or DEPARTMENT
+    g = d["grid_min"]
+    rows, problems = [], []
+    for p in patients:
+        a = schedule.assignments[p.pid]
+        if a.start is None:
+            continue
+        end = a.start + max(1, math.floor(a.planned_minutes / g + 0.5)) * g
+        rows.append((p, a.machine, a.start, end))
+    rules = {
+        "new starts finish by 17:00": [p.pid for p, _, _, e in rows if p.new_start and not p.urgent
+                                       and e > d["new_start_latest_end"]],
+        "complex cases inside 10:00-17:00": [p.pid for p, _, s, e in rows if p.complex and
+                                             (s < d["senior_staff_window"][0] or e > d["senior_staff_window"][1])],
+        "MHRC patients inside 16:00-16:55": [p.pid for p, _, s, e in rows if p.mhrc and
+                                             (s < d["mhrc_window"][0] or e > d["mhrc_window"][1])],
+        "public transport finish by 21:00": [p.pid for p, _, _, e in rows if p.transport
+                                             and e > d["public_transport_latest_end"]],
+        "blood irradiation 13:30-14:00 kept free": [
+            p.pid for p, m, s, e in rows for b in d["machines"][m]["blocks"] if s < b["end"] and e > b["start"]],
+        "one patient at a time on each machine": [],
+        "accessories never double-booked with the CT simulator": [],
+    }
+    for i, (p, m, s, e) in enumerate(rows):
+        for q, m2, s2, e2 in rows[i + 1:]:
+            if m == m2 and s < e2 and s2 < e:
+                rules["one patient at a time on each machine"].append(f"{p.pid}/{q.pid}")
+        for acc in p.accessories:
+            spec = d["accessories"][acc]
+            for b in d["ct_sim_bookings"]:
+                if b["accessory"] == acc and spec["units"] == 1 and                         s < b["end"] + spec["transfer_min"] and e > b["start"] - spec["transfer_min"]:
+                    rules["accessories never double-booked with the CT simulator"].append(p.pid)
+    for name, bad in rules.items():
+        if bad:
+            problems.append(f"{name}: {', '.join(bad)}")
+    return {"rules_checked": len(rules), "violations": problems,
+            "sessions_checked": len(rows), "unplanned": schedule.unscheduled()}

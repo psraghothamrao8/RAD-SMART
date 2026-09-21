@@ -1,32 +1,32 @@
 <section id="waits" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
   <div style="display:flex; flex-direction:column; gap:16px">
     <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · 300 simulated days</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Waits fall by about three-quarters</h2>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Waits fall by two-thirds</h2>
   </div>
   <div style="display:flex; flex-direction:row; gap:48px; align-items:center">
-    <img src="/_blob/d80b325c26fcae33771d7072b1b7afe3" alt="Cumulative wait curves: RAD-SMART median 19 minutes versus 71 minutes for current practice" style="width:1040px; height:618px; object-fit:contain">
+    <img src="/_blob/1e5107b2dbca1be2330a5eb608ec5795" alt="Cumulative wait curves: RAD-SMART median 33 minutes versus 100 minutes for current practice" style="width:1040px; height:618px; object-fit:contain">
     <div style="flex:1; display:flex; flex-direction:column; gap:16px">
       <div style="display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">71 → 19 min</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait, arrival to treatment room</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">100 → 33 min</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait, arrival to treatment room, preparation included</p>
       </div>
       <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">227 → 52 min</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">173 → 62 min</p>
         <p style="font-size:24px; line-height:1.4; color:#3B4654">90th-percentile wait</p>
       </div>
       <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">16% → 62%</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">10% → 73%</p>
         <p style="font-size:24px; line-height:1.4; color:#3B4654">treated within ±15 min of their time</p>
       </div>
       <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">No extra overtime</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">and no new start after 5 PM</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">All 7 rules held</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">new starts by 17:00, MHRC bus, home by 21:00</p>
       </div>
     </div>
   </div>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Synthetic 67-patient day; 'current practice' is a model of manual block booking</p>
+    <p style="font-size:24px; color:#5F6B7A">Synthetic 87-patient day under the department's rules; 'current practice' is a model of manual block booking</p>
     <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">9 / 14</p>
   </div>
-  <aside>Same patients, same machine time. Waits fall because patients are told to come when the machine will actually be free. The optimiser with average tables alone gets the median to 22 minutes, so the department benefits before any model is trained.</aside>
+  <aside>Same patients, same machine time. Waits fall because patients are told to come when the machine will actually be free. The optimiser with average tables alone gets the median to 35 minutes, so the department benefits before any timestamps exist. The plan holds 40 minutes for urgent starts, so the last patient finishes at 00:53 instead of 00:29. Holding nothing ends the day at 00:17 with a 43-minute median wait. The department chooses.</aside>
 </section>

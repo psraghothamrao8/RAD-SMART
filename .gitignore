@@ -13,3 +13,6 @@ docs/*.html
 Thumbs.db
 .vscode/
 .idea/
+
+# Local preview config
+.claude/

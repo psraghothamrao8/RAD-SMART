@@ -1,6 +1,6 @@
 # RAD-SMART: Health-a-thon 2026 entry
 
-**Radiotherapy AI-assisted Dynamic Scheduling, Machine Allocation and Resource Tracking.** Cancer track, use case 04: Clinic Operations & Patient Flow. Doctor partner: Dr Akshay Dinesan, Manipal.
+**Radiotherapy AI-assisted Dynamic Scheduling, Machine Allocation and Resource Tracking.** Cancer track, use case 04: Clinic Operations & Patient Flow. Team leader and doctor partner: Dr Akshay Dinesan, Manipal. Technical lead: Abhinand T M. Team: P S Raghotham Rao, Dr Shirley Lewis Salins, Dr Umesh Velu.
 
 RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy departments. It predicts each session's machine-minutes, builds and live-repairs a daily plan in which hard rules cannot be broken, stress-tests plans in a digital twin, and explains decisions and messages patients in their own language through Sarvam AI. A person approves every change.
 

@@ -16,8 +16,8 @@ This kit contains ready-to-paste answers for the five Round 1 sections, the outl
 | 2 | Confirm the team (2–5 members, one practising doctor, one technical lead) is formed on the platform | Tech lead | 21 Sep |
 | 3 | On the entry, set the use case to **Clinic Operations & Patient Flow** (it is the one field the team may adjust) | Tech lead | 21 Sep |
 | 4 | Dr Akshay reviews the answers below, and the report's Appendix B, which now records the department's answers of 21 Sep and the few items still open | Dr Akshay | 22 Sep |
-| 5 | Fill in team names and bios (section 2.3 below and report Section 9.5) | All | 22 Sep |
-| 6 | Open the published deck (section 2.5), replace [names] on slides 1 and 14, and download it as PDF | Tech team | 23 Sep |
+| 5 | Team names are in section 2.3, report Section 9.5 and deck slides 1 and 14. Add a line on each member's background if the form asks | All | 22 Sep |
+| 6 | Open the published deck (section 2.5) and download it as PDF | Tech team | 23 Sep |
 | 7 | Optional: record the 3-minute video walkthrough (section 4) | Tech team + Dr Akshay | 23 Sep |
 | 8 | Optional: paste the public results page link as the prototype link, and the code repository link if asked (section 2.6) | Tech lead | 23 Sep |
 | 9 | Optional: attach the supporting document `RAD-SMART_Research_Report.pdf` | Tech lead | 23 Sep |
@@ -81,12 +81,12 @@ An assistive scheduling layer with four parts. Machine learning predicts each se
 
 - **The problem owner is on the team.** Dr Akshay Dinesan (Manipal) wrote the problem statement from daily experience in a working radiotherapy department that runs a Versa HD and is adding a second machine in early 2027. The department has already answered our detailed questions on its rules, from the MHRC bus to accessory reservations and downtime, and they are built into the prototype. Dr Akshay has a path to a real pilot and the RTT team who will use it.
 - **We have already built it.** In the Round 1 window we built a working prototype. It generates realistic synthetic departments under the department's own rules. It predicts session durations and solves an 87-patient day to a proven optimum in about 20 seconds. It re-plans machine faults in 4–26 seconds under the department's downtime rules, and forecasts new-start capacity for two machines around a TBI course. We tested it over 300 simulated days against a model of current practice.
-- **Skills match the architecture.** [Tech lead name]: [e.g. software engineering / ML background]. [Member 2]: [optimisation / data]. [Member 3]: [full-stack / mobile / messaging]. Together we cover operations research, machine learning, Indian-language AI and product building.
+- **Doctors and engineers together.** Dr Akshay Dinesan leads the team. Abhinand T M is the technical lead, with P S Raghotham Rao on the build. Dr Shirley Lewis Salins and Dr Umesh Velu complete the team, so three of the five members are doctors. Together we cover operations research, machine learning, Indian-language AI, product building and clinical practice.
 - **We designed for the guardrails from day one.** The system is assistive, not diagnostic: human approval, audit trail, synthetic data only, no clinical inputs, and no personal identifiers sent to AI models.
 
 **Short version**
 
-Dr Akshay Dinesan owns the problem in a working radiotherapy department (a Versa HD, with a second machine arriving in early 2027), has given us the department's rules, and can take it to a real pilot. The tech team [names] covers optimisation, machine learning, Indian-language AI and full-stack development. It has already built a working prototype that plans an 87-patient day under the department's rules, re-plans machine faults in seconds, and was tested over 300 simulated days.
+Dr Akshay Dinesan owns the problem in a working radiotherapy department (a Versa HD, with a second machine arriving in early 2027), has given us the department's rules, and can take it to a real pilot. Dr Akshay leads a five-member team: Abhinand T M (technical lead), P S Raghotham Rao, Dr Shirley Lewis Salins and Dr Umesh Velu. Together they cover optimisation, machine learning, Indian-language AI, full-stack development and clinical practice. It has already built a working prototype that plans an 87-patient day under the department's rules, re-plans machine faults in seconds, and was tested over 300 simulated days.
 
 ### 2.4 Does any part of it already exist?
 
@@ -108,7 +108,7 @@ OIS calendars (MOSAIQ, ARIA) and academic schedulers exist. The academic ones mo
 
 The 14-slide deck is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
 
-1. Replace [names] on slide 1 and the team placeholders on slide 14.
+1. Check the names on slides 1 and 14.
 2. Download the deck as PDF from the page, and upload the PDF.
 
 The link is private to its owner. Share it from the page's Share menu before anyone else, such as Dr Akshay, can open it.

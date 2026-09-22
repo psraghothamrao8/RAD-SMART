@@ -4,7 +4,7 @@
 
 Health-a-thon 2026 · Cancer track · Doctor / care-team facing use case 04: Clinic Operations & Patient Flow
 
-Problem owner and doctor partner: Dr Akshay Dinesan, Manipal · Technology team: [names to be added] · Version 1.1, 21 September 2026 (updated with the department's answers)
+Team leader, problem owner and doctor partner: Dr Akshay Dinesan, Manipal · Technical lead: Abhinand T M · Team: P S Raghotham Rao, Dr Shirley Lewis Salins, Dr Umesh Velu · Version 1.1, 21 September 2026 (updated with the department's answers)
 
 > **Assistive, not diagnostic.** RAD-SMART plans *when* and *on which machine* a session takes place. It never decides whether, how or how much a patient is treated. Urgency, technique and machine eligibility are always entered by clinicians and physicists, every plan is a proposal until a person approves it, and every action is logged. All data in this report are synthetic.
 
@@ -608,10 +608,11 @@ For these reasons the pilot target (at least 40% lower median wait) is set well 
 
 | Role | Who | Time |
 |---|---|---|
-| Doctor partner and clinical owner | Dr Akshay Dinesan | about 2 h per week in the sprint; pilot sponsor |
-| Technical lead | [name] | full sprint |
-| Optimisation and ML engineer | [name] | full sprint |
-| Full-stack and messaging engineer | [name] | full sprint |
+| Team leader, doctor partner and clinical owner | Dr Akshay Dinesan | about 2 h per week in the sprint; pilot sponsor |
+| Technical lead | Abhinand T M | full sprint |
+| Team member | P S Raghotham Rao | full sprint |
+| Team member | Dr Shirley Lewis Salins | sprint and pilot |
+| Team member | Dr Umesh Velu | sprint and pilot |
 | RTT champion (pilot) | [to be nominated by the department] | about 1 h per week |
 | Plan approver | designated senior RTT or oncologist | daily during the live phase |
 | Medical physicist | [to be nominated] | machine capability matrix; rule review |

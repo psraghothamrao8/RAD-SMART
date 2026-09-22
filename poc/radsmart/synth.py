@@ -21,6 +21,7 @@ from dataclasses import dataclass, field, asdict
 import numpy as np
 
 from .config import DEPARTMENT, TECHNIQUES, SITE_EFFECT, MOBILITY_EXTRA, IMAGING_EXTRA, hm
+from .department import book_today
 
 SITES_BY_TECH = {
     "PALL": {"BONE": 0.6, "BRAIN": 0.25, "THORAX": 0.15},
@@ -85,7 +86,7 @@ class Patient:
     latest_end: int | None = None  # must finish by, minutes
     paying: bool = False
     requested: int | None = None  # paying patient's preferred time, minutes
-    usual_time: int = 0           # current-practice reporting time
+    usual_time: float = 0         # current-practice appointment time
     language: str = "Kannada"
     urgent: bool = False          # same-day palliative start
     ready_time: int | None = None  # urgent: earliest possible start
@@ -193,7 +194,9 @@ def make_patient(rng, pid: str, technique: str, machine: str, new_start: bool,
 
 
 def _baseline_block(rng, p: Patient) -> int:
-    """Reporting time a technologist would give today (current practice)."""
+    """Provisional hourly block for a patient made on their own (history,
+    forecast). A planned day's patients get the department's recorded booking
+    pattern instead (department.book_today, in make_day)."""
     blocks = [hm(b) for b in BASELINE_BLOCKS]
     w = np.array(BASELINE_BLOCK_WEIGHTS, dtype=float)
     ok = np.ones(len(blocks), dtype=bool)
@@ -252,6 +255,10 @@ def make_day(seed: int = 7, machines=("VERSA",), target_load: float = 0.90,
             p = make_patient(rng, nid(), tech, m, new_start=False)
             patients.append(p)
             load += expected_duration(p)
+    # current-practice appointment times, booked the way the department's records show
+    booked = book_today(patients, np.random.default_rng(seed + 1))
+    for p in patients:
+        p.usual_time = booked[p.pid]
     return patients
 
 

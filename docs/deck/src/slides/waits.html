@@ -1,32 +1,33 @@
 <section id="waits" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
   <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · 300 simulated days</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Waits fall by two-thirds</h2>
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · 300 simulated days against the records</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Fewer long waits, and times that hold</h2>
   </div>
   <div style="display:flex; flex-direction:row; gap:48px; align-items:center">
-    <img src="/_blob/1e5107b2dbca1be2330a5eb608ec5795" alt="Cumulative wait curves: RAD-SMART median 33 minutes versus 100 minutes for current practice" style="width:1040px; height:618px; object-fit:contain">
+    <img src="/_blob/cb8ca380ac3edf1ea4beac8222112efc" alt="Share of patients treated within a given number of minutes of arriving: RAD-SMART on the 87-patient day against the department's busiest recorded days and the twin's projection of today's booking. The recorded curve has a long tail beyond 90 minutes that RAD-SMART removes" style="width:960px; height:540px; object-fit:contain">
     <div style="flex:1; display:flex; flex-direction:column; gap:16px">
       <div style="display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">100 → 33 min</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait, arrival to treatment room, preparation included</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">130 → 76 min</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">90th-percentile wait, against the busiest recorded days</p>
       </div>
       <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">173 → 62 min</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">90th-percentile wait</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">27% → 6%</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">treated more than an hour after their time</p>
       </div>
       <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">10% → 73%</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">30% → 53%</p>
         <p style="font-size:24px; line-height:1.4; color:#3B4654">treated within ±15 min of their time</p>
       </div>
       <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">All 7 rules held</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">new starts by 17:00, MHRC bus, home by 21:00</p>
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">66 → 36 min</p>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait for evening arrivals: no build-up</p>
       </div>
     </div>
   </div>
+  <p style="font-size:26px; line-height:1.4; color:#3B4654">The typical wait stays about the same (38 → 36 min), because every patient is asked to arrive 20 minutes early to prepare, 45 for pelvic patients. What goes is the long, unpredictable wait.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Synthetic 87-patient day under the department's rules; 'current practice' is a model of manual block booking</p>
+    <p style="font-size:24px; color:#5F6B7A">Today: department records, 70–77-patient days. RAD-SMART: synthetic 87-patient day in a twin calibrated on the records</p>
     <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">9 / 14</p>
   </div>
-  <aside>Same patients, same machine time. Waits fall because patients are told to come when the machine will actually be free. The optimiser with average tables alone gets the median to 35 minutes, so the department benefits before any timestamps exist. The plan holds 40 minutes for urgent starts, so the last patient finishes at 00:53 instead of 00:29. Holding nothing ends the day at 00:17 with a 43-minute median wait. The department chooses.</aside>
+  <aside>Ten more patients than the busiest recorded day, on the same machine. The typical wait stays about where it is, because every patient is asked to report 20 minutes early to prepare. What changes is the tail and punctuality: one patient in ten waits 76 minutes or more instead of 130, and only 6% are treated more than an hour late instead of 27%. Evening patients no longer wait three times as long as morning ones; morning patients wait a little longer than today, mostly the preparation time. With average tables alone the 90th percentile is already 82 minutes, so the department benefits before any session lengths are recorded. If patients keep coming as early as they do today, the 90th percentile is 110 minutes, still below 130. The plan holds 40 minutes for urgent starts and ends at about 01:03; holding nothing ends at 00:49, with a 90th percentile of 88 minutes. The department chooses.</aside>
 </section>

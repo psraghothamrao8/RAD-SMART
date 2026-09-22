@@ -9,9 +9,12 @@ Outputs (poc/results/):
     fig*.png                  figures used in the report and deck
 
 Patients are synthetic (fake); the department's rules come from its answers to
-our questions (21 Sep 2026). Results show how the method behaves under stated
-assumptions; they are not clinical evidence. Real numbers come from the pilot's
-baseline and shadow-mode phases.
+our questions (21 Sep 2026). Today's booking pattern and patients' arrival
+habits are calibrated on the department's anonymised records (Oct-Dec 2024,
+aggregates in data/department_profile.json), and today's waits are quoted from
+those records. Results show how the method behaves under stated assumptions;
+they are not clinical evidence. Real numbers come from the pilot's baseline and
+shadow-mode phases.
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ from matplotlib.patches import Rectangle
 import numpy as np
 
 from radsmart.config import DEPARTMENT, TECHNIQUES, TBI_PLAN, ct_booking_problems, fmt, hm
+from radsmart.department import PROFILE
 from radsmart.duration_model import LookupPredictor, QuantileGBMPredictor, evaluate
 from radsmart.forecast import (capacity_profile, committed_load, daily_capacity, make_pipeline,
                                naive, occupancy_label, recommend)
@@ -45,6 +49,7 @@ FAULTS = [                 # the department's two downtime rules
     ("long", "150-minute fault at 10:00", ("VERSA", hm("10:00"), 150)),
 ]
 TBI_DAYS = [10, 11, 12]    # working days 11-13 of the forecast (known a month ahead)
+VALIDATION_DAYS = ((60, "60-69"), (74, "70+"))   # twin vs the department's records, same day size
 PIPELINE_RATE = 7.0        # new patients approved per working day (two machines)
 
 # ---------------------------------------------------------------- chart style
@@ -92,7 +97,9 @@ def main():
     d = DEPARTMENT
     assert not ct_booking_problems(), ct_booking_problems()
     res = {"assumptions": {
-        "data": "synthetic (fake) patients; department rules from its answers (21 Sep 2026)",
+        "data": "synthetic (fake) patients; department rules from its answers (21 Sep 2026); "
+                "booking pattern and arrival habits calibrated on the department's anonymised records "
+                f"({PROFILE['period'][0]} to {PROFILE['period'][1]}, {PROFILE['patient_days']:,} patient-days)",
         "operating_day": f"{fmt(d['day_start'])}-{fmt(d['regular_end'])} (overtime to {fmt(d['hard_end'])})",
         "patients": f"{N_PATIENTS} planned + 0-3 same-day urgent starts (ceiling {d['patient_ceiling']})",
         "blood_irradiation": "13:30-14:00 on Versa HD",
@@ -104,7 +111,11 @@ def main():
         "accessories": "1 breast board, 1 ABC, shared with the CT simulator (11:00-18:00), 2-min transfer",
         "urgent_same_day_starts_per_day": "Poisson(1.2) capped at 3, ready 13:00-16:30",
         "imaging_holds": "2% of sessions; half repositioned at once, half treated later the same day",
-        "no_show_rate": 0.02, "arrival_offset": "Normal(-5, 12) min around the reporting time, clipped to [-40, +25]",
+        "no_show_rate": 0.02,
+        "current_practice_booking": "individual times on a 5-min grid, spread as in the department's records",
+        "arrival_offset": "current practice: the department's recorded arrival habits for an appointment at that "
+                          "hour; RAD-SMART: its recorded morning habits (appointments 08:00-09:59), counted from "
+                          "the reporting time",
         "message_compliance": 0.85, "replications": N_REP,
     }}
 
@@ -152,13 +163,22 @@ def main():
     est_avg, est_ml = planning_minutes(day, lookup), planning_minutes(day, ml)
     policies = {
         "Current practice": dict(appt={p.pid: (p.machine, p.usual_time) for p in day},
-                                 rule="fcfs", estimate=est_avg, lead=False),
+                                 rule="fcfs", estimate=est_avg, lead=False, arrivals="today"),
         "RAD-SMART (averages)": dict(appt=appt_of(s_avg, day), rule="appointment", estimate=est_avg),
         "RAD-SMART (ML)": dict(appt=appt_of(s_ml, day), rule="appointment", estimate=est_ml),
     }
-    results, curves, waits = monte_carlo(day, policies, n_rep=N_REP)
+    results, curves, waits, by_hour = monte_carlo(day, policies, n_rep=N_REP)
     res["day_results"] = rounded(summarise(results))
     fig_waits(waits, res["day_results"])
+
+    # 2a. the department's records, and how well the twin reproduces them -----
+    res["department_data"] = {k: v for k, v in PROFILE.items() if k != "twin"}
+    sens = {"RAD-SMART (ML), today's arrival habits": dict(policies["RAD-SMART (ML)"], arrivals="today")}
+    res["arrival_sensitivity"] = rounded(summarise(monte_carlo(day, sens, n_rep=N_REP)[0]))
+    res["validation"] = validate(lookup, ml)
+    web["wait_by_hour"] = {k: {str(h): round(float(np.median(v)), 1) for h, v in sorted(by_hour[k].items())
+                               if len(v) >= N_REP // 3} for k in by_hour}
+    fig_department(res["department_data"], web["wait_by_hour"], res["day_results"])
     fig_waiting_room(curves, {"Current practice": BASE, "RAD-SMART (averages)": RS_AVG,
                               "RAD-SMART (ML)": RS_ML},
                      "fig2_waiting_room.png", "Patients waiting in the department",
@@ -198,7 +218,7 @@ def main():
                                                           new_appt=rp["new_appt"], notified=rp["notified"],
                                                           deferred=frozenset(rp["deferred"])),
         }
-        dres, dcurves, _ = monte_carlo(day, dpol, n_rep=N_REP, seed=99)
+        dres, dcurves, _, _ = monte_carlo(day, dpol, n_rep=N_REP, seed=99)
         res["disruption_results"][key] = rounded(summarise(dres))
         fault_curves[key] = dcurves
         web["scenarios"][key] = {"label": label, "start": fault[1], "minutes": fault[2],
@@ -280,6 +300,34 @@ def appt_of(schedule, day):
     return out
 
 
+def validate(lookup, ml):
+    """Replay days the size of the department's recorded ones and compare the
+    twin's current practice (and RAD-SMART) with the records."""
+    buckets = {b["patients_per_day"]: b for b in PROFILE["by_volume"]}
+    keys = ("wait_median", "wait_p90", "within_15_pct", "late_15_pct", "late_60_pct")
+    out = []
+    for n, bucket in VALIDATION_DAYS:
+        day = make_day(seed=7, n_patients=n)
+        s = DayScheduler().solve(day, ml)
+        pols = {"Current practice (twin)": dict(appt={p.pid: (p.machine, p.usual_time) for p in day},
+                                                rule="fcfs", estimate=planning_minutes(day, lookup),
+                                                lead=False, arrivals="today"),
+                "RAD-SMART (ML)": dict(appt=appt_of(s, day), rule="appointment",
+                                       estimate=planning_minutes(day, ml))}
+        S = summarise(monte_carlo(day, pols, n_rep=N_REP)[0])
+        m = buckets[bucket]
+        row = {"patients": n, "recorded_days": bucket, "n_recorded_days": m["days"],
+               "Recorded": {"wait_median": m["wait"]["median"], "wait_p90": m["wait"]["p90"],
+                            "within_15_pct": m["punctuality"]["within_15_pct"],
+                            "late_15_pct": m["punctuality"]["late_over_15_pct"],
+                            "late_60_pct": m["punctuality"]["late_over_60_pct"]}}
+        for name in pols:
+            row[name] = {k: round(S[name][k], 1) for k in keys}
+            row[name]["last_end"] = fmt(S[name]["last_end"])
+        out.append(row)
+    return out
+
+
 def buffer_tradeoff(day, predictor, estimate, baseline):
     """Re-plan the same day with 40, 20 and 0 minutes held for urgent starts and
     simulate each: a department choice between shorter waits and an earlier finish."""
@@ -300,6 +348,7 @@ def buffer_tradeoff(day, predictor, estimate, baseline):
         r = S[label]
         out.append({"policy": label, "wait_median": round(r["wait_median"], 1),
                     "wait_p90": round(r["wait_p90"], 1), "within_15_pct": round(r["within_15_pct"], 1),
+                    "late_60_pct": round(r["late_60_pct"], 1),
                     "last_end": fmt(r["last_end"]), "overtime_min": round(r["overtime_min"], 1),
                     "urgent_same_day_pct": round(r["urgent_same_day_pct"], 1)})
     return out
@@ -329,10 +378,10 @@ def reoptimise(sch, day, s_plan, predictor, fault):
     """Re-plan the rest of the day when the machine fails at fault[1] for fault[2] min.
 
     Department rules: up to 60 min, nobody is sent home, every ongoing patient is
-    treated today and only new starts that can no longer finish by 17:00 are
-    proposed for deferral. Over 120 min, new starts move to the next working day
-    (urgent palliative starts excepted) and, if the day cannot hold everyone,
-    some ongoing patients are proposed for deferral. The oncologist or senior RTT
+    treated today and a few new starts may be proposed for deferral. Over 120
+    min, new starts move to the next working day (urgent palliative starts
+    excepted) and, if the day cannot hold everyone, some ongoing patients are
+    proposed for deferral. The oncologist or senior RTT
     approves every deferral.
     """
     d = DEPARTMENT
@@ -364,7 +413,7 @@ def reoptimise(sch, day, s_plan, predictor, fault):
     rule = ("over 120 min: new starts to the next day (urgent palliative excepted); "
             "ongoing patients deferred only if the day cannot hold them" if long else
             "up to 60 min: nobody sent home; all ongoing patients treated today; "
-            "new starts deferred only if they can no longer finish by 17:00")
+            "a few new starts may be deferred, for approval")
     return dict(new_appt=new_appt, notified=notified, deferred=deferred, postponed=postponed,
                 moved=moved, schedule=s, patients={p.pid for p in todo}, rule=rule)
 
@@ -436,22 +485,74 @@ def fig_duration(ev):
 
 
 def fig_waits(waits, summary):
-    fig, ax = plt.subplots(figsize=(6.4, 3.2))
-    colors = {"Current practice": BASE, "RAD-SMART (averages)": RS_AVG, "RAD-SMART (ML)": RS_ML}
+    fig, ax = plt.subplots(figsize=(6.4, 3.3))
+    rec = np.array(PROFILE["wait_percentiles_busy_days"])
+    lo, hi = PROFILE["by_volume"][-1]["patients_per_day"].rstrip("+"), PROFILE["volume"]["weekday_max"]
+    ax.plot(rec, np.arange(101), color=INK2, lw=2,
+            label=f"Today, recorded ({lo}-{hi}-patient days): median {PROFILE['wait_busy_days']['median']:.0f} min")
+    colors = {"RAD-SMART (averages)": RS_AVG, "RAD-SMART (ML)": RS_ML}
     for name, color in colors.items():
         e = np.sort(waits[name])
         y = np.arange(1, len(e) + 1) / len(e) * 100
         med = summary[name]["wait_median"]          # the typical day's median (KPI tables)
-        ax.plot(e, y, color=color, label=f"{name}: median {med:.0f} min")
+        ax.plot(e, y, color=color, label=f"{name}, {N_PATIENTS} patients: median {med:.0f} min")
         ax.plot([med], [100 * np.searchsorted(e, med) / len(e)], "o", ms=6, color=color, mec=SURFACE, mew=2)
+    e = np.sort(waits["Current practice"])
+    ax.plot(e, np.arange(1, len(e) + 1) / len(e) * 100, color=BASE, lw=1.2, ls=(0, (4, 3)),
+            label=f"Today's booking at {N_PATIENTS} patients (twin projection): median "
+                  f"{summary['Current practice']['wait_median']:.0f} min")
     ax.set_xlim(0, 300); ax.set_ylim(0, 100)
     ax.set_xticks(range(0, 301, 30))
-    ax.set_xlabel("Minutes from arrival to entering the treatment room (includes the 20/45-min preparation)")
+    ax.set_xlabel("Minutes from arrival to entering the treatment room")
     ax.set_ylabel("% of patients treated within")
-    ax.legend(loc="lower right")
+    ax.legend(loc="lower right", fontsize=7.5)
     title(ax, "How long patients wait",
-          f"Synthetic {N_PATIENTS}-patient day on one machine, {N_REP} simulated days; dots mark the typical day's median")
+          f"Recorded: the department's busiest days, Oct-Dec 2024. Simulated: {N_REP} days")
     save(fig, "fig1_wait_distribution.png")
+
+
+def fig_department(dd, sim_by_hour, summary):
+    """What the department's records show: waits build up over the day and
+    appointment times stop being kept."""
+    ticks = [8, 11, 14, 17, 20, 23]
+    fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.9))
+    ax = axes[0]
+    rows = [r for r in dd["by_arrival_hour"] if r["n"] >= 40]
+    h = np.array([r["hour"] for r in rows]) + 0.5
+    ax.plot(h, [r["wait_median"] for r in rows], color=INK2, marker="o", ms=4, mec=SURFACE,
+            label="Today, recorded: median")
+    ax.plot(h, [r["wait_p90"] for r in rows], color=BASE, lw=1.2, ls=(0, (4, 3)),
+            label="Today, recorded: 1 in 10 wait longer")
+    sim = sim_by_hour["RAD-SMART (ML)"]
+    hs = np.array(sorted(int(k) for k in sim if 8 <= int(k) <= 22))
+    ax.plot(hs + 0.5, [sim[str(k)] for k in hs], color=RS_ML, marker="o", ms=4, mec=SURFACE,
+            label="RAD-SMART, simulated: median")
+    ax.set_xticks(ticks); ax.set_xticklabels([f"{t:02d}:00" for t in ticks])
+    ax.set_xlim(8, 23); ax.set_ylim(0, 200); ax.set_yticks(range(0, 201, 50))
+    ax.set_xlabel("Arrival time"); ax.set_ylabel("Minutes from arrival to treatment")
+    ax.legend(loc="upper left", fontsize=7)
+    ax.set_title("Waits build up over the day", loc="left", fontsize=9, color=INK2)
+    ax = axes[1]
+    rows = [r for r in dd["by_appointment_hour"] if r["n"] >= 40]
+    x = np.array([r["hour"] for r in rows])
+    ax.bar(x + 0.5, [r["within_15_pct"] for r in rows], width=0.8, color=BASE)
+    rs = summary["RAD-SMART (ML)"]["within_15_pct"]
+    ax.axhline(rs, color=RS_ML, lw=2)
+    ax.text(22.9, rs + 2, f"RAD-SMART, simulated: {rs:.0f}% all day", ha="right", va="bottom", fontsize=7.5,
+            color=INK2)
+    ax.text(x[0] + 0.1, rows[0]["within_15_pct"] + 2, "Today, recorded", ha="left", va="bottom", fontsize=7.5,
+            color=INK2)
+    ax.set_xticks(ticks); ax.set_xticklabels([f"{t:02d}:00" for t in ticks])
+    ax.set_xlim(8, 23); ax.set_ylim(0, 100)
+    ax.set_xlabel("Appointment time"); ax.set_ylabel("% treated within 15 min of it")
+    ax.set_title("Appointment times stop being kept", loc="left", fontsize=9, color=INK2)
+    fig.suptitle(f"The department's records: {dd['patient_days']:,} patient-days, Oct-Dec 2024",
+                 x=0.02, ha="left", fontsize=10.5, fontweight="bold")
+    fig.tight_layout()
+    save(fig, "fig0_department_records.png")
+
+
+SHOWN = {"Current practice": "Today's booking (twin projection)"}   # figure labels
 
 
 def fig_waiting_room(curves, colors, name, head, sub, fault=None):
@@ -459,7 +560,7 @@ def fig_waiting_room(curves, colors, name, head, sub, fault=None):
     fig, ax = plt.subplots(figsize=(6.4, 3.0))
     for pol, color in colors.items():
         grid, c = curves[pol]
-        ax.plot(grid, c, color=color, label=pol)
+        ax.plot(grid, c, color=color, label=SHOWN.get(pol, pol))
     if fault:
         ax.axvspan(fault[1], fault[1] + fault[2], color=GRID, lw=0)
         ax.text(fault[1] + fault[2] + 8, ax.get_ylim()[1] * 0.95, "machine\nfault", fontsize=8, color=INK2,
@@ -532,7 +633,7 @@ def fig_disruption(summary):
         for yy, v in zip(y, vals):
             ax.text(v + max(vals) * 0.02, yy, f"{v:.0f}", va="center", fontsize=8.5, color=INK)
         ax.set_xlim(0, max(vals) * 1.2)
-        ax.set_yticks(y); ax.set_yticklabels(names)
+        ax.set_yticks(y); ax.set_yticklabels([SHOWN.get(n, n) for n in names])
         ax.tick_params(axis="y", length=0, labelcolor=INK2)
         ax.grid(axis="y", visible=False)
         ax.set_title(label[0].upper() + label[1:], loc="left", fontsize=9, color=INK2)
@@ -572,6 +673,7 @@ def fig_forecast(days, committed, rec_load, n_load, flat, cap, M):
 def print_summary(res):
     lines = [json.dumps({k: res[k] for k in ("day", "solver", "plan", "plan_check", "duration_model")}, indent=1)]
     keys = ["wait_median", "wait_p90", "excess_wait_median", "delay_median", "within_15_pct", "within_30_pct",
+            "late_15_pct", "late_60_pct",
             "time_in_dept_mean", "overtime_min", "last_end", "new_starts_after_5pm", "complex_deferred",
             "mhrc_missed_bus", "transport_after_9pm", "others_after_9pm", "paying_within_15_pct",
             "accessory_delays", "blood_slot_delay_min", "urgent_same_day_pct", "imaging_holds",
@@ -586,6 +688,8 @@ def print_summary(res):
         lines.append("%-24s" % "metric" + "".join("%40s" % k for k in S))
         for k in keys:
             lines.append("%-24s" % k + "".join("%40.1f" % S[n].get(k, float("nan")) for n in S))
+    lines.append("\narrival sensitivity " + json.dumps(res["arrival_sensitivity"]))
+    lines.append("\nvalidation " + json.dumps(res["validation"], indent=1))
     lines.append("\ndisruption " + json.dumps(res["disruption"], indent=1))
     f = res["forecast"]
     lines.append(f"\nforecast peaks  RAD-SMART {f['rad_smart_peak_pct']}  head-count {f['headcount_peak_pct']}"

@@ -30,35 +30,35 @@
  },
  "solver": {
   "averages": {
-   "seconds": 44.3,
-   "status": "time limit (best found)",
-   "proven_gap_pct": 2.49,
+   "seconds": 34.7,
+   "status": "optimal",
+   "proven_gap_pct": 0.13,
    "unscheduled": [],
-   "variables": 5056,
+   "variables": 4626,
    "constraints": 1662
   },
   "ml": {
-   "seconds": 20.0,
+   "seconds": 10.2,
    "status": "optimal",
-   "proven_gap_pct": 0.05,
+   "proven_gap_pct": 0.03,
    "unscheduled": [],
-   "variables": 4614,
+   "variables": 4772,
    "constraints": 1662
   }
  },
  "plan": {
-  "planned_last_end": "00:45",
+  "planned_last_end": "00:39",
   "paying_with_preference": 17,
-  "paying_within_15_min": 11,
-  "sessions_after_21": 25,
+  "paying_within_15_min": 13,
+  "sessions_after_21": 24,
   "sessions_after_21_flexible": 24,
-  "older_before_13": 3,
+  "older_before_13": 5,
   "older": 9,
   "complex_in_protected_block": 2,
   "mhrc_slots": [
-   "16:16",
-   "16:32",
-   "16:24"
+   "16:14",
+   "16:30",
+   "16:22"
   ]
  },
  "plan_check": {
@@ -92,110 +92,181 @@
 }
 
 buffer trade-off
-  {"policy": "Current practice", "wait_median": 100.0, "wait_p90": 172.9, "within_15_pct": 9.6, "last_end": "00:29", "overtime_min": 3.4, "urgent_same_day_pct": 100.0}
-  {"policy": "40 min held (two 20-min holds)", "wait_median": 32.8, "wait_p90": 61.6, "within_15_pct": 72.6, "last_end": "00:53", "overtime_min": 3.9, "urgent_same_day_pct": 100.0}
-  {"policy": "20 min held (one hold at 14:40)", "wait_median": 38.6, "wait_p90": 68.2, "within_15_pct": 65.7, "last_end": "00:40", "overtime_min": 2.6, "urgent_same_day_pct": 100.0}
-  {"policy": "Nothing held", "wait_median": 42.7, "wait_p90": 73.4, "within_15_pct": 61.4, "last_end": "00:17", "overtime_min": 0.7, "urgent_same_day_pct": 100.0}
+  {"policy": "Current practice", "wait_median": 133.2, "wait_p90": 210.2, "within_15_pct": 10.0, "late_60_pct": 66.3, "last_end": "23:36", "overtime_min": 0.1, "urgent_same_day_pct": 100.0}
+  {"policy": "40 min held (two 20-min holds)", "wait_median": 36.3, "wait_p90": 75.5, "within_15_pct": 52.9, "late_60_pct": 5.8, "last_end": "01:03", "overtime_min": 11.7, "urgent_same_day_pct": 100.0}
+  {"policy": "20 min held (one hold at 14:40)", "wait_median": 41.2, "wait_p90": 81.2, "within_15_pct": 51.5, "late_60_pct": 7.3, "last_end": "00:50", "overtime_min": 6.9, "urgent_same_day_pct": 100.0}
+  {"policy": "Nothing held", "wait_median": 44.7, "wait_p90": 87.5, "within_15_pct": 45.6, "late_60_pct": 9.3, "last_end": "00:49", "overtime_min": 7.4, "urgent_same_day_pct": 99.7}
 
 day_results
 metric                                          Current practice                    RAD-SMART (averages)                          RAD-SMART (ML)
-wait_median                                                100.0                                    35.1                                    32.8
-wait_p90                                                   172.9                                    64.7                                    61.6
-excess_wait_median                                          83.7                                    19.2                                    16.6
-delay_median                                                93.8                                     5.4                                     3.5
-within_15_pct                                                9.6                                    70.4                                    72.6
-within_30_pct                                               17.7                                    89.3                                    90.6
-time_in_dept_mean                                          110.3                                    49.1                                    47.3
-overtime_min                                                 3.4                                     3.0                                     3.9
-last_end                                                  1468.8                                  1486.5                                  1493.0
-new_starts_after_5pm                                         1.2                                     0.4                                     0.2
-complex_deferred                                             0.0                                     0.1                                     0.0
-mhrc_missed_bus                                              0.1                                     0.2                                     0.1
-transport_after_9pm                                          0.6                                     0.1                                     0.1
-others_after_9pm                                             2.0                                     0.8                                     1.0
-paying_within_15_pct                                        15.8                                    49.3                                    52.5
-accessory_delays                                             3.1                                     0.9                                     1.3
-blood_slot_delay_min                                         1.2                                     0.4                                     0.9
-urgent_same_day_pct                                        100.0                                   100.0                                   100.0
-imaging_holds                                                1.8                                     1.8                                     1.8
+wait_median                                                133.2                                    37.9                                    36.3
+wait_p90                                                   210.2                                    82.2                                    75.5
+excess_wait_median                                         117.5                                    21.6                                    19.3
+delay_median                                               102.1                                     7.3                                     5.5
+within_15_pct                                               10.0                                    48.9                                    52.9
+within_30_pct                                               18.6                                    72.6                                    76.4
+late_15_pct                                                 85.6                                    33.3                                    27.1
+late_60_pct                                                 66.3                                     6.8                                     5.8
+time_in_dept_mean                                          140.4                                    54.8                                    52.3
+overtime_min                                                 0.1                                    10.8                                    11.7
+last_end                                                  1415.9                                  1500.8                                  1503.5
+new_starts_after_5pm                                         1.0                                     0.5                                     0.3
+complex_deferred                                             0.8                                     0.3                                     0.0
+mhrc_missed_bus                                              0.2                                     0.2                                     0.2
+transport_after_9pm                                          1.3                                     0.4                                     0.6
+others_after_9pm                                             1.7                                     1.1                                     1.1
+paying_within_15_pct                                        11.0                                    44.4                                    47.5
+accessory_delays                                             2.2                                     0.5                                     0.3
+blood_slot_delay_min                                         0.5                                     0.9                                     0.4
+urgent_same_day_pct                                        100.0                                    99.8                                   100.0
+imaging_holds                                                1.6                                     1.6                                     1.6
 held_treated_same_day                                        0.8                                     0.8                                     0.8
-called_in_early                                              0.8                                     2.5                                     2.8
+called_in_early                                              0.1                                     2.9                                     3.5
 deferred                                                     0.0                                     0.0                                     0.0
 
 disruption_results[short]
 metric                                          Current practice          RAD-SMART plan, no re-planning   RAD-SMART live re-planning + messages
-wait_median                                                144.0                                    47.4                                    40.3
-wait_p90                                                   219.4                                    87.6                                    79.3
-excess_wait_median                                         128.2                                    31.8                                    24.1
-delay_median                                               137.7                                    16.1                                     8.9
-within_15_pct                                                8.6                                    51.4                                    61.1
-within_30_pct                                               15.5                                    70.9                                    80.4
-time_in_dept_mean                                          147.1                                    62.9                                    57.3
-overtime_min                                                20.1                                    13.6                                    23.1
-last_end                                                  1511.2                                  1508.6                                  1522.5
-new_starts_after_5pm                                         1.9                                     1.1                                     0.4
-complex_deferred                                             0.1                                     0.1                                     0.0
-mhrc_missed_bus                                              0.2                                     0.2                                     0.2
-transport_after_9pm                                          2.0                                     0.4                                     0.1
-others_after_9pm                                             3.2                                     1.7                                     3.6
-paying_within_15_pct                                        13.7                                    43.2                                    43.3
-accessory_delays                                             2.0                                     2.2                                     0.1
-blood_slot_delay_min                                         1.0                                     0.6                                     0.4
-urgent_same_day_pct                                        100.0                                   100.0                                   100.0
-imaging_holds                                                1.6                                     1.6                                     1.6
-held_treated_same_day                                        0.7                                     0.8                                     0.8
-called_in_early                                              0.8                                     0.6                                     1.6
-deferred                                                     0.0                                     0.0                                     0.0
+wait_median                                                177.3                                    52.6                                    39.0
+wait_p90                                                   256.8                                   102.2                                    82.4
+excess_wait_median                                         161.2                                    36.7                                    21.8
+delay_median                                               146.7                                    20.9                                     6.9
+within_15_pct                                                8.4                                    39.9                                    49.9
+within_30_pct                                               15.6                                    59.6                                    72.4
+late_15_pct                                                 88.4                                    50.3                                    32.5
+late_60_pct                                                 74.1                                    15.7                                     8.2
+time_in_dept_mean                                          176.2                                    68.6                                    55.8
+overtime_min                                                 2.7                                    22.4                                    12.1
+last_end                                                  1456.6                                  1517.6                                  1503.8
+new_starts_after_5pm                                         1.5                                     1.2                                     0.3
+complex_deferred                                             1.0                                     0.1                                     0.0
+mhrc_missed_bus                                              0.2                                     0.3                                     0.2
+transport_after_9pm                                          2.6                                     0.9                                     0.5
+others_after_9pm                                             2.4                                     1.7                                     1.2
+paying_within_15_pct                                        10.5                                    41.1                                    46.2
+accessory_delays                                             1.5                                     0.8                                     0.3
+blood_slot_delay_min                                         0.5                                     0.5                                     0.4
+urgent_same_day_pct                                         99.8                                    99.8                                    99.8
+imaging_holds                                                1.7                                     1.7                                     1.7
+held_treated_same_day                                        0.8                                     0.8                                     0.8
+called_in_early                                              0.1                                     1.3                                     3.1
+deferred                                                     0.0                                     0.0                                     1.0
 
 disruption_results[long]
 metric                                          Current practice          RAD-SMART plan, no re-planning   RAD-SMART live re-planning + messages
-wait_median                                                215.7                                   108.5                                    35.0
-wait_p90                                                   305.1                                   211.2                                    75.3
-excess_wait_median                                         198.3                                    92.7                                    18.8
-delay_median                                               210.9                                    75.2                                     4.3
-within_15_pct                                                7.8                                    16.5                                    68.8
-within_30_pct                                               13.5                                    20.2                                    86.5
-time_in_dept_mean                                          216.3                                   128.7                                    55.8
-overtime_min                                                72.6                                    64.6                                     4.6
-last_end                                                  1572.5                                  1564.5                                  1494.9
-new_starts_after_5pm                                         2.6                                     2.8                                     0.0
-complex_deferred                                             1.3                                     1.2                                     0.1
-mhrc_missed_bus                                              0.4                                     0.5                                     0.2
-transport_after_9pm                                          5.0                                     3.0                                     0.0
-others_after_9pm                                             4.5                                     5.0                                     1.0
-paying_within_15_pct                                        12.8                                    24.2                                    49.5
-accessory_delays                                             1.4                                     1.1                                     0.4
-blood_slot_delay_min                                         0.7                                     0.6                                     0.4
-urgent_same_day_pct                                        100.0                                   100.0                                   100.0
-imaging_holds                                                1.6                                     1.6                                     1.6
-held_treated_same_day                                        0.7                                     0.7                                     0.7
-called_in_early                                              0.8                                     0.1                                     1.8
+wait_median                                                280.2                                   104.4                                    36.1
+wait_p90                                                   357.7                                   210.1                                   101.8
+excess_wait_median                                         264.9                                    88.6                                    18.8
+delay_median                                               249.5                                    67.7                                     3.7
+within_15_pct                                                6.8                                    15.1                                    50.8
+within_30_pct                                               12.2                                    21.6                                    71.4
+late_15_pct                                                 90.9                                    82.6                                    29.3
+late_60_pct                                                 82.8                                    58.7                                    12.3
+time_in_dept_mean                                          265.4                                   125.4                                    63.2
+overtime_min                                                47.0                                    55.8                                    14.1
+last_end                                                  1545.7                                  1555.6                                  1509.5
+new_starts_after_5pm                                         3.1                                     3.0                                     0.0
+complex_deferred                                             1.5                                     1.2                                     0.1
+mhrc_missed_bus                                              0.2                                     0.2                                     0.2
+transport_after_9pm                                          5.1                                     2.5                                     0.4
+others_after_9pm                                             3.8                                     3.5                                     1.6
+paying_within_15_pct                                         9.6                                    24.0                                    43.7
+accessory_delays                                             1.8                                     0.7                                     0.3
+blood_slot_delay_min                                         0.7                                     0.4                                     0.4
+urgent_same_day_pct                                         99.8                                    99.8                                    99.8
+imaging_holds                                                1.7                                     1.7                                     1.6
+held_treated_same_day                                        0.8                                     0.8                                     0.7
+called_in_early                                              0.1                                     0.3                                     3.2
 deferred                                                     0.0                                     0.0                                     5.0
+
+arrival sensitivity {"RAD-SMART (ML), today's arrival habits": {"patients": 86.3, "wait_median": 43.8, "wait_median_ci": [30.0, 78.7], "wait_p90": 109.8, "wait_p90_ci": [65.2, 174.7], "wait_mean": 55.1, "excess_wait_median": 26.7, "excess_wait_p90": 92.3, "delay_median": 4.7, "within_15_pct": 49.2, "late_15_pct": 21.6, "late_60_pct": 5.0, "within_30_pct": 71.8, "overtime_min": 4.1, "last_end": 1479.9, "new_starts_after_5pm": 0.4, "complex_deferred": 0.0, "mhrc_missed_bus": 0.2, "transport_after_9pm": 0.3, "others_after_9pm": 0.6, "paying_within_15_pct": 44.5, "accessory_delays": 0.2, "blood_slot_delay_min": 0.5, "urgent_same_day_pct": 100.0, "imaging_holds": 1.6, "held_treated_same_day": 0.8, "deferred": 0.0, "time_in_dept_mean": 66.1, "called_in_early": 1.9}}
+
+validation [
+ {
+  "patients": 60,
+  "recorded_days": "60-69",
+  "n_recorded_days": 18,
+  "Recorded": {
+   "wait_median": 35.0,
+   "wait_p90": 110.0,
+   "within_15_pct": 27.9,
+   "late_15_pct": 49.1,
+   "late_60_pct": 20.8
+  },
+  "Current practice (twin)": {
+   "wait_median": 37.5,
+   "wait_p90": 92.7,
+   "within_15_pct": 24.1,
+   "late_15_pct": 51.7,
+   "late_60_pct": 19.0,
+   "last_end": "21:47"
+  },
+  "RAD-SMART (ML)": {
+   "wait_median": 33.9,
+   "wait_p90": 75.8,
+   "within_15_pct": 51.9,
+   "late_15_pct": 27.2,
+   "late_60_pct": 7.9,
+   "last_end": "21:40"
+  }
+ },
+ {
+  "patients": 74,
+  "recorded_days": "70+",
+  "n_recorded_days": 10,
+  "Recorded": {
+   "wait_median": 37.5,
+   "wait_p90": 130.0,
+   "within_15_pct": 30.1,
+   "late_15_pct": 53.1,
+   "late_60_pct": 27.4
+  },
+  "Current practice (twin)": {
+   "wait_median": 63.2,
+   "wait_p90": 144.2,
+   "within_15_pct": 18.5,
+   "late_15_pct": 68.2,
+   "late_60_pct": 38.6,
+   "last_end": "22:25"
+  },
+  "RAD-SMART (ML)": {
+   "wait_median": 34.5,
+   "wait_p90": 70.4,
+   "within_15_pct": 53.6,
+   "late_15_pct": 25.4,
+   "late_60_pct": 5.5,
+   "last_end": "23:25"
+  }
+ }
+]
 
 disruption {
  "short": {
   "label": "45-minute fault at 11:00",
-  "rule": "up to 60 min: nobody sent home; all ongoing patients treated today; new starts deferred only if they can no longer finish by 17:00",
-  "reoptimisation_seconds": 26.3,
-  "patients_replanned": 70,
-  "patients_moved": 46,
-  "patients_messaged": 41,
+  "rule": "up to 60 min: nobody sent home; all ongoing patients treated today; a few new starts may be deferred, for approval",
+  "reoptimisation_seconds": 1.5,
+  "patients_replanned": 68,
+  "patients_moved": 12,
+  "patients_messaged": 7,
   "new_starts_moved_to_next_day": [],
-  "deferral_proposals": [],
+  "deferral_proposals": [
+   "P007"
+  ],
   "plan_check": {
    "rules_checked": 7,
    "violations": [],
-   "sessions_checked": 70,
-   "unplanned": []
+   "sessions_checked": 68,
+   "unplanned": [
+    "P007"
+   ]
   }
  },
  "long": {
   "label": "150-minute fault at 10:00",
   "rule": "over 120 min: new starts to the next day (urgent palliative excepted); ongoing patients deferred only if the day cannot hold them",
-  "reoptimisation_seconds": 3.7,
-  "patients_replanned": 70,
-  "patients_moved": 15,
-  "patients_messaged": 17,
+  "reoptimisation_seconds": 10.8,
+  "patients_replanned": 71,
+  "patients_moved": 49,
+  "patients_messaged": 49,
   "new_starts_moved_to_next_day": [
    "P003",
    "P004",
@@ -207,11 +278,11 @@ disruption {
   "plan_check": {
    "rules_checked": 7,
    "violations": [],
-   "sessions_checked": 70,
+   "sessions_checked": 71,
    "unplanned": []
   }
  }
 }
 
 forecast peaks  RAD-SMART {'VERSA': 98, 'HALCYON': 99}  head-count {'VERSA': 154, 'HALCYON': 95}  TBI days 98 vs 111  days over capacity (head-count) {'VERSA': 10, 'HALCYON': 0}  mean days to start 0.0 vs 1.7
-runtime 241.9 s
+runtime 179.3 s

@@ -16,3 +16,6 @@ Thumbs.db
 
 # Local preview config
 .claude/
+
+# department data: never published
+*.xlsx

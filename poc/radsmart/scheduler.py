@@ -383,7 +383,7 @@ class DayScheduler:
         nx, n_pat = len(var_p), len(patients)
         n = nx + n_pat
         c = costs + [ctx["defer_cost"].get(p.pid, d["weights"]["unscheduled"]
-                                           * (5 if (p.complex or p.new_start) else 1))
+                                           * (5 if (p.complex or p.new_start or p.mhrc) else 1))
                      for p in patients]
         rows, cols, vals, lb, ub = [], [], [], [], []
         for j, pi in enumerate(var_p):

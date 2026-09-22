@@ -148,8 +148,10 @@ DEPARTMENT = {
     ],
     # Machine downtime rules (department answers):
     #   up to 60 min:  nobody is sent home; ongoing patients are all treated
-    #                  today; new starts that can no longer finish by 17:00 are
-    #                  proposed for deferral; the rest of the day is re-planned.
+    #                  today; a few new starts may be proposed for deferral (when
+    #                  they can no longer finish by 17:00, or fitting them in would
+    #                  keep patients already waiting much longer); the rest of the
+    #                  day is re-planned.
     #   over 120 min:  new starts move to the next day except urgent palliative
     #                  starts; some ongoing patients may be deferred.
     #   Either way the oncologist or senior RTT approves every deferral.

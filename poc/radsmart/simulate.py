@@ -10,7 +10,12 @@ differences come from the policy, not from luck.
 Patients are told a reporting time: 20 minutes before their machine slot, or 45
 minutes for pelvic patients, who drink 500 mL of water on arrival and cannot be
 treated for 30 minutes. Everyone else needs about 10 minutes to check in and
-change. In current practice the hourly block IS the reporting time.
+change. In current practice the appointment time IS the reporting time.
+
+Arrivals are calibrated on the department's records (see department.py): in
+current practice patients arrive as they do today for an appointment at that
+hour (earlier and earlier as the day runs late); with RAD-SMART they arrive as
+today's morning patients do, around the reporting time they were given.
 
 Dispatch rules model what staff do on the floor:
   * "fcfs":        current practice - treat whoever is ready first
@@ -35,6 +40,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .config import DEPARTMENT
+from .department import arrival_offset
 from .synth import sample_duration, make_urgent
 
 IMAGING_HOLD_P = 0.02          # per session (assumption: "occasionally")
@@ -47,7 +53,7 @@ IMAGING_AT = 0.6               # share of the session done when imaging is revie
 class DayDraw:
     """One random realisation of the day, shared by all policies."""
     dur: dict          # pid -> actual minutes
-    offset: dict       # pid -> arrival minus reporting time (minutes)
+    u_arrive: dict     # pid -> uniform draw that sets how early or late the patient comes
     noshow: set
     comply: dict       # pid -> reads the rescheduling message?
     urgent: list       # urgent Patient objects appearing today
@@ -58,25 +64,26 @@ def draw_day(patients, rng, urgent_lambda=1.2, noshow_p=0.02, comply_p=0.85) -> 
     urgent = make_urgent(rng, 1, lam=urgent_lambda)
     everyone = list(patients) + urgent
     dur = {p.pid: sample_duration(p, rng) for p in everyone}
-    # Most patients come a little before their reporting time; some are late.
-    offset = {p.pid: float(np.clip(rng.normal(-5, 12), -40, 25)) for p in everyone}
-    for p in urgent:
-        offset[p.pid] = 0.0
+    # how early or late each patient comes (same draw under every policy)
+    u_arrive = {p.pid: float(rng.random()) for p in everyone}
     noshow = {p.pid for p in patients if rng.random() < noshow_p}
     comply = {p.pid: rng.random() < comply_p for p in patients}
     hold = {}
     for p in everyone:
         if rng.random() < IMAGING_HOLD_P:
             hold[p.pid] = "reposition" if rng.random() < 0.5 else "later"
-    return DayDraw(dur, offset, noshow, comply, urgent, hold)
+    return DayDraw(dur, u_arrive, noshow, comply, urgent, hold)
 
 
 def simulate(patients, appt, rule, estimate, draw: DayDraw, dept=None, fault=None,
-             new_appt=None, notified=frozenset(), lead=True, deferred=frozenset()):
+             new_appt=None, notified=frozenset(), lead=True, deferred=frozenset(),
+             arrivals="reliable"):
     """Play one day.
 
     appt:      pid -> (machine, minute)   what the patient was told: the machine
-               slot (lead=True, RAD-SMART) or the reporting block (lead=False)
+               slot (lead=True, RAD-SMART) or the appointment (lead=False)
+    arrivals:  "today" (today's habits for that hour) or "reliable" (today's
+               morning habits, when times are kept); see department.py
     estimate:  pid -> minutes the staff expect (used to judge "fits before block")
     fault:     (machine, start, minutes) unplanned downtime
     new_appt:  pid -> minute   revised slots after re-optimisation (optional)
@@ -102,9 +109,10 @@ def simulate(patients, appt, rule, estimate, draw: DayDraw, dept=None, fault=Non
         if pid in notified and pid in new_appt and draw.comply.get(pid, True):
             told = new_appt[pid]
         report = told - (p.report_lead if lead and not p.urgent else 0)
-        arrival[pid] = max(d["day_start"] - 60, report + draw.offset[pid])
+        off = 0.0 if p.urgent else arrival_offset(draw.u_arrive[pid], arrivals, report)
+        arrival[pid] = max(d["day_start"] - 60, report + off)
         if p.mhrc:                                     # everyone on the hospice bus
-            arrival[pid] = d["mhrc_bus_arrival"] + abs(draw.offset[pid]) / 4
+            arrival[pid] = d["mhrc_bus_arrival"] + 10 * draw.u_arrive[pid]
         prep = 0 if p.urgent else (d["pelvic_fill_min"] if p.pelvic else d["prep_min"])
         ready[pid] = arrival[pid] + prep
         order_key[pid] = new_appt.get(pid, t)          # staff follow the live plan
@@ -307,6 +315,8 @@ def _metrics(rec, d, skips_accessory, not_today, block_delay, people, n_hold, n_
         "excess_wait_p90": float(np.percentile(excess, 90)),
         "delay_median": float(np.median(np.maximum(late, 0))),
         "within_15_pct": float(np.mean(np.abs(late) <= 15) * 100),
+        "late_15_pct": float(np.mean(late > 15) * 100),
+        "late_60_pct": float(np.mean(late > 60) * 100),
         "within_30_pct": float(np.mean(np.abs(late) <= 30) * 100),
         "overtime_min": float(overtime),
         "last_end": float(ends.max()),
@@ -343,13 +353,14 @@ def monte_carlo(patients, policies, n_rep=300, seed=2026, fault=None):
 
     policies: name -> dict(appt=..., rule=..., estimate=..., lead=..., new_appt=...,
                            notified=..., deferred=..., fault=...)
-    Returns name -> list of metric dicts, name -> mean waiting-room curve, and
-    name -> every patient's wait.
+    Returns name -> list of metric dicts, name -> mean waiting-room curve,
+    name -> every patient's wait, and name -> arrival hour -> waits.
     """
     rng = np.random.default_rng(seed)
     results = {k: [] for k in policies}
     curves = {k: [] for k in policies}
     waits = {k: [] for k in policies}
+    by_hour = {k: {} for k in policies}
     grid = None
     for _ in range(n_rep):
         draw = draw_day(patients, rng)
@@ -357,13 +368,18 @@ def monte_carlo(patients, policies, n_rep=300, seed=2026, fault=None):
             met, rec = simulate(patients, pol["appt"], pol["rule"], pol["estimate"], draw,
                                 fault=pol.get("fault", fault), new_appt=pol.get("new_appt"),
                                 notified=pol.get("notified", frozenset()), lead=pol.get("lead", True),
-                                deferred=pol.get("deferred", frozenset()))
+                                deferred=pol.get("deferred", frozenset()),
+                                arrivals=pol.get("arrivals", "reliable"))
             results[name].append(met)
-            waits[name].extend(max(0.0, r["start"] - r["arrival"]) for r in rec.values() if not r["held"])
+            for r in rec.values():
+                if not r["held"]:
+                    w = max(0.0, r["start"] - r["arrival"])
+                    waits[name].append(w)
+                    by_hour[name].setdefault(int(r["arrival"] // 60), []).append(w)
             grid, c = waiting_room_curve(rec, DEPARTMENT["day_start"], DEPARTMENT["hard_end"] + 60)
             curves[name].append(c)
     curves = {k: (grid, np.mean(v, axis=0)) for k, v in curves.items()}
-    return results, curves, {k: np.array(v) for k, v in waits.items()}
+    return results, curves, {k: np.array(v) for k, v in waits.items()}, by_hour
 
 
 def summarise(results) -> dict:

@@ -10,16 +10,10 @@
     "problem",
     "constraints",
     "approaches",
-    "architecture",
-    "dayloop",
-    "ai",
+    "howitworks",
     "day",
     "waits",
-    "fault",
-    "forecast",
-    "safety",
-    "pilot",
-    "next"
+    "plan"
   ],
   "cover": "cover",
   "sections": {
@@ -36,8 +30,8 @@
       "start": "day"
     },
     "plan": {
-      "description": "Safety, pilot and next steps",
-      "start": "safety"
+      "description": "Guardrails, pilot and next steps",
+      "start": "plan"
     }
   },
   "faces": {

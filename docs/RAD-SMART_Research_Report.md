@@ -4,7 +4,7 @@
 
 Health-a-thon 2026 · Cancer track · Doctor / care-team facing use case 04: Clinic Operations & Patient Flow
 
-Team leader, problem owner and doctor partner: Dr Akshay Dinesan, Manipal · Technical lead: Abhinand T M · Team: P S Raghotham Rao, Dr Shirley Lewis Salins, Dr Umesh Velu · Version 1.2, 22 September 2026 (updated with the department's records)
+Team: Dr Akshay Dinesan, Manipal (team leader, doctor partner) · Abhinand T M (technical lead) · P S Raghotham Rao (lead engineer) · Dr Shirley Lewis Salins (doctor partner) · Dr Umesh Velu (doctor partner) · Version 1.3, 24 September 2026
 
 > **Assistive, not diagnostic.** RAD-SMART plans *when* and *on which machine* a session takes place. It never decides whether, how or how much a patient is treated. Urgency, technique and machine eligibility are always entered by clinicians and physicists, every plan is a proposal until a person approves it, and every action is logged. The prototype's patients are synthetic. Today's waiting times come from the department's anonymised records (October–December 2024) and are reported only as aggregates.
 
@@ -237,6 +237,8 @@ All weights, windows and buffers are configuration that the department can see a
 
 On a laptop with the open-source HiGHS solver, the machine-learning plan for the PoC's 87-patient day reached a proven optimum in 10.2 s, and the average-table plan in 34.7 s. Neither left a patient unplanned. The model has about 4,800 variables and 1,662 constraints. Timings vary with the laptop's load.
 
+**Keeping a patient's time stable.** A patient attends every working day for weeks, so their time should not jump around the day. The objective costs every minute away from the patient's usual or preferred time, beyond a tolerance. In the pilot the slot is also anchored across the course: the first fraction sets it, and later fractions stay there unless a rule, a disruption or the patient's own request moves them. The PoC plans each day in isolation and draws every patient's current time from the department's recorded booking pattern, which clusters in the morning and again in the late evening, so it moves patients further than a real deployment would (Section 7.8).
+
 **Reason codes.** Every placement comes with machine-readable reasons, such as "new start: finish by 17:00", "MHRC: protected slot 16:00–17:00, back on the 17:00 bus", "public transport: finish by 21:00", "report at 09:41 (45 min before: drink 500 mL of water on arrival)", "accessory check: breast board free (CT-simulator bookings and reservations respected)" or "dormitory: late-evening slot, keeps earlier slots for stricter constraints". These drive the RTT console and ground the copilot's explanations.
 
 ### 6.5 Module 3: Live re-planning
@@ -255,8 +257,8 @@ When an event arrives (machine fault, overrun, no-show, urgent add-on, imaging h
 | Downtime | Department's rule | What RAD-SMART does |
 |---|---|---|
 | 30–60 min | Nobody is sent home. All ongoing patients are treated the same day. A few new starts may be deferred. The schedule is re-planned | Re-plans with every ongoing patient kept in the day (overtime allowed to 02:00). It proposes deferring a new start only if it can no longer finish by 17:00, or if fitting it in would keep the patients already waiting much longer; the approver decides |
-| Over 120 min | Some patients may be deferred or sent home after oncologist review. New starts are postponed to the next day, except urgent palliative starts. The oncologist or designated senior RTT approves | Moves non-urgent new starts to the next day and re-plans everyone else. Deferrals are proposed only if the day cannot hold everyone, and patients who can still be told come first. Nobody already waiting or on the MHRC bus is proposed |
 | 60–120 min | Not specified | Uses the shorter-downtime rule; the approver can switch to the longer-downtime rule with one tap |
+| Over 120 min | Some patients may be deferred or sent home after oncologist review. New starts are postponed to the next day, except urgent palliative starts. The oncologist or designated senior RTT approves | Moves non-urgent new starts to the next day and re-plans everyone else. Deferrals are proposed only if the day cannot hold everyone, and patients who can still be told come first. Nobody already waiting or on the MHRC bus is proposed |
 
 **Imaging review holds.** After imaging, the oncologist may decline to treat. The patient is then repositioned and treated at once, or treated later the same day. RAD-SMART re-queues the patient automatically, and the urgent holds and the late evening give the buffer the department asked for.
 
@@ -544,6 +546,7 @@ Splitting by head-count overloads the slower Versa HD while the second machine s
 
 - **Synthetic patients, calibrated behaviour.** The rules are the department's and the twin's booking pattern and arrival habits come from its records, but session lengths and the patient mix are our estimates. The size of the real improvement depends on how much of today's waiting comes from scheduling rather than from other causes, such as transport, machine QA or paperwork.
 - **The twin is not perfect.** It reproduces a typical recorded day closely on median wait and punctuality but under-predicts the longest waits (93 against 110 minutes at the 90th percentile), so RAD-SMART's simulated tail may be optimistic by a similar margin. On busy days it over-predicts today's waits, which is why we compare with the records rather than with the twin's projection.
+- **Times move further than they would in practice.** Each PoC day is planned from scratch, and every patient's current time is drawn from the department's recorded booking pattern, which puts many patients in the same morning and evening slots. The plan therefore moves patients a median of 57 minutes, and 17 of the 87 by more than five hours: a patient booked at 08:50 today may be planned for 19:24. A real deployment anchors a patient's slot across their course (Section 6.4), so day-to-day times stay stable and only the first fraction is placed freely. Adding that anchor is part of the build sprint; we also tested a stronger penalty on large moves in the PoC, which shifted the day's pattern without reducing the moves, because it is today's clustered booking, not the cost, that makes them necessary.
 - **Patient behaviour.** The benefit assumes that patients stop coming early once times are kept; with today's habits the 90th-percentile wait is 110 minutes rather than 76. It also assumes that 85% of patients act on updated times. The pilot will measure both.
 - **One machine, one laptop.** The day simulation covers one machine; the two-machine test covers the forecast, not simultaneous live sequencing, which is part of the build sprint. Solver times were measured on a laptop with an open-source MILP solver, and a plan can stop at its time limit with a small proven gap. Production will use OR-Tools CP-SAT, which is well suited to interval scheduling.
 
@@ -580,7 +583,7 @@ For these reasons the pilot target (at least 25% lower 90th-percentile wait than
 
 ### 8.2 Impact estimate (illustrative, conservative)
 
-- **Per patient.** The gain is concentrated where it hurts. Today one visit in ten ends in a wait of more than 109 minutes, and an evening patient waits about 66 minutes; in the PoC these fall to 76 and about 36. For an evening patient on a 25-fraction course, that is about 12 hours saved, and roughly as much again for the caregiver who comes along.
+- **Per patient.** The gain is concentrated where it hurts. Today one visit in ten ends in a wait of more than 109 minutes across all recorded days, and 130 on the busiest; an evening patient waits about 66 minutes. In the PoC, on a day busier than any recorded, these fall to 76 and about 36 minutes. For an evening patient on a 25-fraction course, that is about 12 hours saved, and roughly as much again for the caregiver who comes along.
 - **Per machine per year.** On busy days the mean wait is 55 minutes in the records and 41 in the PoC. 14 minutes × 80 patients × 250 working days ≈ **4,600 patient-hours**, about twice that including caregivers, before counting the early arrivals that reliable times make unnecessary.
 - **Capacity.** Balanced loading, fewer idle gaps and faster backfilling of no-shows free up machine time. As an illustration only, not a PoC result: if smarter scheduling recovered 5% of machine time across India's ~823 machines [6], that would equal about 41 machines, or roughly ₹800–1,000 crore of equipment at recent public-sector prices (two linacs at AIIMS Jhajjar cost about ₹50 crore [21]).
 - **Scale.** The rules are configuration, not code, so another department can adopt RAD-SMART by describing its own rules in the Rule Studio. The National Cancer Grid's 370+ member institutions, which serve about 60% of India's cancer patients, are the natural path to scale.
@@ -640,9 +643,9 @@ For these reasons the pilot target (at least 25% lower 90th-percentile wait than
 |---|---|---|
 | Team leader, doctor partner and clinical owner | Dr Akshay Dinesan | about 2 h per week in the sprint; pilot sponsor |
 | Technical lead | Abhinand T M | full sprint |
-| Team member | P S Raghotham Rao | full sprint |
-| Team member | Dr Shirley Lewis Salins | sprint and pilot |
-| Team member | Dr Umesh Velu | sprint and pilot |
+| Lead engineer | P S Raghotham Rao | full sprint |
+| Doctor partner | Dr Shirley Lewis Salins | sprint and pilot |
+| Doctor partner | Dr Umesh Velu | sprint and pilot |
 | RTT champion (pilot) | [to be nominated by the department] | about 1 h per week |
 | Plan approver | designated senior RTT or oncologist | daily during the live phase |
 | Medical physicist | [to be nominated] | machine capability matrix; rule review |
@@ -890,7 +893,7 @@ Dr Akshay Dinesan answered our open questions on behalf of the department, and o
 | 19:24 | 18:39 | P024 | VMAT | 14/31 | 9.7 | public transport; pelvic | 08:50 | public transport: finish by 21:00; 634 min later than usual time 08:50; report at 18:39 (45 min before: drink 500 mL of water on arrival) |
 | 21:32 | 21:12 | P048 | 3D-CRT | 17/20 | 6.7 | lives nearby | 21:00 | 32 min later than usual time 21:00; lives nearby: late-evening slot, keeps earlier slots for stricter constraints; report at 21:12 (20 min before) |
 
-The full 87-patient plan is in `poc/results/schedule_rad_smart.csv`.
+P024's time moves from 08:50 to 19:24 because today's booking clusters patients into the morning and the late evening, and the PoC plans each day from scratch; Sections 6.4 and 7.8 explain how a patient's slot is anchored across their course in a real deployment. The full 87-patient plan is in `poc/results/schedule_rad_smart.csv`.
 
 ## Appendix D. Reproducing the PoC
 

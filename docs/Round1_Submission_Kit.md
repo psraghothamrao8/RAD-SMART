@@ -4,7 +4,7 @@ Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient F
 
 > **Deadline: Thursday 25 September 2026, 23:59.** There is no late lane, and a draft that is never submitted is not judged. Any team member can edit and submit, and the last version saved before the deadline is the one evaluated. **Aim to submit by Wednesday 23 September**, then keep improving until the deadline.
 
-This kit contains ready-to-paste answers for the five Round 1 sections, the outline of our 14-slide deck, a 3-minute video script, likely jury questions, and a checklist. The deck and an interactive results page are already built and published (sections 2.5 and 2.6). Each answer comes in a **full version** and a **short version** in case the form limits length. Replace the text in [square brackets] before submitting.
+This kit contains ready-to-paste answers for the five Round 1 sections, the outline of our 8-slide deck, a 3-minute video script, likely jury questions, and a checklist. The deck and an interactive results page are already built and published (sections 2.5 and 2.6). Each answer comes in a **full version** and a **short version** in case the form limits length. Replace the text in [square brackets] before submitting.
 
 ---
 
@@ -17,7 +17,7 @@ This kit contains ready-to-paste answers for the five Round 1 sections, the outl
 | 3 | On the entry, set the use case to **Clinic Operations & Patient Flow** (it is the one field the team may adjust) | Tech lead | 21 Sep |
 | 4 | Dr Akshay reviews the answers below, and the report's Appendix B, which now records the department's answers of 21 Sep and the few items still open | Dr Akshay | 22 Sep |
 | 5 | Dr Akshay confirms with the head of department that aggregates of the anonymised arrival and treatment records (medians, percentages, hourly profiles) may appear in the deck, report and public page. The spreadsheet itself is never shared or committed | Dr Akshay | 23 Sep |
-| 6 | Team names are in section 2.3, report Section 9.5 and deck slides 1 and 14. Add a line on each member's background if the form asks | All | 22 Sep |
+| 6 | Team names and roles are on deck slide 1, in section 2.3 and in report Section 9.5. Add a line on each member's background if the form asks | All | 24 Sep |
 | 7 | Open the published deck (section 2.5) and download it as PDF | Tech team | 23 Sep |
 | 8 | Optional: record the 3-minute video walkthrough (section 4) | Tech team + Dr Akshay | 23 Sep |
 | 9 | Optional: paste the public results page link as the prototype link, and the code repository link if asked (section 2.6) | Tech lead | 23 Sep |
@@ -86,12 +86,12 @@ An assistive scheduling layer with four parts. Machine learning predicts each se
 
 - **The problem owner is on the team.** Dr Akshay Dinesan (Manipal) wrote the problem statement from daily experience in a working radiotherapy department that runs a Versa HD and is adding a second machine in early 2027. The department has already answered our detailed questions on its rules, from the MHRC bus to accessory reservations and downtime, and they are built into the prototype. Dr Akshay has a path to a real pilot and the RTT team who will use it.
 - **We have already built it.** In the Round 1 window we built a working prototype. It generates realistic synthetic departments under the department's own rules. It predicts session durations and solves an 87-patient day to a proven optimum in 10–35 seconds on a laptop. It re-plans machine faults in 2–11 seconds under the department's downtime rules, and forecasts new-start capacity for two machines around a TBI course. We tested it over 300 simulated days in a digital twin calibrated on the department's own arrival and treatment records, and compared it with those records.
-- **Doctors and engineers together.** Dr Akshay Dinesan leads the team. Abhinand T M is the technical lead, with P S Raghotham Rao on the build. Dr Shirley Lewis Salins and Dr Umesh Velu complete the team, so three of the five members are doctors. Together we cover operations research, machine learning, Indian-language AI, product building and clinical practice.
+- **Doctors and engineers together.** Dr Akshay Dinesan is the team leader and doctor partner. Abhinand T M is the technical lead and P S Raghotham Rao the lead engineer. Dr Shirley Lewis Salins and Dr Umesh Velu are doctor partners, so three of the five members are practising doctors. Together we cover operations research, machine learning, Indian-language AI, product building and clinical practice.
 - **We designed for the guardrails from day one.** The system is assistive, not diagnostic: human approval, audit trail, synthetic patients, the department's records used only as anonymised aggregates, no clinical inputs, and no personal identifiers sent to AI models.
 
 **Short version**
 
-Dr Akshay Dinesan owns the problem in a working radiotherapy department (a Versa HD, with a second machine arriving in early 2027), has given us the department's rules, and can take it to a real pilot. Dr Akshay leads a five-member team: Abhinand T M (technical lead), P S Raghotham Rao, Dr Shirley Lewis Salins and Dr Umesh Velu. Together they cover optimisation, machine learning, Indian-language AI, full-stack development and clinical practice. It has already built a working prototype that plans an 87-patient day under the department's rules, re-plans machine faults in seconds, and was tested over 300 simulated days against the department's own records.
+Dr Akshay Dinesan owns the problem in a working radiotherapy department (a Versa HD, with a second machine arriving in early 2027), has given us the department's rules, and can take it to a real pilot. Dr Akshay leads a five-member team: Abhinand T M (technical lead), P S Raghotham Rao (lead engineer), and Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners). Together they cover optimisation, machine learning, Indian-language AI, full-stack development and clinical practice. It has already built a working prototype that plans an 87-patient day under the department's rules, re-plans machine faults in seconds, and was tested over 300 simulated days against the department's own records.
 
 ### 2.4 Does any part of it already exist?
 
@@ -111,9 +111,9 @@ OIS calendars (MOSAIQ, ARIA) and academic schedulers exist. The academic ones mo
 
 ### 2.5 Deck
 
-The 14-slide deck is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
+The 8-slide deck is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
 
-1. Check the names on slides 1 and 14.
+1. Check the names and roles on slide 1.
 2. Download the deck as PDF from the page, and upload the PDF.
 
 The link is private to its owner. Share it from the page's Share menu before anyone else, such as Dr Akshay, can open it.
@@ -129,28 +129,22 @@ A copy is also on GitHub: the PDF at `docs/deck/RAD-SMART_Pitch_Deck.pdf` and a 
 
 ---
 
-## 3. Deck outline (14 slides, published)
+## 3. Deck outline (8 slides, published)
 
 Each slide makes one point with large numbers, uses the figures from `docs/figures/`, and carries the footer "Assistive, not diagnostic · synthetic patients, anonymised aggregates". The deck has four sections: the problem, the solution, the evidence and the plan.
 
 | # | Slide title | Key message | Visual |
 |---|---|---|---|
-| 1 | RAD-SMART | The right patient, on the right machine, at a predictable time | Title; doctor partner and team; Cancer track, use case 04 |
+| 1 | RAD-SMART | The right patient, on the right machine, at a predictable time | Title; the five team members and their roles; Cancer track, use case 04 |
 | 2 | Every weekday, 70–90 patients wait for one machine | The department's records: one patient in ten waits over 109 min, 22% are treated over an hour late, and the median wait grows from 19 min in the morning to 66 min in the evening. India: 69% of centres have one machine | Big numbers from the records |
 | 3 | Allocation under hard rules and soft priorities | Hard rules (new starts by 17:00, 10:00–17:00 complex window, blood slot, one breast board and one ABC, MHRC bus, public transport by 21:00, urgent by 18:00) versus soft priorities (paying patients' times, older patients, flexible patients in the evening) | Two rule cards |
 | 4 | We compared five ways to build it | Rules, LLM-only, static optimisation, deep RL, hybrid. The hybrid wins at 4.85/5 | Decision table |
-| 5 | How RAD-SMART works | Predict, optimise, simulate, explain, with people approving every step | Architecture diagram |
-| 6 | Automation proposes; people decide | Two days ahead, evening before, during the day, after the day | Four-step daily loop |
-| 7 | AI where each technique is strongest | ML for minutes; the optimiser guarantees rules; the twin tests; the Sarvam copilot explains and speaks Kannada, Malayalam, Hindi and English, with recorded Tulu voice notes | Four tiles; Sarvam components |
-| 8 | One optimised day, with every rule held | 87 patients from 08:30 to 00:39, all 7 hard rules re-checked, a reason for every placement | `fig3` day Gantt |
-| 9 | Fewer long waits, and times that hold | Against the busiest recorded days: 90th-percentile wait 130 → 76 min; over an hour late 27% → 6%; within ±15 min 30% → 53%; evening median 66 → 36 min. The median stays about the same, preparation included | `fig1` wait curves (records vs simulated) + KPI numbers |
-| 10 | It recovers by the department's own downtime rules | Median wait without → with live re-planning. 45-min fault: 53 → 39 min, every ongoing patient treated today, 1 new start proposed for the next day. 150-min fault: 104 → 36 min, 5 new starts to the next day. Re-plans in 2–11 s | `fig4c` waiting room |
-| 11 | New starts balanced by minutes, not head-count | Two machines and a TBI week: peak load 154% → 98%; TBI days fitted exactly | `fig5` capacity forecast |
-| 12 | Safe by design | A senior RTT or oncologist approves every plan; one-tap override, audit trail; no clinical inputs; no identifiers to AI; DPDP-aligned; works from Excel, paper and WhatsApp | Guardrail checklist |
-| 13 | 90 days on the Versa HD, one primary KPI | Baseline 2 weeks, shadow 3 weeks, live 8 weeks. Primary KPI: 90th-percentile wait at least 25% lower (records: 109 min). Also: over an hour late 22% → 10% or fewer. About ₹2–3 lakh | Timeline + success criteria |
-| 14 | From prototype to pilot | Team; roadmap to the finale and the pilot. Ask: pilot support, Sarvam credits, NCG introductions | Team, roadmap and ask cards |
+| 5 | How RAD-SMART works, and who decides | Predict, optimise, simulate, explain, each with its PoC result; then the four points in the day where a named person decides, and the light-touch data sources | Four technique tiles + a human-in-the-loop band |
+| 6 | One optimised day, with every rule held | 87 patients from 08:30 to 00:39, all 7 hard rules re-checked, a reason for every placement | `fig3` day Gantt |
+| 7 | Fewer long waits, and times that hold | Against the busiest recorded days: 90th-percentile wait 130 → 76 min; over an hour late 27% → 6%; evening median 66 → 36 min; after a 150-min machine fault 104 → 36 min with live re-planning. The median stays about the same, preparation included | `fig1` wait curves (records vs simulated) + KPI numbers |
+| 8 | Safe by design, then 90 days on the Versa HD | Six guardrails (approval, independent rule check, clinicians decide, no identifiers to AI, audit trail, synthetic and anonymised data); baseline 2 weeks, shadow 3 weeks, live 8 weeks; primary KPI: 90th-percentile wait at least 25% lower (records: 109 min); the ask | Guardrail list + pilot timeline and KPI cards |
 
----
+The earlier 14-slide version, including the separate downtime-recovery and two-machine-forecast slides, is in the repository's git history (commit `af992f8`) if a longer deck is ever needed.
 
 ## 4. Video walkthrough script (3 minutes)
 
@@ -174,6 +168,9 @@ The prototype's patients are synthetic. The rules are the department's (its answ
 
 **Why doesn't the median wait fall?**
 Every patient is asked to arrive 20 minutes early (45 for pelvic patients) to change and prepare, so a short wait is built in. What RAD-SMART removes is the long, unpredictable wait. On a day busier than any recorded, one patient in ten waits 76 minutes or more instead of 130, only 6% are treated more than an hour late instead of 27%, and evening patients no longer wait three times as long as morning ones. Morning patients wait a little longer than today, mostly that preparation time.
+
+**Why does one patient in the prototype move from 08:50 to 19:24?**
+Because the prototype plans each day from scratch, and it draws each patient's current time from the department's recorded booking pattern, which clusters people into the morning and again in the late evening. In a real deployment a patient's slot is anchored across their course: the first fraction sets it, and later fractions stay there unless a rule, a disruption or the patient asks for a change. Report Sections 6.4 and 7.8 explain this, and the anchor is part of the build sprint.
 
 **Isn't this clinical decision support?**
 No. RAD-SMART decides only *when* and *on which machine* a session happens. Urgency, technique and machine eligibility are entered by clinicians and physicists, and it reads no diagnoses, doses, images or notes. Its only prediction is how many minutes a session will take.

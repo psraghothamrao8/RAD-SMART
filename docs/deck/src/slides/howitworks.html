@@ -1,0 +1,49 @@
+<section id="howitworks" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:32px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">The solution</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">How RAD-SMART works, and who decides</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px">
+      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+        <div style="height:8px; background:#2A78D6; border-radius:4px"></div>
+        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#1C5CAB">1 · Predict</p>
+        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Minutes, not head-counts</h3>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">Expected and cautious (P80) minutes per session, starting from the department's estimate table.</p>
+        <div style="flex:1"></div>
+        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">PoC: 2.1 min error vs 2.6 for averages</p>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+        <div style="height:8px; background:#EB6834; border-radius:4px"></div>
+        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#B0461D">2 · Optimise</p>
+        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Hard rules guaranteed</h3>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">A solver builds the evening-before plan and repairs it live; hard rules cannot break.</p>
+        <div style="flex:1"></div>
+        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">PoC: 87 patients, all 7 rules re-checked</p>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+        <div style="height:8px; background:#1BAF7A; border-radius:4px"></div>
+        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#12805A">3 · Simulate</p>
+        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Tested before it is used</h3>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">A twin calibrated on the department's records tests every plan and forecasts three weeks of load.</p>
+        <div style="flex:1"></div>
+        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">PoC: 300 days; 2 machines, peak load 154% &rarr; 98%</p>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+        <div style="height:8px; background:#4A3AA7; border-radius:4px"></div>
+        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#4A3AA7">4 · Explain</p>
+        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Kannada, Tulu and more</h3>
+        <p style="font-size:24px; line-height:1.4; color:#3B4654">A Sarvam AI copilot explains placements, edits rules from plain language and messages patients.</p>
+        <div style="flex:1"></div>
+        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">The LLM never schedules</p>
+      </div>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px; align-items:center; background:#FDF1EA; border:1px solid #F2C9B3; border-radius:12px; padding:18px 24px">
+    <p style="flex:none; width:230px; font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#B0461D">People decide</p>
+    <p style="flex:1; font-size:26px; line-height:1.4; color:#132238">Two days ahead the HoD confirms who starts · the evening before, a senior RTT or oncologist approves the plan · during the day a fault or urgent start triggers a re-plan in seconds, approved before anyone is messaged · overrides and actual times retrain the model weekly</p>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Runs on a hospital server from an Excel list, a photo of the register (OCR), QR check-in and WhatsApp</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">5 / 8</p>
+  </div>
+  <aside>Four AI steps, and a named person deciding at each point of the day. Machine learning predicts, the optimiser guarantees the rules, the twin tests the plan, and the language model explains it and talks to patients. The copilot calls the optimiser and simulator as tools; it never makes a scheduling decision, and it never sees names or phone numbers.</aside>
+</section>

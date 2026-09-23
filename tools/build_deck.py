@@ -25,8 +25,6 @@ deck = json.loads((src / "deck.json").read_text(encoding="utf-8"))
 BLOBS = {
     "/_blob/cb8ca380ac3edf1ea4beac8222112efc": "../figures/fig1_wait_distribution.png",
     "/_blob/34fd6ce997d121e51a29c8deac7df884": "../figures/fig3_optimised_day.png",
-    "/_blob/518733689bbcfc0abadc16509b8a454e": "../figures/fig4c_fault_waiting_room.png",
-    "/_blob/ddc7ca7e17059a694bd53325b4bac621": "../figures/fig5_capacity_forecast.png",
 }
 
 frames = []

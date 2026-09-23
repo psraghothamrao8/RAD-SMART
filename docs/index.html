@@ -927,6 +927,7 @@ python run_poc.py</pre>
    `Today's booking: ${A.current_practice_booking}. Today's figures come from the department's anonymised records (${DD.period[0]} to ${DD.period[1]}, ${DD.patient_days.toLocaleString("en-IN")} patient-days), used only as aggregates.`,
    `The twin reproduces a typical recorded day (about 60 patients) closely on median wait and punctuality but under-predicts the longest waits, and over-predicts today's waits on busy days; see the report, Section 7.4.`,
    "Rules come from the department's answers. Session lengths and patient mixes are illustrative: the department does not record session durations, so the pilot starts from its own estimates.",
+   "Each day is planned from scratch, and every patient's current time is drawn from the recorded booking pattern, so the plan moves patients further than a real deployment would: in practice a patient's slot is anchored across their course. See the report, Sections 6.4 and 7.8.",
    "The day simulation covers one machine; the two-machine test covers the forecast only."]
     .forEach((x) => $("assumptions").appendChild(h("li", { textContent: x.replace(/(\d\d:\d\d)-(\d\d:\d\d)/g, "$1–$2") })));
   const SV = R.solver.ml;

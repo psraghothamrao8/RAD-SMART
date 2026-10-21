@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAD-SMART Maths Explained</title>
+<meta name="description" content="The maths behind RAD-SMART, worked through with small numbers and interactive demos: quantile loss, gradient boosting, the scheduling optimiser, Monte Carlo simulation and the capacity forecast.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500..700&display=swap">
+<link rel="stylesheet" href="tech.css">
+</head>
+<body>
+<div class="wrap">
+
+<div class="bar" aria-label="Pages">
+  <a href="./">Technical guide</a>
+  <a href="maths.html" aria-current="page">The maths, worked through</a>
+  <a href="../">Live results</a>
+  <a href="../deck/">Pitch deck</a>
+  <a href="https://github.com/psraghothamrao8/RAD-SMART">GitHub</a>
+</div>
+
+<header class="hero">
+  <p class="eyebrow">Sub-page · Health-a-thon 2026</p>
+  <h1>The maths, with numbers you can change</h1>
+  <p class="lede">Five ideas carry the whole system. Each one is explained with a tiny example first, then a demo you can play with. No formula appears without a worked number beside it. If you remember one sentence per section, you can answer the follow-up questions.</p>
+  <nav class="toc" aria-label="Sections">
+    <a href="#pct">0 · Percentiles</a><a href="#quantile">1 · Quantile loss</a><a href="#boost">2 · Boosting</a><a href="#milp">3 · The scheduling puzzle</a><a href="#cost">4 · Costs worked out</a><a href="#mc">5 · Monte Carlo</a><a href="#forecast">6 · Forecast</a>
+  </nav>
+</header>
+
+<!-- 0 -->
+<section class="blk" id="pct">
+  <div class="head"><p class="eyebrow">Warm-up</p><h2>0 · Percentiles: what “P90” means</h2>
+  <p class="take">Sort the waits from shortest to longest. The P90 is the value that 90% of waits are below.</p></div>
+  <div class="card">
+    <p>Ten patients wait (minutes): <span class="mono">3, 8, 12, 15, 20, 25, 31, 44, 70, 125</span></p>
+    <ul class="tight"><li><b>Average</b> = (3+8+12+15+20+25+31+44+70+125) ÷ 10 = <b>35.3</b>. One long wait pulls it up.</li><li><b>Median (P50)</b> = halfway = between 20 and 25 → <b>22.5</b>. Half wait less.</li><li><b>P90</b> ≈ the 9th value → <b>70</b> (about). Nine in ten wait less than this.</li></ul>
+    <div class="say" style="margin-top:12px"><b class="t">Say it simply</b>The median tells you what a typical patient feels. The P90 tells you how bad it gets for the unlucky one in ten. Our headline is the P90 because that is where the pain is.</div>
+  </div>
+</section>
+
+<!-- 1 -->
+<section class="blk" id="quantile">
+  <div class="head"><p class="eyebrow">Concept 1 · the duration model</p><h2>1 · Quantile loss: teaching a model to give P50 and P80</h2>
+  <p class="take">A model learns by minimising a “loss”: a penalty for each mistake. Choose the penalty well and the model's best guess becomes any percentile you like.</p></div>
+
+  <div class="card">
+    <h3>The idea in two lines</h3>
+    <div class="eq">loss(guess c, real y) = q × (y − c)        if the real time is longer (we under-guessed)
+                       (1 − q) × (c − y)    if the real time is shorter (we over-guessed)</div>
+    <ul class="tight">
+      <li><b>q = 0.5</b>: both mistakes cost the same → the best guess is the <b>median</b>.</li>
+      <li><b>q = 0.8</b>: under-guessing costs 0.8 per minute, over-guessing only 0.2 → the best guess moves up until <b>80% of real sessions are below it</b>. That is P80.</li>
+    </ul>
+    <p class="note" style="margin-top:8px">Example with q = 0.8, guess 10 min. Real session 14 min: under-guess by 4 → 0.8 × 4 = <b>3.2</b>. Real session 7 min: over-guess by 3 → 0.2 × 3 = <b>0.6</b>.</p>
+  </div>
+
+  <div class="widget">
+    <h3>Try it: ten recorded sessions of one technique</h3>
+    <p class="note">Sessions (min): 5, 6, 6, 7, 7, 8, 9, 11, 14, 22. Average 9.5, median 7.5. Drag the guess and watch the total penalty; the curve's lowest point is the best guess.</p>
+    <div class="ctl">
+      <label>Percentile q <select id="q-sel"><option value="0.5">0.5 (P50)</option><option value="0.8" selected>0.8 (P80)</option><option value="0.95">0.95 (P95)</option></select></label>
+      <label>Your guess <input id="q-c" type="range" min="3" max="24" step="0.5" value="8"> <output id="q-cv"></output> min</label>
+    </div>
+    <div class="chartbox" id="q-chart"></div>
+    <div class="readout" id="q-read"></div>
+  </div>
+  <div class="ask"><b class="t">If they ask</b><b>“Why not just predict the average?”</b> The average is the best guess if all mistakes cost the same, but a plan has to be robust to long sessions. P80 says “8 times in 10 the session is no longer than this”. We reserve the <i>expected</i> minutes so the day's total is right, and use P80 to judge risk. The model is trained for all three (expected, P50, P80).</div>
+</section>
+
+<!-- 2 -->
+<section class="blk" id="boost">
+  <div class="head"><p class="eyebrow">Concept 2 · the duration model</p><h2>2 · Gradient boosting: many small corrections</h2>
+  <p class="take">Start with a rough guess for everyone. Look at where it is wrong. Add a tiny rule that corrects some of that error. Repeat a few hundred times.</p></div>
+  <div class="card">
+    <ol class="steps">
+      <li><div><b>Start:</b> guess the average for everyone (12.3 min in the demo below).</div></li>
+      <li><div><b>Measure mistakes:</b> real minus guess for every session (the <i>residual</i>). Easy sessions are negative, hard ones positive.</div></li>
+      <li><div><b>Fit a tiny tree</b> (here a single yes/no split such as “difficulty ≤ 6?”) that predicts those residuals.</div></li>
+      <li><div><b>Add a fraction</b> of it to the guess. That fraction is the <i>learning rate</i>. A small step avoids overreacting to noise.</div></li>
+      <li><div><b>Repeat.</b> Each new tree fixes what the previous ones missed. Our model uses 300 rounds, learning rate 0.08, and trees with up to 31 leaves over ten input facts.</div></li>
+    </ol>
+  </div>
+  <div class="widget">
+    <h3>Try it: one fact (set-up difficulty 1–10) and the session minutes</h3>
+    <div class="ctl">
+      <label>Rounds <input id="b-n" type="range" min="0" max="40" value="3"> <output id="b-nv"></output></label>
+      <label>Learning rate <select id="b-lr"><option value="0.1">0.1 (slow)</option><option value="0.3" selected>0.3</option><option value="1">1.0 (jumpy)</option></select></label>
+    </div>
+    <div class="chartbox" id="b-chart"></div>
+    <div class="readout" id="b-read"></div>
+  </div>
+  <div class="ask"><b class="t">If they ask</b><b>“Why not a neural network?”</b> With a few thousand sessions and a handful of tabular facts, boosted trees are usually as accurate or better, train in seconds, and need no special hardware. They also give the quantiles directly and are easier to explain.</div>
+</section>
+
+<!-- 3 -->
+<section class="blk" id="milp">
+  <div class="head"><p class="eyebrow">Concept 3 · the optimiser</p><h2>3 · The scheduling puzzle: yes/no variables, one score</h2>
+  <p class="take">We turn “find a good timetable” into: pick yes/no values for a long list of switches so that the rules hold and the total penalty is as low as possible.</p></div>
+
+  <div class="card">
+    <h3>The model, written out</h3>
+    <div class="eq">x[p, s] = 1 if patient p starts at slot s, else 0          ← the switches
+
+Each patient exactly once:      sum over s of x[p, s] = 1          for every p
+One patient per slot:           sum over p of x[p, s] ≤ 1          for every s
+Hard rule (e.g. not before 10): x[p, s] = 0 for every forbidden s
+Minimise:   sum of cost[p, s] × x[p, s]</div>
+    <p style="margin-top:10px">The real model has the same shape, only bigger: patient × machine × 2-minute slot, with extra rules for accessories, senior staff and breaks. For 87 patients that is about 4,700 switches and 1,660 rules.</p>
+    <h3 style="margin-top:14px">How does the solver find the best one without trying everything?</h3>
+    <p>Trying every combination is impossible: even 20 patients can be ordered in more ways than there are grains of sand on Earth. The solver uses <b>branch and bound</b>: it first solves an easier version where switches may be fractions (0.3 on, 0.7 off), which gives a <i>floor</i> that no real plan can beat. Then it fixes one switch at a time, discarding whole families of plans whose floor is already worse than the best plan found. When the best plan found is within 0.03% of the floor, it stops. That gap is the “proven within 0.03% of best possible” in our results.</p>
+  </div>
+
+  <div class="widget">
+    <h3>Try it: four patients, four 10-minute slots, every permutation checked</h3>
+    <p class="note">A pays and wants 09:00 (weight ×4). B is ordinary (×1) and wants 09:00; D is an older patient (×1.5) who wants 09:10. C is an inpatient who can wait (×0.2). Cost of a placement = weight × minutes away from the wish ÷ 10. The solver would search; here your browser simply tries all 24 orders.</p>
+    <div class="ctl">
+      <label><input type="checkbox" id="m-bpay"> Make B a paying patient too (×4)</label>
+      <label><input type="checkbox" id="m-dcx"> Hard rule: D is complex, cannot start before 09:20</label>
+      <label><input type="checkbox" id="m-apin"> Hard rule: A must be first (09:00)</label>
+    </div>
+    <div class="chartbox" id="m-chart"></div>
+    <div class="tscroll"><table id="m-table"></table></div>
+    <div class="readout" id="m-read"></div>
+  </div>
+  <div class="say"><b class="t">What to take from it</b>Hard rules <i>remove</i> options (the grey rows). Soft wishes <i>price</i> the options that remain. Raise the weight on a patient and the solver quietly moves them closer to what they asked for. The department turns these weights; nobody edits code.</div>
+</section>
+
+<!-- 4 -->
+<section class="blk" id="cost">
+  <div class="head"><p class="eyebrow">Concept 4 · the optimiser's costs</p><h2>4 · The cost numbers, calculated by hand</h2>
+  <p class="take">These are the real weights from the configuration file. Each is “points per 10 minutes”. Compare the scales: it explains almost every choice the solver makes.</p></div>
+  <div class="grid2">
+    <div class="card"><h3>Planning a day: stay near the wished time</h3>
+      <div class="eq">cost = weight × max(0, |start − wish| − tolerance) ÷ 10</div>
+      <div class="tscroll"><table>
+        <tr><th>Patient</th><th class="n">Weight</th><th class="n">Free (min)</th><th class="n">Off by</th><th class="n">Cost</th></tr>
+        <tr><td>Ordinary</td><td class="n">1.0</td><td class="n">30</td><td class="n">50</td><td class="n">1.0 × 20 ÷ 10 = 2.0</td></tr>
+        <tr><td>Paying</td><td class="n">4.0</td><td class="n">15</td><td class="n">40</td><td class="n">4.0 × 25 ÷ 10 = 10.0</td></tr>
+        <tr><td>Flexible (ward, dorm.)</td><td class="n">0.2</td><td class="n">30</td><td class="n">50</td><td class="n">0.2 × 20 ÷ 10 = 0.4</td></tr>
+        <tr><td>Finishes 80 min into overtime</td><td class="n">6.0</td><td class="n">0</td><td class="n">80</td><td class="n">6.0 × 80 ÷ 10 = 48</td></tr>
+      </table></div>
+      <p class="note" style="margin-top:8px">Reading it: a paying patient 40 minutes off costs five times an ordinary patient 50 minutes off, and overtime is very expensive, so the solver protects the day's end first.</p></div>
+    <div class="card"><h3>Re-planning: moving versus making someone wait</h3>
+      <div class="eq">move (not here yet):   (3 × shift + 3 × max(0, shift − 60)) ÷ 10
+wait (already here):  (20 × late + 50 × max(0, late − 60)) ÷ 10</div>
+      <div class="tscroll"><table>
+        <tr><th>Minutes</th><th class="n">Told a new time</th><th class="n">Waiting in room</th></tr>
+        <tr><td>25</td><td class="n">7.5</td><td class="n">50</td></tr>
+        <tr><td>80</td><td class="n">30</td><td class="n">260</td></tr>
+      </table></div>
+      <p class="note" style="margin-top:8px">So 25 minutes of waiting is as costly as moving someone about 170 minutes. That is why, when the machine breaks, the solver shifts people still at home before it leaves anyone in the waiting room.</p></div>
+  </div>
+  <div class="card"><h3>Not placing someone costs 1,000</h3>
+    <p>Every patient must start once or pay 1,000 points. The worst ordinary placement costs a few tens, so “unplanned” appears only if the hard rules truly leave no room. A human then decides; the system never quietly drops anyone.</p></div>
+</section>
+
+<!-- 5 -->
+<section class="blk" id="mc">
+  <div class="head"><p class="eyebrow">Concept 5 · the digital twin</p><h2>5 · Monte Carlo and “common random numbers”</h2>
+  <p class="take">Run the day many times with dice rolls for the uncertain parts, then read the spread of outcomes. Use the same dice for both plans you are comparing.</p></div>
+  <div class="card">
+    <h3>The recipe</h3>
+    <ol class="steps">
+      <li><div><b>Draw</b> every uncertain thing: each session's real length, each patient's arrival, no-shows, urgent cases.</div></li>
+      <li><div><b>Play the day</b> through (who is ready, which patient the machine takes next) and record waits.</div></li>
+      <li><div><b>Repeat 300 times</b> with fresh dice and report the median and the P90 across the days, with confidence ranges.</div></li>
+    </ol>
+    <p style="margin-top:10px"><b>Why share the dice?</b> Suppose you compare plan A and plan B. If each gets its own random day, a lucky day for A can hide a real advantage for B. If both get the <i>same</i> random day, the luck cancels in the difference. Try it:</p>
+  </div>
+  <div class="widget">
+    <h3>Try it: 12 patients, one machine, sessions with a median of 8 minutes</h3>
+    <p class="note">Plan A books every 10 minutes; Plan B every 9 (tighter). We want to know how much longer the average wait is under B. Each “day” is random. We repeat 300 days and look at the difference in average wait, with and without sharing the dice.</p>
+    <div class="ctl"><button class="primary" id="c-run" type="button">Run 300 days (new dice)</button></div>
+    <div class="chartbox" id="c-chart"></div>
+    <div class="readout" id="c-read">Press the button.</div>
+  </div>
+  <div class="say"><b class="t">Say it simply</b>Both answers agree on the size of the effect. The shared-dice answer is less noisy, so with the same 300 days we can tell the plans apart with confidence. That is how we show RAD-SMART's gain is not luck.</div>
+</section>
+
+<!-- 6 -->
+<section class="blk" id="forecast">
+  <div class="head"><p class="eyebrow">Concept 6 · the forecast</p><h2>6 · Forecast: adding up minutes that are already promised</h2>
+  <p class="take">A patient with 12 sessions left will use the machine on each of the next 12 working days. Add those up and the future load is mostly known.</p></div>
+  <div class="card">
+    <div class="eq">load on day k = sum over patients with sessions left on day k of their predicted minutes
+capacity   = machine minutes × 92% − urgent holds − TBI minutes (180 on a TBI day)
+share used = load ÷ capacity</div>
+    <p style="margin-top:8px"><b>Worked example.</b> One machine has 843 usable minutes on a normal day. 40 patients still have sessions tomorrow, averaging 17 minutes each: load = 40 × 17 = 680 minutes → 680 ÷ 843 = <b>81%</b>. A new start with 25 sessions adds about 25 minutes on day 1 and about 9 a day after: that is 3.0% of capacity on day 1, then 1.1% a day.</p>
+    <p class="note" style="margin-top:6px">The bars below use the prototype's committed load for the Versa HD over 15 days. The new-start size is illustrative.</p>
+  </div>
+  <div class="widget">
+    <h3>Try it: start new patients on day 3</h3>
+    <div class="ctl">
+      <label>New starts on day 3 <input id="f-n" type="range" min="0" max="12" value="3"> <output id="f-nv"></output></label>
+      <label><input type="checkbox" id="f-tbi"> TBI course on days 11–13 (−180 min a day)</label>
+    </div>
+    <div class="chartbox" id="f-chart"></div>
+    <div class="readout" id="f-read"></div>
+  </div>
+  <div class="ask"><b class="t">If they ask</b><b>“Why minutes and not head-counts?”</b> Ten SBRT patients take far more machine time than ten palliative ones. In the prototype, splitting new starts equally by head-count pushed the Versa HD to 154% of capacity; balancing by predicted minutes kept it at 98%.</div>
+</section>
+
+<section class="blk">
+  <div class="card" style="display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between">
+    <div><h3>Back to the big picture</h3><p class="note">Modules, architecture, safety and the question list.</p></div>
+    <a class="btn" href="./" style="text-decoration:none">← Technical guide</a>
+  </div>
+</section>
+
+<footer>
+  <div>RAD-SMART · Health-a-thon 2026 · Cancer track. All demos on this page use small made-up numbers to teach the idea; the real prototype figures are on the live results page.</div>
+</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const sc = (d0, d1, r0, r1) => v => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const avg = a => a.reduce((s, v) => s + v, 0) / a.length;
+const C = { acc: getComputedStyle(document.documentElement) };
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- 1 · quantile loss ---------- */
+const QD = [5, 6, 6, 7, 7, 8, 9, 11, 14, 22];
+const pin = (q, c) => QD.reduce((s, y) => s + (y >= c ? q * (y - c) : (1 - q) * (c - y)), 0);
+function drawQ() {
+  const q = +$('#q-sel').value, c = +$('#q-c').value;
+  $('#q-cv').textContent = c.toFixed(1);
+  const W = 640, H = 260, L = 48, R = 14, T = 14, B = 36;
+  const xs = sc(3, 24, L, W - R);
+  const pts = []; let mn = Infinity;
+  for (let v = 3; v <= 24.001; v += 0.25) { const l = pin(q, v); pts.push([v, l]); mn = Math.min(mn, l); }
+  const flat = pts.filter(p => p[1] <= mn + 1e-9).map(p => p[0]);
+  const ymax = Math.max(...pts.map(p => p[1])) * 1.05, ys = sc(0, ymax, H - B, T);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Total penalty against your guess">`;
+  for (let g = 0; g <= 4; g++) { const v = ymax * g / 4; s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${ys(v)}" y2="${ys(v)}"/><text x="${L - 6}" y="${ys(v) + 4}" text-anchor="end">${v.toFixed(0)}</text>`; }
+  for (let v = 4; v <= 24; v += 4) s += `<text x="${xs(v)}" y="${H - 16}" text-anchor="middle">${v}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle">your guess for the session length (min)</text>`;
+  s += `<text x="12" y="${T + 6}" >total penalty</text>`;
+  QD.forEach(y => s += `<circle cx="${xs(y)}" cy="${H - B}" r="3.5" fill="${css('--grey')}" opacity=".7"/>`);
+  s += `<rect x="${xs(flat[0])}" y="${T}" width="${Math.max(3, xs(flat[flat.length - 1]) - xs(flat[0]))}" height="${H - B - T}" fill="${css('--green')}" opacity=".18"/>`;
+  s += `<polyline fill="none" stroke="${css('--accent')}" stroke-width="2.4" points="${pts.map(p => xs(p[0]).toFixed(1) + ',' + ys(p[1]).toFixed(1)).join(' ')}"/>`;
+  s += `<line x1="${xs(c)}" x2="${xs(c)}" y1="${T}" y2="${H - B}" stroke="${css('--ink')}" stroke-dasharray="4 3"/><circle cx="${xs(c)}" cy="${ys(pin(q, c))}" r="5.5" fill="${css('--orange')}" stroke="${css('--surface')}" stroke-width="2"/>`;
+  $('#q-chart').innerHTML = s + '</svg>';
+  const below = QD.filter(y => y <= c).length;
+  $('#q-read').innerHTML = `Guess <b>${c.toFixed(1)} min</b> → total penalty <b>${pin(q, c).toFixed(1)}</b>. ${below} of 10 sessions (<b>${below * 10}%</b>) finish within it. The lowest penalty (green band) is at <b>${flat[0].toFixed(1)}${flat.length > 1 && flat[flat.length - 1] - flat[0] > 0.3 ? '–' + flat[flat.length - 1].toFixed(1) : ''} min</b>, where ${Math.round(q * 100)}% of sessions are at or below the guess. Dots on the axis are the ten sessions.`;
+}
+['#q-sel', '#q-c'].forEach(i => $(i).addEventListener('input', drawQ));
+
+/* ---------- 2 · boosting ---------- */
+const BX = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], BY = [5, 6, 6, 7, 9, 10, 14, 15, 24, 27];
+function boost(n, lr) {
+  const m = avg(BY); let F = BY.map(() => m); const trees = [];
+  for (let t = 0; t < n; t++) {
+    const r = BY.map((y, i) => y - F[i]); let best = null;
+    for (let k = 1; k < BX.length; k++) {
+      const l = r.slice(0, k), rr = r.slice(k), ml = avg(l), mr = avg(rr);
+      const sse = l.reduce((s, v) => s + (v - ml) ** 2, 0) + rr.reduce((s, v) => s + (v - mr) ** 2, 0);
+      if (!best || sse < best.sse) best = { k, ml, mr, sse };
+    }
+    trees.push(best); F = F.map((f, i) => f + lr * (i < best.k ? best.ml : best.mr));
+  }
+  return { m, F, trees };
+}
+function drawB() {
+  const n = +$('#b-n').value, lr = +$('#b-lr').value; $('#b-nv').textContent = n;
+  const { m, F, trees } = boost(n, lr);
+  const W = 640, H = 260, L = 44, R = 14, T = 12, B = 36, xs = sc(0.5, 10.5, L, W - R), ys = sc(0, 30, H - B, T);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Boosting fit">`;
+  for (let v = 0; v <= 30; v += 10) s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${ys(v)}" y2="${ys(v)}"/><text x="${L - 6}" y="${ys(v) + 4}" text-anchor="end">${v}</text>`;
+  for (let v = 1; v <= 10; v++) s += `<text x="${xs(v)}" y="${H - 16}" text-anchor="middle">${v}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle">set-up difficulty (the single fact)</text><text x="12" y="${T + 4}">minutes</text>`;
+  let d = ''; F.forEach((f, i) => { d += `${i ? 'L' : 'M'}${xs(BX[i] - .5)},${ys(f)}L${xs(BX[i] + .5)},${ys(f)}`; });
+  s += `<path d="${d}" fill="none" stroke="${css('--accent')}" stroke-width="2.6"/>`;
+  BX.forEach((x, i) => s += `<line x1="${xs(x)}" x2="${xs(x)}" y1="${ys(BY[i])}" y2="${ys(F[i])}" stroke="${css('--orange')}" stroke-width="1.5" opacity=".7"/><circle cx="${xs(x)}" cy="${ys(BY[i])}" r="5" fill="${css('--orange')}" stroke="${css('--surface')}" stroke-width="1.5"/>`);
+  $('#b-chart').innerHTML = s + '</svg>';
+  const mae = avg(BY.map((y, i) => Math.abs(y - F[i])));
+  let t1 = '';
+  if (trees.length) { const t = trees[0]; t1 = ` Round 1 split: difficulty ≤ ${t.k} vs above; the first tree predicts a correction of ${t.ml.toFixed(1).replace('-','−')} for the easy side and +${t.mr.toFixed(1)} for the hard side, and ${lr} of it is added.`; }
+  $('#b-read').innerHTML = `Start guess (average) = <b>${m.toFixed(1)}</b> min. After <b>${n}</b> rounds the average error is <b>${mae.toFixed(2)} min</b> (orange dots are real sessions; the line is the model; short orange bars are the remaining mistakes).${t1}${lr == 1 && n > 12 ? ' With a learning rate of 1.0 the line chases every dot; on real, noisy data that overfits, which is why we use a small rate.' : ''}`;
+}
+['#b-n', '#b-lr'].forEach(i => $(i).addEventListener('input', drawB));
+
+/* ---------- 3 · scheduling puzzle ---------- */
+const MP = [{ n: 'A', t: 0, w: 4, note: 'paying' }, { n: 'B', t: 0, w: 1, note: 'ordinary' }, { n: 'C', t: 0, w: .2, note: 'inpatient' }, { n: 'D', t: 10, w: 1.5, note: 'older' }];
+const SLOTS = ['09:00', '09:10', '09:20', '09:30'];
+function perms(a) { if (a.length <= 1) return [a]; const o = []; a.forEach((x, i) => perms(a.filter((_, j) => j !== i)).forEach(p => o.push([x, ...p]))); return o; }
+function drawM() {
+  const bpay = $('#m-bpay').checked, dcx = $('#m-dcx').checked, apin = $('#m-apin').checked;
+  const P = MP.map(p => ({ ...p })); if (bpay) { P[1].w = 4; P[1].note = 'paying'; }
+  const rows = perms([0, 1, 2, 3]).map(pm => { // pm[slot] = patient index
+    const slotOf = []; pm.forEach((p, s) => slotOf[p] = s);
+    let ok = true, why = '';
+    if (dcx && slotOf[3] < 2) { ok = false; why = 'D before 09:20'; }
+    if (apin && slotOf[0] !== 0) { ok = false; why = why || 'A not first'; }
+    const cost = P.reduce((sum, p, i) => sum + p.w * Math.abs(slotOf[i] * 10 - p.t) / 10, 0);
+    return { pm, cost, ok, why };
+  }).sort((a, b) => (b.ok - a.ok) || (a.cost - b.cost));
+  const feas = rows.filter(r => r.ok), best = feas[0];
+  const W = 640, H = 120; let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Best arrangement">`;
+  const cols = [css('--orange'), css('--accent'), css('--green'), css('--grey')];
+  best.pm.forEach((p, sl) => { const x = 20 + sl * 150; s += `<rect x="${x}" y="30" width="140" height="56" rx="8" fill="${cols[p]}" opacity=".85"/><text x="${x + 70}" y="54" text-anchor="middle" style="fill:#fff;font-weight:600;font-size:15px">${P[p].n} (${P[p].note})</text><text x="${x + 70}" y="74" text-anchor="middle" style="fill:#fff">wants ${P[p].t ? '09:10' : '09:00'}</text><text x="${x + 70}" y="22" text-anchor="middle">${SLOTS[sl]}</text>`; });
+  $('#m-chart').innerHTML = s + '</svg>';
+  const name = r => r.pm.map(p => P[p].n).join(' → ');
+  $('#m-table').innerHTML = '<tr><th>Order (09:00 → 09:30)</th><th class="n">Total cost</th><th>Allowed?</th></tr>' +
+    rows.slice(0, 8).map((r, i) => `<tr class="${!r.ok ? 'bad' : i === 0 ? 'hi' : ''}"><td class="mono">${name(r)}</td><td class="n">${r.cost.toFixed(1)}</td><td>${r.ok ? (i === 0 ? '<b>best</b>' : 'yes') : 'no · ' + r.why}</td></tr>`).join('');
+  $('#m-read').innerHTML = `<b>${feas.length}</b> of 24 orders obey the hard rules. Best: <b>${name(best)}</b> at cost <b>${best.cost.toFixed(1)}</b>.${feas.length > 1 ? ` The runner-up costs ${feas[1].cost.toFixed(1)}.` : ''} (Showing the first 8 of 24 rows.)`;
+}
+['#m-bpay', '#m-dcx', '#m-apin'].forEach(i => $(i).addEventListener('input', drawM));
+
+/* ---------- 5 · Monte Carlo ---------- */
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function normal(r) { return Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()); }
+const draws = r => Array.from({ length: 12 }, () => 8 * Math.exp(0.3 * normal(r)));
+function meanWait(d, gap) { let free = 0, tot = 0; d.forEach((len, i) => { const arr = i * gap, st = Math.max(free, arr); tot += st - arr; free = st + len; }); return tot / d.length; }
+function stats(a) { const m = avg(a), sd = Math.sqrt(avg(a.map(v => (v - m) ** 2))); return [m, sd]; }
+function runMC() {
+  const r = rng((Math.random() * 1e9) | 0), shared = [], indep = [];
+  for (let k = 0; k < 300; k++) {
+    const d1 = draws(r); shared.push(meanWait(d1, 9) - meanWait(d1, 10));
+    const d2 = draws(r), d3 = draws(r); indep.push(meanWait(d3, 9) - meanWait(d2, 10));
+  }
+  const [ms, ss] = stats(shared), [mi, si] = stats(indep);
+  const W = 640, H = 240, L = 40, R = 14, T = 14, B = 34, lo = -12, hi = 18, nb = 30, xs = sc(lo, hi, L, W - R);
+  const bins = a => { const b = Array(nb).fill(0); a.forEach(v => { const i = Math.floor((v - lo) / (hi - lo) * nb); if (i >= 0 && i < nb) b[i]++; }); return b; };
+  const bi = bins(indep), bs = bins(shared), mx = Math.max(...bi, ...bs), ys = sc(0, mx, H - B, T), bw = (W - R - L) / nb;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Distribution of the difference in average wait">`;
+  for (let v = lo; v <= hi; v += 6) s += `<text x="${xs(v)}" y="${H - 16}" text-anchor="middle">${v}</text>`;
+  s += `<line class="ax" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/><text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle">extra minutes of average wait under the tighter plan B, one value per simulated day</text>`;
+  bi.forEach((c, i) => s += `<rect x="${L + i * bw + 1}" y="${ys(c)}" width="${bw - 2}" height="${H - B - ys(c)}" fill="${css('--grey')}" opacity=".6"/>`);
+  bs.forEach((c, i) => s += `<rect x="${L + i * bw + 3}" y="${ys(c)}" width="${bw - 6}" height="${H - B - ys(c)}" fill="${css('--accent')}" opacity=".85"/>`);
+  s += `<line x1="${xs(ms)}" x2="${xs(ms)}" y1="${T}" y2="${H - B}" stroke="${css('--ink')}" stroke-dasharray="4 3"/>`;
+  s += `<g transform="translate(${W - 190},${T})"><rect width="12" height="12" fill="${css('--accent')}"/><text x="18" y="11">same dice (shared)</text><rect y="18" width="12" height="12" fill="${css('--grey')}" opacity=".6"/><text x="18" y="29">separate dice</text></g>`;
+  $('#c-chart').innerHTML = s + '</svg>';
+  $('#c-read').innerHTML = `Plan B's extra average wait, estimated over 300 days:<br>• <b>separate dice:</b> ${mi.toFixed(1)} min, but the day-to-day spread is ±${si.toFixed(1)} (standard error ${(si / Math.sqrt(300)).toFixed(2)}).<br>• <b>same dice:</b> ${ms.toFixed(1)} min with a spread of only ±${ss.toFixed(1)} (standard error ${(ss / Math.sqrt(300)).toFixed(2)}).<br>Sharing the dice made the comparison about <b>${(si / ss).toFixed(1)}×</b> less noisy, so about ${((si / ss) ** 2).toFixed(0)}× fewer simulated days would give the same certainty.`;
+}
+$('#c-run').addEventListener('click', runMC);
+
+/* ---------- 6 · forecast ---------- */
+const COMMIT = [90, 85, 82, 78, 67, 62, 61, 55, 48, 47, 44, 43, 40, 37, 33];
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+function drawF() {
+  const n = +$('#f-n').value, tbi = $('#f-tbi').checked; $('#f-nv').textContent = n;
+  const first = 25 / 843 * 100, rest = 9 / 843 * 100, tb = 180 / 843 * 100;
+  const load = COMMIT.map((c, k) => c + (k === 2 ? n * first : k > 2 && k < 2 + 25 ? n * rest : 0) + (tbi && k >= 10 && k <= 12 ? tb : 0));
+  const W = 640, H = 270, L = 40, R = 14, T = 14, B = 40, ymax = Math.max(120, ...load) * 1.05, ys = sc(0, ymax, H - B, T), bw = (W - L - R) / 15;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planned load by day">`;
+  for (let v = 0; v <= 120; v += 20) s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${ys(v)}" y2="${ys(v)}"/><text x="${L - 6}" y="${ys(v) + 4}" text-anchor="end">${v}%</text>`;
+  load.forEach((v, k) => { const x = L + k * bw, over = v > 100.0001; s += `<rect x="${x + 4}" y="${ys(v)}" width="${bw - 8}" height="${H - B - ys(v)}" rx="3" fill="${over ? css('--red') : css('--accent')}" opacity=".85"/><text x="${x + bw / 2}" y="${H - 24}" text-anchor="middle">${DAYS[k]}</text><text x="${x + bw / 2}" y="${H - 10}" text-anchor="middle">${k + 1}</text>`; });
+  s += `<line x1="${L}" x2="${W - R}" y1="${ys(100)}" y2="${ys(100)}" stroke="${css('--ink')}" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${W - R}" y="${ys(100) - 5}" text-anchor="end" style="fill:${css('--ink')}">capacity</text>`;
+  $('#f-chart').innerHTML = s + '</svg>';
+  const peak = Math.max(...load), over = load.filter(v => v > 100.0001).length;
+  // largest n that keeps every day under capacity
+  let mx = 0; for (let t = 0; t <= 40; t++) { const ok = COMMIT.every((c, k) => c + (k === 2 ? t * first : k > 2 && k < 27 ? t * rest : 0) + (tbi && k >= 10 && k <= 12 ? tb : 0) <= 100.0001); if (ok) mx = t; }
+  $('#f-read').innerHTML = `Peak load <b>${peak.toFixed(0)}%</b>; days over capacity: <b>${over}</b>. The advisor would let at most <b>${mx}</b> new patient${mx === 1 ? '' : 's'} start on day 3${tbi ? ' with the TBI course booked' : ''}, and recommend the rest start on a later day instead of overloading one.`;
+}
+['#f-n', '#f-tbi'].forEach(i => $(i).addEventListener('input', drawF));
+
+drawQ(); drawB(); drawM(); drawF(); runMC();
+</script>
+</body>
+</html>

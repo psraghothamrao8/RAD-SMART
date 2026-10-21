@@ -8,6 +8,8 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 **Pitch deck:** https://psraghothamrao8.github.io/RAD-SMART/deck/ (web) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf)
 
+**Technical guide (meeting prep):** https://psraghothamrao8.github.io/RAD-SMART/tech/ · **The maths, worked through:** https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html
+
 ## What is in this folder
 
 | Path | What it is |

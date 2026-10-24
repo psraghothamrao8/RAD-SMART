@@ -15,16 +15,16 @@ To rebuild the department profile from the spreadsheet, which is kept outside th
 python ../tools/analyse_department_data.py "Anonymised data_RADSMART.xlsx"
 ```
 
-A full run takes about three minutes on a laptop. Seeds are fixed and ties are broken by patient ID, so runs reproduce, with one exception: a solve that stops at its time limit can return a slightly different best plan. Solver timings always vary. It writes to `results/`:
+A full run takes about three minutes on a laptop. Seeds are fixed and ties are broken by patient ID, so runs reproduce, with one exception: a solve that stops at its time limit can return a slightly different best plan. Solver timings always vary. It writes to `results/`, and the figures to `../docs/figures/`:
 
 | File | Contents |
 |---|---|
 | `results.json` | Every number quoted in the report: assumptions, model accuracy, solver statistics, KPIs |
 | `run_log.txt` | Human-readable summary tables |
 | `schedule_rad_smart.csv` | The optimised 87-patient day, with the reporting time and a reason code for every placement |
-| `web_data.json` | Chart data for the interactive results page |
-| `fig0`–`fig6*.png` | Figures used in the report (`fig0` summarises the department's records) |
-| `fig7_original_dataset.png`, `fig8_simulated_dataset.png` | The impact analysis: with and without RAD-SMART on the original and on the simulated dataset |
+| `web_data.json` | Chart data as JSON: waits by hour, the day plan, both breakdowns and the forecast |
+| `../docs/figures/fig0`–`fig6*.png` | Figures used in the report (`fig0` summarises the department's records) |
+| `../docs/figures/fig7_original_dataset.png`, `fig8_simulated_dataset.png` | The impact analysis and the research paper: with and without RAD-SMART on the original and on the simulated dataset |
 
 ## What each module does
 

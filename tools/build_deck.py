@@ -21,11 +21,9 @@ deck_dir = root / "docs/deck"
 src = deck_dir / "src"
 deck = json.loads((src / "deck.json").read_text(encoding="utf-8"))
 
-# images uploaded to the artifact, and the report figures they came from
-BLOBS = {
-    "/_blob/cb8ca380ac3edf1ea4beac8222112efc": "../figures/fig1_wait_distribution.png",
-    "/_blob/34fd6ce997d121e51a29c8deac7df884": "../figures/fig3_optimised_day.png",
-}
+# images uploaded to the artifact, and the report figures they came from (none at present:
+# the slides reference ../figures/ directly)
+BLOBS: dict[str, str] = {}
 
 frames = []
 for n, sid in enumerate(deck["order"], 1):

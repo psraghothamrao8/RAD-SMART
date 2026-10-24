@@ -6,9 +6,11 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 **It runs inside CARE**, the Open Healthcare Network's open-source hospital information system, as a pair of plugins with a **RADSMART** button on the patient's visit page (`app/`, see [`app/README.md`](app/README.md)).
 
-**Live results page:** https://psraghothamrao8.github.io/RAD-SMART/ (GitHub Pages, served from `docs/`)
+**Website:** https://psraghothamrao8.github.io/RAD-SMART/ (a one-page summary with simple charts; GitHub Pages, served from `docs/`)
 
 **Pitch deck:** https://psraghothamrao8.github.io/RAD-SMART/deck/ (web) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf)
+
+**Research paper:** [PDF](docs/RAD-SMART_Research_Paper.pdf) (8 pages)
 
 **Technical guide (meeting prep):** https://psraghothamrao8.github.io/RAD-SMART/tech/ · **The maths, worked through:** https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html
 
@@ -16,20 +18,19 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 | Path | What it is |
 |---|---|
-| `RAD-SMART.pdf` | Original problem statement from Dr Akshay Dinesan |
+| `docs/RAD-SMART_Research_Paper.pdf` (`.docx`, `.md`) | Eight-page research paper: the problem, the method, results on both datasets, limitations |
 | `docs/RAD-SMART_Research_Report.pdf` (`.docx`, `.md`) | Full research report: problem, evidence, five approaches and the choice, solution design, PoC results, KPIs, implementation plan, pilot, requirements, budget, risks, references |
 | `docs/RAD-SMART_Impact_Analysis.pdf` (`.docx`, `.md`) | Four pages: how much RAD-SMART improves waiting, with and without it, on the original dataset (the department's records) and on the simulated dataset, and what it costs |
 | `app/` | The application: a backend plugin (`care_radsmart`, Django) and a frontend plugin (`care_radsmart_fe`, React) for CARE. Setup, roles, permissions and the API are in `app/README.md` |
-| `docs/Round1_Submission_Kit.pdf` (`.docx`, `.md`) | Ready-to-paste answers for the five Round 1 sections, deck outline, video script, likely jury questions, checklist, and links to the published deck and results page |
+| `docs/Round1_Submission_Kit.pdf` (`.docx`, `.md`) | Ready-to-paste answers for the five Round 1 sections, deck outline, video script, likely jury questions, checklist, and links to the published deck and website |
 | `docs/figures/` | All figures (architecture, daily loop, PoC charts, screenshots of the CARE application with synthetic patients) |
 | `docs/figures-src/` | HTML sources of the architecture and daily-loop diagrams |
 | `poc/` | Working proof of concept in Python on synthetic patients, with its digital twin calibrated on aggregates of the department's records (see `poc/README.md`) |
 | `tools/analyse_department_data.py` | Summarises the department's anonymised spreadsheet into the aggregates the twin uses: `python tools/analyse_department_data.py "<file>.xlsx"`. The spreadsheet is never committed |
 | `tools/build_docs.py` | Rebuilds the DOCX and PDF from the Markdown: `python tools/build_docs.py docs/<file>.md` |
-| `docs/index.html` | Interactive results page (the Round 1 prototype link), served by GitHub Pages. Built from `docs/web/page_template.html` and the PoC output; `docs/web/rad-smart-prototype.html` is the same page for Claude artifacts |
-| `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 10 slide sources in `src/` |
+| `docs/index.html` | The project website (the prototype link), served by GitHub Pages. Plain HTML: edit it directly |
+| `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 9 slide sources in `src/` |
 | `tools/build_deck.py` | Rebuilds the web deck and its PDF from `docs/deck/src/` (needs Google Chrome): `python tools/build_deck.py` |
-| `tools/build_results_page.py` | Rebuilds both copies of the results page after a PoC run: `python tools/build_results_page.py` |
 
 ## Key dates
 

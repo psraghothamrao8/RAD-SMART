@@ -12,9 +12,8 @@
     "approaches",
     "howitworks",
     "app",
-    "day",
-    "waits",
-    "impact",
+    "results",
+    "breakdown",
     "plan"
   ],
   "cover": "cover",
@@ -29,7 +28,7 @@
     },
     "evidence": {
       "description": "Evidence from the proof of concept",
-      "start": "day"
+      "start": "results"
     },
     "plan": {
       "description": "Guardrails, pilot and next steps",

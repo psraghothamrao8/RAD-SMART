@@ -4,9 +4,9 @@ Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient F
 
 > **Deadline: Thursday 25 September 2026, 23:59.** There is no late lane, and a draft that is never submitted is not judged. Any team member can edit and submit, and the last version saved before the deadline is the one evaluated. **Aim to submit by Wednesday 23 September**, then keep improving until the deadline.
 
-> **Updated 24 October 2026, for the build sprint.** We were shortlisted. On 24 October the department described its roles, standing slots, breakdown rules and the screens it needs, and we built them into the engine and into a working application inside CARE, the Open Healthcare Network's hospital information system (`app/`, report Section 6.10). A separate impact analysis compares each dataset with and without RAD-SMART (`docs/RAD-SMART_Impact_Analysis.pdf`): on the department's own 55 days the 90th-percentile wait falls from 108.6 to 70.4 minutes (−35%), and over 12 synthetic weeks with standing slots from 82 to 49 minutes (−40%). The answers below are as submitted for Round 1, with figures that have since changed updated; the deck now has 10 slides.
+> **Updated 24 October 2026, for the build sprint.** We were shortlisted. On 24 October the department described its roles, standing slots, breakdown rules and the screens it needs, and we built them into the engine and into a working application inside CARE, the Open Healthcare Network's hospital information system (`app/`, report Section 6.10). A separate impact analysis compares each dataset with and without RAD-SMART (`docs/RAD-SMART_Impact_Analysis.pdf`): on the department's own 55 days the 90th-percentile wait falls from 108.6 to 70.4 minutes (−35%), and over 12 synthetic weeks with standing slots from 82 to 49 minutes (−40%). The answers below are as submitted for Round 1, with figures that have since changed updated; the deck now has 9 slides, and a short research paper (`docs/RAD-SMART_Research_Paper.pdf`) sums up the method and results.
 
-This kit contains ready-to-paste answers for the five Round 1 sections, the outline of our deck, a 3-minute video script, likely jury questions, and a checklist. The deck and an interactive results page are already built and published (sections 2.5 and 2.6). Each answer comes in a **full version** and a **short version** in case the form limits length. Replace the text in [square brackets] before submitting.
+This kit contains ready-to-paste answers for the five Round 1 sections, the outline of our deck, a 3-minute video script, likely jury questions, and a checklist. The deck and the project website are already built and published (sections 2.5 and 2.6). Each answer comes in a **full version** and a **short version** in case the form limits length. Replace the text in [square brackets] before submitting.
 
 ---
 
@@ -22,7 +22,7 @@ This kit contains ready-to-paste answers for the five Round 1 sections, the outl
 | 6 | Team names and roles are on deck slide 1, in section 2.3 and in report Section 9.5. Add a line on each member's background if the form asks | All | 24 Sep |
 | 7 | Open the published deck (section 2.5) and download it as PDF | Tech team | 23 Sep |
 | 8 | Optional: record the 3-minute video walkthrough (section 4) | Tech team + Dr Akshay | 23 Sep |
-| 9 | Optional: paste the public results page link as the prototype link, and the code repository link if asked (section 2.6) | Tech lead | 23 Sep |
+| 9 | Optional: paste the website link as the prototype link, and the code repository link if asked (section 2.6) | Tech lead | 23 Sep |
 | 10 | Optional: attach the supporting document `RAD-SMART_Research_Report.pdf` | Tech lead | 23 Sep |
 | 11 | Paste the answers, upload the files and **submit** | Tech lead | **23 Sep** |
 | 12 | Final proofread; check who last edited the entry; re-save if needed | All | 25 Sep, before 23:59 |
@@ -113,7 +113,7 @@ OIS calendars (MOSAIQ, ARIA) and academic schedulers exist. The academic ones mo
 
 ### 2.5 Deck
 
-The deck (now 10 slides) is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
+The deck (now 9 slides) is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
 
 1. Check the names and roles on slide 1.
 2. Download the deck as PDF from the page, and upload the PDF.
@@ -124,31 +124,30 @@ A copy is also on GitHub: the PDF at `docs/deck/RAD-SMART_Pitch_Deck.pdf` and a 
 
 ### 2.6 Optional items
 
-- **Supporting document:** `docs/RAD-SMART_Research_Report.pdf`, the full research report and implementation plan (45 pages), and `docs/RAD-SMART_Impact_Analysis.pdf`, the four-page analysis with and without RAD-SMART on both datasets.
-- **Prototype link:** the interactive results page at https://psraghothamrao8.github.io/RAD-SMART/, hosted on GitHub Pages and open to anyone. It opens with what the department's records show, then gives the PoC's results on synthetic patients: the wait curves against the records, the optimised day with a reason for every session, the trade-off of holding capacity for urgent starts, both downtime re-plans and the two-machine forecast with TBI. After re-running the PoC, run `python tools/build_results_page.py`, commit and push; the page updates within a few minutes.
+- **Supporting document:** `docs/RAD-SMART_Research_Report.pdf`, the full research report and implementation plan (45 pages), `docs/RAD-SMART_Impact_Analysis.pdf`, the four-page analysis with and without RAD-SMART on both datasets, and `docs/RAD-SMART_Research_Paper.pdf`, the eight-page research paper.
+- **Prototype link:** the project website at https://psraghothamrao8.github.io/RAD-SMART/, hosted on GitHub Pages and open to anyone: a one-page summary with simple charts (the problem, how it works, the app in CARE, results with and without RAD-SMART, breakdowns and the pilot) and links to every document. Its source is `docs/index.html`; edit it, commit and push, and the page updates within a few minutes.
 - **Code:** https://github.com/psraghothamrao8/RAD-SMART (public). It holds the PoC, the documents and the page source. Its patients are synthetic, and the department's records appear only as aggregates (`poc/data/department_profile.json`); the spreadsheet is never committed.
 - **Video walkthrough:** the script is in section 4.
 
 ---
 
-## 3. Deck outline (10 slides)
+## 3. Deck outline (9 slides)
 
-Each slide makes one point with large numbers, uses the figures from `docs/figures/`, and carries the footer "Assistive, not diagnostic · synthetic patients, anonymised aggregates". The deck has four sections: the problem, the solution, the evidence and the plan.
+The deck is written for a panel that is not all technical: one point per slide, large numbers, and simple bar charts drawn on the slide. The footers name the sources. The deck has four sections: the problem, the solution, the evidence and the plan.
 
 | # | Slide title | Key message | Visual |
 |---|---|---|---|
-| 1 | RAD-SMART | The right patient, on the right machine, at a predictable time | Title; the five team members and their roles; Cancer track, use case 04 |
-| 2 | Every weekday, 70–90 patients wait for one machine | The department's records: one patient in ten waits over 109 min, 22% are treated over an hour late, and the median wait grows from 19 min in the morning to 66 min in the evening. India: 69% of centres have one machine | Big numbers from the records |
-| 3 | Allocation under hard rules and soft priorities | Hard rules (new starts by 17:00, 10:00–17:00 complex window, blood slot, one breast board and one ABC, MHRC bus, public transport by 21:00, urgent by 18:00, one standing slot for the course) versus soft priorities (paying patients' times, older patients, flexible patients in the evening) | Two rule cards |
-| 4 | We compared five ways to build it | Rules, LLM-only, static optimisation, deep RL, hybrid. The hybrid wins at 4.85/5 | Decision table |
-| 5 | How RAD-SMART works, and who decides | Predict, optimise, simulate, explain, each with its PoC result; then the four points in the day where a named person decides, and the light-touch data sources | Four technique tiles + a human-in-the-loop band |
-| 6 | From the visit page to the treatment day | The application in CARE: the doctor's RADSMART button, intake and approval; the technologist's day board; breakdowns of 15 min to 48 h approved before anyone is told | Visit-page button + proposal screenshot |
-| 7 | One optimised day, with every rule held | 87 patients from 08:30 to 00:39, all 8 hard rules re-checked, a reason for every placement | `fig3` day Gantt |
-| 8 | Fewer long waits, and times that hold | Against the busiest recorded days: 90th-percentile wait 130 → 76 min; over an hour late 27% → 6%; evening median 66 → 36 min; after a 150-min machine fault 104 → 39 min with live re-planning. The median stays about the same, preparation included | `fig1` wait curves (records vs simulated) + KPI numbers |
-| 9 | Both datasets: far fewer long waits, at a price | Original (55 recorded days): 108.6 → 70.4 min; simulated (12 weeks, standing slots): 82 → 49 min; the price: a later evening, some new starts a little later, fewer requested times kept | `fig7` + `fig8` |
-| 10 | Safe by design, then 90 days on the Versa HD | Six guardrails (approval, independent rule check, clinicians decide, no identifiers to AI, audit trail, synthetic and anonymised data); baseline 2 weeks, shadow 3 weeks, live 8 weeks; primary KPI: 90th-percentile wait at least 25% lower (records: 109 min); the ask | Guardrail list + pilot timeline and KPI cards |
+| 1 | RAD-SMART | The right patient, on the right machine, at a predictable time | Title; the five team members and their roles |
+| 2 | One machine, 70–90 patients a day, long waits | One patient in ten waits over 109 min; 22% are treated over an hour late; the wait grows from 19 min in the morning to 66 in the evening | Two big numbers + a two-bar chart |
+| 3 | It is not just booking appointments | Sessions differ, rules must hold, the day changes; each patient keeps one slot for the whole course | Three cards |
+| 4 | We compared five ways; a hybrid scored best | Templates 3.1, LLM alone 2.6, optimisation alone 3.6, reinforcement learning 2.5, hybrid 4.85 out of 5 | Bar chart of scores |
+| 5 | Four steps, and a person decides | Predict, plan, test, tell; the doctor approves each course, a technologist or doctor every change on the day | Four step cards + approval band |
+| 6 | One button on the patient's page | The working app in CARE: doctor, technologist, breakdown | Two screenshots |
+| 7 | Long waits fall by more than a third | Department's 55 days replayed: 109 → 70 min (−35%); 12 simulated weeks: 82 → 49 min (−40%); over an hour late 22% → 6%; the trade-off: a later evening | Two before/after bar pairs + three tiles |
+| 8 | A new plan in seconds, not a lost day | Typical wait after a 2½-hour breakdown 104 → 39 min, after 45 minutes 53 → 37; the department's breakdown rules | Two bar pairs + rules card |
+| 9 | Safe by design, then a 90-day pilot | Measure, shadow, live; target 25% shorter long waits; four guardrails; the ask | Timeline + two cards |
 
-The earlier 14-slide version, including the separate downtime-recovery and two-machine-forecast slides, is in the repository's git history (commit `af992f8`) if a longer deck is ever needed.
+Earlier, longer versions of the deck (with the day Gantt and the wait curves) are in the repository's git history.
 
 ## 4. Video walkthrough script (3 minutes)
 

@@ -61,10 +61,10 @@
     <a href="../RAD-SMART_Research_Report.pdf">Research report</a>
     <a href="https://github.com/psraghothamrao8/RAD-SMART">Source code</a>
   </nav>
-  <p>10 slides · use the arrow keys or Page Up / Page Down to move between slides · all data synthetic</p>
+  <p>9 slides · use the arrow keys or Page Up / Page Down to move between slides · all data synthetic</p>
 </header>
 <main class="deck">
-<figure class="slide" id="s1" aria-label="Slide 1 of 10"><div class="frame"><div class="canvas"><section id="cover" data-transition="fade" style="background:#0E2A47; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px; justify-content:space-between">
+<figure class="slide" id="s1" aria-label="Slide 1 of 9"><div class="frame"><div class="canvas"><section id="cover" data-transition="fade" style="background:#0E2A47; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px; justify-content:space-between">
   <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#8DBBF2">Health-a-thon 2026 · Cancer track · Clinic Operations &amp; Patient Flow</p>
   <div style="display:flex; flex-direction:column; gap:20px">
     <h1 style="font-family:'Source Serif 4', Georgia, serif; font-size:144px; font-weight:600; line-height:1.05; color:#F3F5F8">RAD-SMART</h1>
@@ -84,138 +84,147 @@
   </div>
   <aside>RAD-SMART is an assistive operations layer for radiotherapy. It predicts machine-minutes, builds a plan in which hard rules cannot be broken, tests it in a digital twin, and explains and communicates it through Sarvam AI. People approve every change.</aside>
 </section></div></div><details class="notes"><summary>Speaker notes</summary><p>RAD-SMART is an assistive operations layer for radiotherapy. It predicts machine-minutes, builds a plan in which hard rules cannot be broken, tests it in a digital twin, and explains and communicates it through Sarvam AI. People approve every change.</p></details></figure>
-<figure class="slide" id="s2" aria-label="Slide 2 of 10"><div class="frame"><div class="canvas"><section id="problem" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+<figure class="slide" id="s2" aria-label="Slide 2 of 9"><div class="frame"><div class="canvas"><section id="problem" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:48px">
   <div style="display:flex; flex-direction:column; gap:16px">
     <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">The problem</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Every weekday, 70–90 patients wait for one machine</h2>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">One machine, 70–90 patients a day, long waits</h2>
   </div>
-  <p style="font-size:30px; line-height:1.4; color:#3B4654">Appointment times are given by hand, without knowing how many machine-minutes each patient needs. Too many people are told to come at once, and they wait, every day of a 5–7 week course, usually with a caregiver.</p>
-  <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#5F6B7A">Our department's records · 55 days, Oct–Dec 2024 · 3,137 patient-days</p>
-    <div style="display:flex; flex-direction:row; gap:32px">
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:72px; font-weight:600; line-height:1.05; color:#132238">109 min</p>
-        <p style="font-size:28px; line-height:1.4; color:#3B4654">one patient in ten waits longer than this, from arrival to treatment</p>
+  <div style="display:flex; flex-direction:row; gap:80px; align-items:flex-start">
+    <div style="flex:none; width:560px; display:flex; flex-direction:column; gap:36px">
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:96px; font-weight:600; line-height:1; color:#132238">1 in 10</p>
+        <p style="font-size:30px; line-height:1.35; color:#3B4654">patients waits more than <b style="color:#132238">1 hour 49 min</b> for a daily session</p>
       </div>
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:72px; font-weight:600; line-height:1.05; color:#132238">22%</p>
-        <p style="font-size:28px; line-height:1.4; color:#3B4654">treated more than an hour after their appointment; only 29% within 15 minutes</p>
-      </div>
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:72px; font-weight:600; line-height:1.05; color:#132238">19 → 66 min</p>
-        <p style="font-size:28px; line-height:1.4; color:#3B4654">median wait, arriving before 10:00 against after 19:00: delays build all day</p>
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:96px; font-weight:600; line-height:1; color:#132238">22%</p>
+        <p style="font-size:30px; line-height:1.35; color:#3B4654">are treated more than an hour after their appointment</p>
       </div>
     </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:28px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:40px 48px">
+      <p style="font-size:32px; font-weight:600; line-height:1.3; color:#132238">The wait grows through the day</p>
+      <p style="font-size:24px; color:#5F6B7A">Typical (median) wait, by when the patient arrives</p>
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <p style="font-size:26px; color:#3B4654">Morning, before 10:00</p>
+        <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><div style="flex:none; width:202px; height:64px; background:#2A78D6; border-radius:6px"></div><p style="font-size:40px; font-weight:600; color:#132238">19 min</p></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <p style="font-size:26px; color:#3B4654">Evening, after 19:00</p>
+        <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><div style="flex:none; width:700px; height:64px; background:#EB6834; border-radius:6px"></div><p style="font-size:40px; font-weight:600; color:#132238">66 min</p></div>
+      </div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">Times are given by hand, without knowing how long each session takes, so too many patients are told to come at once.</p>
+    </div>
   </div>
-  <p style="font-size:26px; line-height:1.4; color:#3B4654">The load is rising, from 54 patients a weekday in October to 67 in December, and busy days are worse. 69% of India's 554 radiotherapy facilities have only one machine.</p>
+  <p style="font-size:28px; line-height:1.4; color:#3B4654">A course lasts 5–7 weeks, every weekday, usually with a family member. 69% of India's radiotherapy centres have only one machine.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Sources: department records (anonymised, aggregates only); problem statement (Dr A. Dinesan); J Med Phys 2024</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">2 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">Department's records: 55 days, Oct–Dec 2024, 3,137 patient visits (anonymised, totals only) · J Med Phys 2024</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">2 / 9</p>
   </div>
-  <aside>The department's own records show a daily pain that grows through the day: patients arriving before 10:00 wait a median of about 19 minutes, those arriving after 19:00 about 66, and evening patients now come about half an hour early to protect their place. A patient on a 25-fraction course who waits an extra hour a day loses about 25 hours, and so does the family member who comes along. Most Indian centres have one machine, so one bad day affects everyone.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The department's own records show a daily pain that grows through the day: patients arriving before 10:00 wait a median of about 19 minutes, those arriving after 19:00 about 66, and evening patients now come about half an hour early to protect their place. A patient on a 25-fraction course who waits an extra hour a day loses about 25 hours, and so does the family member who comes along. Most Indian centres have one machine, so one bad day affects everyone.</p></details></figure>
-<figure class="slide" id="s3" aria-label="Slide 3 of 10"><div class="frame"><div class="canvas"><section id="constraints" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <aside>The department's own records show the pain. One patient in ten waits more than 109 minutes, and 22% are treated more than an hour late. The wait builds through the day: about 19 minutes in the morning, about 66 in the evening. A patient on a 25-session course who waits an extra hour a day loses about 25 hours, and so does the family member who comes along. Most Indian centres have one machine, so one bad day affects everyone.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The department's own records show the pain. One patient in ten waits more than 109 minutes, and 22% are treated more than an hour late. The wait builds through the day: about 19 minutes in the morning, about 66 in the evening. A patient on a 25-session course who waits an extra hour a day loses about 25 hours, and so does the family member who comes along. Most Indian centres have one machine, so one bad day affects everyone.</p></details></figure>
+<figure class="slide" id="s3" aria-label="Slide 3 of 9"><div class="frame"><div class="canvas"><section id="constraints" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:48px">
   <div style="display:flex; flex-direction:column; gap:16px">
     <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Why it is hard</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Allocation under hard rules and soft priorities</h2>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">It is not just booking appointments</h2>
   </div>
   <div style="display:flex; flex-direction:row; gap:32px">
-    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
-      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Hard rules: never broken</h3>
-      <ul style="font-size:26px; line-height:1.4; color:#3B4654"><li>New starts finish by 17:00</li><li>SBRT, SRT, TBI, CSI in 10:00–17:00</li><li>Blood irradiation 13:30–14:00, daily</li><li>1 breast board, 1 ABC, shared with CT</li><li>MHRC: 16:00–17:00, then the 17:00 bus</li><li>Public transport home by 21:00</li><li>Urgent starts treated by 18:00</li><li>One standing slot for the whole course</li></ul>
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
+      <div style="height:8px; background:#2A78D6; border-radius:4px"></div>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:38px; font-weight:600; line-height:1.2; color:#132238">Sessions differ</h3>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">A routine session takes 7–15 minutes; a new patient or a complex case takes 20–60.</p>
     </div>
-    <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
-      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Soft priorities: traded off</h3>
-      <ul style="font-size:26px; line-height:1.4; color:#3B4654"><li>Paying patients' preferred times</li><li>Older patients earlier</li><li>Ward, dormitory, nearby: late evening</li><li>Complex cases in 12:00–13:30</li><li>A day of 08:30 to 01:00, little overtime</li></ul>
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
+      <div style="height:8px; background:#EB6834; border-radius:4px"></div>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:38px; font-weight:600; line-height:1.2; color:#132238">Rules must hold</h3>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">New patients before 17:00 · hospice patients back for the 17:00 bus · bus users home by 21:00 · one breast board, shared</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:36px 40px">
+      <div style="height:8px; background:#1BAF7A; border-radius:4px"></div>
+      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:38px; font-weight:600; line-height:1.2; color:#132238">The day changes</h3>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">Breakdowns of 15 minutes to 48 hours, urgent patients, late arrivals and no-shows.</p>
     </div>
   </div>
-  <p style="font-size:28px; line-height:1.4; color:#132238; background:#FFFFFE; border:1px dashed #898781; border-radius:12px; padding:20px 32px">And every day brings events: breakdowns of 15 minutes to 48 hours, overruns, no-shows, urgent add-ons and imaging holds, each of which should trigger a re-plan.</p>
+  <p style="font-size:30px; line-height:1.4; color:#132238; background:#FFFFFE; border:1px dashed #898781; border-radius:12px; padding:24px 36px">Each patient keeps <b>one time slot for the whole course</b>. A good plan must find that slot, keep every rule, and repair the day in minutes when something goes wrong.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Rules confirmed by the department, 21 Sep and 24 Oct 2026 · Assistive, not diagnostic · synthetic patients</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">3 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">Rules confirmed by the department, 21 Sep and 24 Oct 2026</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">3 / 9</p>
   </div>
-  <aside>As the problem statement says, this is not appointment booking. It is dynamic allocation of machine time, staff and shared resources. The department confirmed these rules on 21 September and 24 October: each patient keeps one slot until the course ends, new starts are done before 17:00, one breast board and one ABC unit with set reservations for the linac, the 17:00 hospital bus for MHRC patients, public transport home by 21:00, and patients reporting 20 minutes early, or 45 for pelvic patients. Every rule is configuration the department can change, not code.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>As the problem statement says, this is not appointment booking. It is dynamic allocation of machine time, staff and shared resources. The department confirmed these rules on 21 September and 24 October: each patient keeps one slot until the course ends, new starts are done before 17:00, one breast board and one ABC unit with set reservations for the linac, the 17:00 hospital bus for MHRC patients, public transport home by 21:00, and patients reporting 20 minutes early, or 45 for pelvic patients. Every rule is configuration the department can change, not code.</p></details></figure>
-<figure class="slide" id="s4" aria-label="Slide 4 of 10"><div class="frame"><div class="canvas"><section id="approaches" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <aside>This is not appointment booking; it is sharing out machine time. The department confirmed its rules on 21 September and 24 October: new starts finish before 17:00, complex cases between 10:00 and 17:00, the blood-irradiation slot at 13:30, hospice (MHRC) patients in the 16:00–17:00 slots to catch the 17:00 bus, public-transport patients home by 21:00, one breast board and one breath-hold unit shared with the CT room, and one standing slot for each course. Every rule is a setting the department can change, not code.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>This is not appointment booking; it is sharing out machine time. The department confirmed its rules on 21 September and 24 October: new starts finish before 17:00, complex cases between 10:00 and 17:00, the blood-irradiation slot at 13:30, hospice (MHRC) patients in the 16:00–17:00 slots to catch the 17:00 bus, public-transport patients home by 21:00, one breast board and one breath-hold unit shared with the CT room, and one standing slot for each course. Every rule is a setting the department can change, not code.</p></details></figure>
+<figure class="slide" id="s4" aria-label="Slide 4 of 9"><div class="frame"><div class="canvas"><section id="approaches" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:48px">
   <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Five approaches</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">We compared five ways to build it</h2>
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Our choice</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">We compared five ways; a hybrid scored best</h2>
   </div>
-  <table style="width:1664px; font-size:26px; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; border:1px solid #D9DFE6"><tr style="background:#EEF2F6"><th style="width:30%">Approach</th><th style="width:25%">Strength</th><th style="width:32%">Weakness</th><th style="width:13%">Score</th></tr><tr><td>Rule-based slot templates</td><td>Simple, transparent</td><td>Can't absorb variation or faults</td><td>3.10</td></tr><tr><td>LLM-only agent</td><td>Conversational</td><td>No guarantee on hard rules</td><td>2.60</td></tr><tr><td>Static optimisation</td><td>Guarantees hard rules</td><td>No learning or live recovery</td><td>3.60</td></tr><tr><td>Deep reinforcement learning</td><td>Adaptive in principle</td><td>Opaque; needs huge data</td><td>2.45</td></tr><tr style="background:#E3EEFB"><td>Hybrid (selected): predict, optimise, simulate, explain</td><td>Best of each technique</td><td>More parts, built in layers</td><td>4.85</td></tr></table>
-  <p style="font-size:24px; line-height:1.4; color:#5F6B7A">Weighted score out of 5: safety and scope 20%, impact 20%, real-time 15%, feasibility 15%, explainability 10%, ease and languages 10%, configurability 10%.</p>
+  <div style="display:flex; flex-direction:column; gap:22px">
+    <div style="display:flex; flex-direction:row; align-items:center; gap:24px"><p style="flex:none; width:520px; font-size:30px; color:#3B4654">Fixed slot templates</p><div style="flex:none; width:620px; height:52px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:32px; font-weight:600; color:#3B4654">3.1</p></div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:24px"><p style="flex:none; width:520px; font-size:30px; color:#3B4654">A chatbot (LLM) alone</p><div style="flex:none; width:520px; height:52px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:32px; font-weight:600; color:#3B4654">2.6</p></div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:24px"><p style="flex:none; width:520px; font-size:30px; color:#3B4654">Optimisation alone</p><div style="flex:none; width:720px; height:52px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:32px; font-weight:600; color:#3B4654">3.6</p></div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:24px"><p style="flex:none; width:520px; font-size:30px; color:#3B4654">Self-learning AI (reinforcement)</p><div style="flex:none; width:490px; height:52px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:32px; font-weight:600; color:#3B4654">2.5</p></div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:24px"><p style="flex:none; width:520px; font-size:30px; font-weight:600; color:#132238">RAD-SMART hybrid</p><div style="flex:none; width:970px; height:52px; background:#2A78D6; border-radius:6px"></div><p style="font-size:32px; font-weight:600; color:#132238">4.9</p></div>
+  </div>
+  <p style="font-size:28px; line-height:1.4; color:#3B4654">Score out of 5 for safety, impact, speed, ease of building, explaining and languages. A chatbot alone cannot promise the rules; a solver alone cannot learn or talk to patients. The hybrid uses each where it is strongest.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">RAD-SMART · Health-a-thon 2026 · Assistive, not diagnostic · synthetic patients, anonymised aggregates</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">4 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">Weights: safety 20%, impact 20%, real-time 15%, feasibility 15%, explainability 10%, languages 10%, configurability 10%</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">4 / 9</p>
   </div>
-  <aside>An LLM alone cannot promise that no new start runs past 17:00. A solver alone cannot learn, recover or talk to patients. The hybrid uses each technique where it is strongest, and it can be built in layers: the optimiser with average tables works on its own from week one.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>An LLM alone cannot promise that no new start runs past 17:00. A solver alone cannot learn, recover or talk to patients. The hybrid uses each technique where it is strongest, and it can be built in layers: the optimiser with average tables works on its own from week one.</p></details></figure>
-<figure class="slide" id="s5" aria-label="Slide 5 of 10"><div class="frame"><div class="canvas"><section id="howitworks" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:32px">
+  <aside>We scored five designs on seven weighted criteria. Fixed templates are simple but cannot absorb variation or faults. An LLM alone cannot guarantee that no new start runs past 17:00. Optimisation alone guarantees rules but cannot learn or recover live. Deep reinforcement learning is opaque and needs huge data. The hybrid predicts, optimises, simulates and explains, and it can be built in layers: the optimiser with average tables works from week one.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>We scored five designs on seven weighted criteria. Fixed templates are simple but cannot absorb variation or faults. An LLM alone cannot guarantee that no new start runs past 17:00. Optimisation alone guarantees rules but cannot learn or recover live. Deep reinforcement learning is opaque and needs huge data. The hybrid predicts, optimises, simulates and explains, and it can be built in layers: the optimiser with average tables works from week one.</p></details></figure>
+<figure class="slide" id="s5" aria-label="Slide 5 of 9"><div class="frame"><div class="canvas"><section id="howitworks" data-transition="fade" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:48px">
   <div style="display:flex; flex-direction:column; gap:16px">
     <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">The solution</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">How RAD-SMART works, and who decides</h2>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">Four steps, and a person decides</h2>
   </div>
   <div style="display:flex; flex-direction:row; gap:24px">
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+      <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 32px">
         <div style="height:8px; background:#2A78D6; border-radius:4px"></div>
-        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#1C5CAB">1 · Predict</p>
-        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Minutes, not head-counts</h3>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">Expected and cautious (P80) minutes per session, starting from the department's estimate table.</p>
-        <div style="flex:1"></div>
-        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">PoC: 2.1 min error vs 2.6 for averages</p>
+        <p style="font-size:26px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#1C5CAB">1 · Predict</p>
+        <p style="font-size:30px; line-height:1.35; color:#132238">How many minutes each patient needs on the machine</p>
       </div>
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+      <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 32px">
         <div style="height:8px; background:#EB6834; border-radius:4px"></div>
-        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#B0461D">2 · Optimise</p>
-        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Hard rules guaranteed</h3>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">A solver gives each course a standing slot and repairs the day live; hard rules cannot break.</p>
-        <div style="flex:1"></div>
-        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">PoC: 87 patients, all 8 rules re-checked</p>
+        <p style="font-size:26px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#B0461D">2 · Plan</p>
+        <p style="font-size:30px; line-height:1.35; color:#132238">One time slot per course, with every rule guaranteed</p>
       </div>
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+      <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 32px">
         <div style="height:8px; background:#1BAF7A; border-radius:4px"></div>
-        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#12805A">3 · Simulate</p>
-        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Tested before it is used</h3>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">A twin calibrated on the department's records tests every plan and forecasts three weeks of load.</p>
-        <div style="flex:1"></div>
-        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">PoC: 300 days; 2 machines, peak load 154% &rarr; 98%</p>
+        <p style="font-size:26px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#12805A">3 · Test</p>
+        <p style="font-size:30px; line-height:1.35; color:#132238">Try the plan in a virtual copy of the department first</p>
       </div>
-      <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:26px 28px">
+      <div style="flex:1; display:flex; flex-direction:column; gap:16px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 32px">
         <div style="height:8px; background:#4A3AA7; border-radius:4px"></div>
-        <p style="font-size:24px; font-weight:600; letter-spacing:1px; text-transform:uppercase; line-height:1.3; color:#4A3AA7">4 · Explain</p>
-        <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:30px; font-weight:600; line-height:1.2; color:#132238">Kannada, Tulu and more</h3>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">A Sarvam AI copilot explains placements, edits rules from plain language and messages patients.</p>
-        <div style="flex:1"></div>
-        <p style="font-size:22px; font-weight:600; line-height:1.35; color:#132238; background:#EEF2F6; border-radius:8px; padding:10px 14px">The LLM never schedules</p>
+        <p style="font-size:26px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#4A3AA7">4 · Tell</p>
+        <p style="font-size:30px; line-height:1.35; color:#132238">Explain and message patients in Kannada, Tulu and more</p>
       </div>
   </div>
-  <div style="display:flex; flex-direction:row; gap:24px; align-items:center; background:#FDF1EA; border:1px solid #F2C9B3; border-radius:12px; padding:18px 24px">
-    <p style="flex:none; width:230px; font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#B0461D">People decide</p>
-    <p style="flex:1; font-size:26px; line-height:1.4; color:#132238">The doctor approves each course and its standing slot · the technologist approves the day and records the times · a breakdown or urgent start triggers a re-plan in seconds, approved by a technologist or doctor before anyone is messaged · actual times retrain the model weekly</p>
+  <div style="display:flex; flex-direction:row; gap:32px; align-items:center; background:#FDF1EA; border:1px solid #F2C9B3; border-radius:12px; padding:28px 36px">
+    <p style="flex:none; width:260px; font-size:26px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1.3; color:#B0461D">People decide</p>
+    <p style="flex:1; font-size:30px; line-height:1.4; color:#132238">The doctor approves each course. A technologist or doctor approves every change on the day. Nothing reaches a patient before that.</p>
   </div>
+  <p style="font-size:28px; line-height:1.4; color:#3B4654">It never decides <i>whether</i> or <i>how</i> a patient is treated, only <i>when</i>. The language model explains; it never schedules.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Runs inside CARE or the hospital EMR on a hospital server · Excel list, register photo (OCR), QR check-in, WhatsApp</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">5 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">Runs on a hospital server · works from an Excel list, a photo of the paper register, QR check-in and WhatsApp</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">5 / 9</p>
   </div>
-  <aside>Four AI steps, and a named person deciding at each point of the day. Machine learning predicts, the optimiser guarantees the rules, the twin tests the plan, and the language model explains it and talks to patients. The copilot calls the optimiser and simulator as tools; it never makes a scheduling decision, and it never sees names or phone numbers.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Four AI steps, and a named person deciding at each point of the day. Machine learning predicts, the optimiser guarantees the rules, the twin tests the plan, and the language model explains it and talks to patients. The copilot calls the optimiser and simulator as tools; it never makes a scheduling decision, and it never sees names or phone numbers.</p></details></figure>
-<figure class="slide" id="s6" aria-label="Slide 6 of 10"><div class="frame"><div class="canvas"><section id="app" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <aside>Four steps. Machine learning predicts each session's minutes, starting from the department's own estimate table; in the prototype it is off by 2.1 minutes on average, against 2.6 for plain averages. An optimiser gives each course a new-start slot and one standing slot, and it cannot break a hard rule; a separate checker re-verifies every plan. A digital twin, calibrated on the department's records, tests each plan before use. A Sarvam AI copilot explains decisions and messages patients in their language. It never sees names or phone numbers, and it never makes a scheduling decision.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Four steps. Machine learning predicts each session's minutes, starting from the department's own estimate table; in the prototype it is off by 2.1 minutes on average, against 2.6 for plain averages. An optimiser gives each course a new-start slot and one standing slot, and it cannot break a hard rule; a separate checker re-verifies every plan. A digital twin, calibrated on the department's records, tests each plan before use. A Sarvam AI copilot explains decisions and messages patients in their language. It never sees names or phone numbers, and it never makes a scheduling decision.</p></details></figure>
+<figure class="slide" id="s6" aria-label="Slide 6 of 9"><div class="frame"><div class="canvas"><section id="app" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
   <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Built into CARE</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">From the visit page to the treatment day</h2>
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Working app, inside CARE</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">One button on the patient's page</h2>
   </div>
-  <div style="display:flex; flex-direction:row; gap:40px; align-items:flex-start">
-    <div style="flex:5; display:flex; flex-direction:column; gap:16px">
-      <div style="display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:20px 24px">
-        <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Doctor</p>
-        <p style="font-size:24px; line-height:1.35; color:#3B4654">Clicks <b style="color:#132238">RADSMART</b> on the visit page, enters the prescription and ticks a box for every rule. RAD-SMART proposes a new start before 17:00 and one standing slot for the whole course; the doctor approves.</p>
+  <div style="display:flex; flex-direction:row; gap:48px; align-items:flex-start">
+    <div style="flex:5; display:flex; flex-direction:column; gap:20px">
+      <div style="display:flex; flex-direction:column; gap:8px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:24px 28px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Doctor</p>
+        <p style="font-size:28px; line-height:1.35; color:#3B4654">Clicks <b style="color:#132238">RADSMART</b>, enters the course, approves the proposed time</p>
       </div>
-      <div style="display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:20px 24px">
-        <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#12805A">Technologist</p>
-        <p style="font-size:24px; line-height:1.35; color:#3B4654">Runs the day: rule check, timeline, <b style="color:#132238">Arrived → In room → Out</b>, machine status and slot-change requests.</p>
+      <div style="display:flex; flex-direction:column; gap:8px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:24px 28px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#12805A">Technologist</p>
+        <p style="font-size:28px; line-height:1.35; color:#3B4654">Runs the day: who has arrived, who is in the room, machine status</p>
       </div>
-      <div style="display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:20px 24px">
-        <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#B0461D">Breakdown, 15 min to 48 h</p>
-        <p style="font-size:24px; line-height:1.35; color:#3B4654">Up to 60 min: everyone treated, with overtime. Longer: only as many sent back as needed; patients at home told to wait. Approved before anyone is told.</p>
+      <div style="display:flex; flex-direction:column; gap:8px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:24px 28px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#B0461D">Breakdown</p>
+        <p style="font-size:28px; line-height:1.35; color:#3B4654">Enters the downtime; RAD-SMART proposes the new day for approval</p>
       </div>
     </div>
     <div style="flex:7; display:flex; flex-direction:column; gap:16px">
@@ -224,126 +233,117 @@
     </div>
   </div>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">A plugin of CARE (Open Healthcare Network); CARE's code unchanged · synthetic patients only</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">6 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">A plugin for CARE, the open-source hospital system (Open Healthcare Network); CARE's code unchanged · synthetic patients</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">6 / 9</p>
   </div>
-  <aside>RAD-SMART now runs inside CARE, the Open Healthcare Network's open-source hospital information system, as a backend and a frontend plugin. The doctor starts from the patient's visit page, fills in the prescription and treatment days, and ticks the priority checklist. RAD-SMART proposes the new-start slot before 17:00 and one standing slot, free on every treatment date, which the patient keeps until the course ends. The technologist records arrival, room in and out, and machine status on the day board. When the machine breaks down, RAD-SMART proposes the response under the department's rules, with messages drafted in each patient's language, and a technologist or doctor approves it. The same button-on-the-visit-page pattern applies to the hospital's own EMR.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>RAD-SMART now runs inside CARE, the Open Healthcare Network's open-source hospital information system, as a backend and a frontend plugin. The doctor starts from the patient's visit page, fills in the prescription and treatment days, and ticks the priority checklist. RAD-SMART proposes the new-start slot before 17:00 and one standing slot, free on every treatment date, which the patient keeps until the course ends. The technologist records arrival, room in and out, and machine status on the day board. When the machine breaks down, RAD-SMART proposes the response under the department's rules, with messages drafted in each patient's language, and a technologist or doctor approves it. The same button-on-the-visit-page pattern applies to the hospital's own EMR.</p></details></figure>
-<figure class="slide" id="s7" aria-label="Slide 7 of 10"><div class="frame"><div class="canvas"><section id="day" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <aside>RAD-SMART runs inside CARE, the Open Healthcare Network's open-source hospital information system, as a plugin. The doctor starts from the patient's visit page, fills in the prescription and treatment days, and ticks the priority checklist. RAD-SMART proposes a first-day slot before 17:00 and one standing slot, free on every treatment date, which the patient keeps until the course ends. The technologist records arrival, room in and out, and machine status. When the machine breaks down, RAD-SMART proposes the response under the department's rules, with messages drafted in each patient's language, and a technologist or doctor approves it. The same pattern works with the hospital's own EMR.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>RAD-SMART runs inside CARE, the Open Healthcare Network's open-source hospital information system, as a plugin. The doctor starts from the patient's visit page, fills in the prescription and treatment days, and ticks the priority checklist. RAD-SMART proposes a first-day slot before 17:00 and one standing slot, free on every treatment date, which the patient keeps until the course ends. The technologist records arrival, room in and out, and machine status. When the machine breaks down, RAD-SMART proposes the response under the department's rules, with messages drafted in each patient's language, and a technologist or doctor approves it. The same pattern works with the hospital's own EMR.</p></details></figure>
+<figure class="slide" id="s7" aria-label="Slide 7 of 9"><div class="frame"><div class="canvas"><section id="results" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:120px 128px 160px; display:flex; flex-direction:column; gap:30px">
   <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">One optimised day, with every rule held</h2>
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Results · with and without RAD-SMART</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">Long waits fall by more than a third</h2>
   </div>
-  <img src="../figures/fig3_optimised_day.png" alt="Gantt chart of one optimised day on the Versa HD from 08:30 to 00:39 with ABC and breast-board lanes: complex cases in 10:00 to 17:00, new starts before 17:00, MHRC patients in their 16:00 to 17:00 slots, public-transport patients home by 21:00, no accessory clashes with CT-simulator bookings" style="width:1420px; height:640px; object-fit:contain; align-self:center">
+  <p style="font-size:28px; color:#3B4654">The long wait: 1 patient in 10 waits longer than this</p>
+  <div style="display:flex; flex-direction:column; gap:14px">
+    <p style="font-size:30px; font-weight:600; color:#132238">The department's own 55 days, replayed</p>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:220px; font-size:28px; color:#5F6B7A">Today</p><div style="flex:none; width:987px; height:48px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#3B4654">109 min</p></div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:220px; font-size:28px; font-weight:600; color:#132238">RAD-SMART</p><div style="flex:none; width:640px; height:48px; background:#2A78D6; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#132238">70 min <span style="color:#12805A">−35%</span></p></div>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:14px">
+    <p style="font-size:30px; font-weight:600; color:#132238">12 simulated weeks, one slot per course</p>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:220px; font-size:28px; color:#5F6B7A">Today</p><div style="flex:none; width:742px; height:48px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#3B4654">82 min</p></div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:220px; font-size:28px; font-weight:600; color:#132238">RAD-SMART</p><div style="flex:none; width:448px; height:48px; background:#2A78D6; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#132238">49 min <span style="color:#12805A">−40%</span></p></div>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:24px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#EEF2F6; border-radius:12px; padding:16px 28px">
+      <p style="font-size:40px; font-weight:600; color:#132238">22% → 6%</p>
+      <p style="font-size:24px; color:#3B4654">treated more than an hour late</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#EEF2F6; border-radius:12px; padding:16px 28px">
+      <p style="font-size:40px; font-weight:600; color:#132238">130 → 70 min</p>
+      <p style="font-size:24px; color:#3B4654">on the busiest days, the biggest gain</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:4px; background:#FDF1EA; border-radius:12px; padding:16px 28px">
+      <p style="font-size:40px; font-weight:600; color:#132238">The trade-off</p>
+      <p style="font-size:24px; color:#3B4654">the evening runs about 2 hours later</p>
+    </div>
+  </div>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Synthetic day: 87 patients, 890 of 960 machine-minutes (93% load); all 8 hard rules met, none unplanned</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">7 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">Wait from arrival to the treatment room · replayed in a virtual copy of the department, not yet a live trial</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">7 / 9</p>
   </div>
-  <aside>A synthetic 87-patient day at 93% load, under the department's own rules. Complex cases stay in 10:00 to 17:00, new starts finish by 17:00, MHRC patients are treated in their 16:00 to 17:00 slots in time for the bus, public-transport patients are home by 21:00, and the late evening goes to inpatients, dormitory residents and people living nearby. The single breast board and ABC unit never clash with the CT simulator. Every placement carries a reason code, and each patient is told a reporting time.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>A synthetic 87-patient day at 93% load, under the department's own rules. Complex cases stay in 10:00 to 17:00, new starts finish by 17:00, MHRC patients are treated in their 16:00 to 17:00 slots in time for the bus, public-transport patients are home by 21:00, and the late evening goes to inpatients, dormitory residents and people living nearby. The single breast board and ABC unit never clash with the CT simulator. Every placement carries a reason code, and each patient is told a reporting time.</p></details></figure>
-<figure class="slide" id="s8" aria-label="Slide 8 of 10"><div class="frame"><div class="canvas"><section id="waits" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <aside>Two datasets, kept apart. On the department's own 55 recorded days, the wait that one patient in ten exceeds falls from 108.6 to 70.4 minutes when the same day sizes are re-planned by RAD-SMART in the digital twin, and the share treated more than an hour late from 22% to 6%. The busiest days gain the most: 130 to 70 minutes. On 12 synthetic weeks where each course keeps one standing slot, it falls from 82 to 49 minutes. This is a replay in the twin, not a live trial; the pilot measures it on real days. The price is real: the evening runs about two hours later, still inside the department's hours, and one new patient in five starts a little later, by less than half a day on average.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Two datasets, kept apart. On the department's own 55 recorded days, the wait that one patient in ten exceeds falls from 108.6 to 70.4 minutes when the same day sizes are re-planned by RAD-SMART in the digital twin, and the share treated more than an hour late from 22% to 6%. The busiest days gain the most: 130 to 70 minutes. On 12 synthetic weeks where each course keeps one standing slot, it falls from 82 to 49 minutes. This is a replay in the twin, not a live trial; the pilot measures it on real days. The price is real: the evening runs about two hours later, still inside the department's hours, and one new patient in five starts a little later, by less than half a day on average.</p></details></figure>
+<figure class="slide" id="s8" aria-label="Slide 8 of 9"><div class="frame"><div class="canvas"><section id="breakdown" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:48px">
   <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Proof of concept · 300 simulated days against the records</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Fewer long waits, and times that hold</h2>
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">When the machine breaks down</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">A new plan in seconds, not a lost day</h2>
   </div>
-  <div style="display:flex; flex-direction:row; gap:48px; align-items:center">
-    <img src="../figures/fig1_wait_distribution.png" alt="Share of patients treated within a given number of minutes of arriving: RAD-SMART on the 87-patient day against the department's busiest recorded days and the twin's projection of today's booking. The recorded curve has a long tail beyond 90 minutes that RAD-SMART removes" style="width:960px; height:540px; object-fit:contain">
-    <div style="flex:1; display:flex; flex-direction:column; gap:16px">
-      <div style="display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">130 → 76 min</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">90th-percentile wait, against the busiest recorded days</p>
-      </div>
-      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">27% → 6%</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">treated more than an hour after their time</p>
-      </div>
-      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">66 → 36 min</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">median wait for evening arrivals: no build-up</p>
-      </div>
-      <div style="border-top:1px solid #D9DFE6; padding:16px 0px 0px 0px; display:flex; flex-direction:column; gap:6px">
-        <p style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">104 → 39 min</p>
-        <p style="font-size:24px; line-height:1.4; color:#3B4654">150-min machine fault: the same plan without → with live re-planning</p>
-      </div>
+  <div style="display:flex; flex-direction:row; gap:80px; align-items:flex-start">
+    <div style="flex:none; width:960px; display:flex; flex-direction:column; gap:20px">
+      <p style="font-size:26px; color:#5F6B7A">Typical wait, arrival to treatment</p>
+      <p style="font-size:28px; font-weight:600; color:#132238">2½-hour breakdown</p>
+      <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:300px; font-size:28px; color:#5F6B7A">Plan kept as it was</p><div style="flex:none; width:440px; height:56px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#3B4654">104 min</p></div>
+      <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:300px; font-size:28px; font-weight:600; color:#132238">RAD-SMART re-plans</p><div style="flex:none; width:165px; height:56px; background:#2A78D6; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#132238">39 min</p></div>
+      <div style="height:8px"></div>
+      <p style="font-size:28px; font-weight:600; color:#132238">45-minute breakdown</p>
+      <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:300px; font-size:28px; color:#5F6B7A">Plan kept as it was</p><div style="flex:none; width:224px; height:56px; background:#B8BDC4; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#3B4654">53 min</p></div>
+      <div style="display:flex; flex-direction:row; align-items:center; gap:20px"><p style="flex:none; width:300px; font-size:28px; font-weight:600; color:#132238">RAD-SMART re-plans</p><div style="flex:none; width:157px; height:56px; background:#2A78D6; border-radius:6px"></div><p style="font-size:36px; font-weight:600; color:#132238">37 min</p></div>
+      <p style="font-size:26px; line-height:1.4; color:#3B4654">A new plan in 10–14 seconds; patients still at home get their new time by message.</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:20px; background:#EEF2F6; border-radius:12px; padding:32px 36px">
+      <p style="font-size:26px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">The department's rules</p>
+      <p style="font-size:28px; line-height:1.4; color:#132238"><b>Up to 1 hour:</b> nobody is sent home; everyone is treated, with overtime</p>
+      <p style="font-size:28px; line-height:1.4; color:#132238"><b>Longer:</b> only as many patients are sent back as needed, those still at home first</p>
+      <p style="font-size:28px; line-height:1.4; color:#132238"><b>Always:</b> a technologist or doctor approves first</p>
     </div>
   </div>
-  <p style="font-size:26px; line-height:1.4; color:#3B4654">The typical wait stays about the same (38 → 36 min, preparation included), and 53% are treated within ±15 min of their time instead of 30%. What goes is the long, unpredictable wait.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Today: department records, 70–77-patient days. RAD-SMART: synthetic 87-patient day in a twin calibrated on the records</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">8 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">150-minute breakdown at 10:00, 300 simulated days, synthetic patients · rules of 24 Oct 2026</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">8 / 9</p>
   </div>
-  <aside>Ten more patients than the busiest recorded day, on the same machine. Faults are injected into each of the 300 days; the fair test of re-planning is the same RAD-SMART plan with and without it, and every response goes to a technologist or doctor for approval. The typical wait stays about where it is, because every patient is asked to report 20 minutes early to prepare. What changes is the tail and punctuality: one patient in ten waits 76 minutes or more instead of 130, and only 6% are treated more than an hour late instead of 27%. Evening patients no longer wait three times as long as morning ones; morning patients wait a little longer than today, mostly the preparation time. With average tables alone the 90th percentile is already 82 minutes, so the department benefits before any session lengths are recorded. If patients keep coming as early as they do today, the 90th percentile is 110 minutes, still below 130. The plan holds 40 minutes for urgent starts and ends at about 01:03; holding nothing ends at 00:49, with a 90th percentile of 88 minutes. The department chooses.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Ten more patients than the busiest recorded day, on the same machine. Faults are injected into each of the 300 days; the fair test of re-planning is the same RAD-SMART plan with and without it, and every response goes to a technologist or doctor for approval. The typical wait stays about where it is, because every patient is asked to report 20 minutes early to prepare. What changes is the tail and punctuality: one patient in ten waits 76 minutes or more instead of 130, and only 6% are treated more than an hour late instead of 27%. Evening patients no longer wait three times as long as morning ones; morning patients wait a little longer than today, mostly the preparation time. With average tables alone the 90th percentile is already 82 minutes, so the department benefits before any session lengths are recorded. If patients keep coming as early as they do today, the 90th percentile is 110 minutes, still below 130. The plan holds 40 minutes for urgent starts and ends at about 01:03; holding nothing ends at 00:49, with a 90th percentile of 88 minutes. The department chooses.</p></details></figure>
-<figure class="slide" id="s9" aria-label="Slide 9 of 10"><div class="frame"><div class="canvas"><section id="impact" data-transition="fade" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:32px">
+  <aside>The department's breakdown rules of 24 October are built in. A breakdown lasts 15 minutes to 48 hours. Up to 60 minutes, nobody is sent home and everyone is treated with overtime. Longer than that, RAD-SMART sends back only as many patients as the downtime needs, those who have not left home first, and the missed session is added at the end of the course. New starts wait for the machine, and patients at home are told to postpone travel. In the 150-minute test, one patient who had not left home was sent back, two new starts moved to the next day, and everyone else was treated the same day. Compared with keeping the plan unchanged, the typical wait falls from 104 to 39 minutes. After a 45-minute breakdown it falls from 53 to 37 minutes and nobody is sent home.</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The department's breakdown rules of 24 October are built in. A breakdown lasts 15 minutes to 48 hours. Up to 60 minutes, nobody is sent home and everyone is treated with overtime. Longer than that, RAD-SMART sends back only as many patients as the downtime needs, those who have not left home first, and the missed session is added at the end of the course. New starts wait for the machine, and patients at home are told to postpone travel. In the 150-minute test, one patient who had not left home was sent back, two new starts moved to the next day, and everyone else was treated the same day. Compared with keeping the plan unchanged, the typical wait falls from 104 to 39 minutes. After a 45-minute breakdown it falls from 53 to 37 minutes and nobody is sent home.</p></details></figure>
+<figure class="slide" id="s9" aria-label="Slide 9 of 9"><div class="frame"><div class="canvas"><section id="plan" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:44px">
   <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">With and without RAD-SMART</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Both datasets: far fewer long waits, at a price</h2>
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Next step</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">Safe by design, then a 90-day pilot</h2>
   </div>
-  <div style="display:flex; flex-direction:row; gap:48px">
-    <div style="flex:1; display:flex; flex-direction:column; gap:12px">
-      <p style="font-size:26px; line-height:1.3; color:#132238"><b>Original:</b> the department's 55 days, 108.6 → <b>70.4 min (−35%)</b></p>
-      <img src="../figures/fig7_original_dataset.png" alt="Original dataset: 90th-percentile wait recorded against RAD-SMART for each day size. 0 to 44 patients 79 to 62 minutes, 45 to 59 patients 98 to 68, 60 to 69 patients 110 to 70, 70 or more patients 130 to 70, all 55 days 109 to 70" style="width:800px; height:470px; object-fit:contain">
+  <div style="display:flex; flex-direction:row; gap:12px">
+    <div style="flex:14; display:flex; flex-direction:column; gap:6px; background:#E3E7EC; border-radius:10px; padding:20px 24px">
+      <p style="font-size:24px; font-weight:600; color:#3B4654">Days 1–14</p>
+      <p style="font-size:32px; font-weight:600; color:#132238">Measure</p>
+      <p style="font-size:24px; line-height:1.35; color:#3B4654">Record today's times</p>
     </div>
-    <div style="flex:1; display:flex; flex-direction:column; gap:12px">
-      <p style="font-size:26px; line-height:1.3; color:#132238"><b>Simulated:</b> 12 weeks of standing slots, 82 → <b>49 min (−40%)</b></p>
-      <img src="../figures/fig8_simulated_dataset.png" alt="Simulated dataset: 90th-percentile wait with today's booking against RAD-SMART. One 87-patient day 210 to 76 minutes, 12 weeks with standing slots 82 to 49, a 45-minute fault 257 to 81, a 150-minute fault 358 to 110" style="width:800px; height:470px; object-fit:contain">
+    <div style="flex:21; display:flex; flex-direction:column; gap:6px; background:#D5E5F8; border-radius:10px; padding:20px 24px">
+      <p style="font-size:24px; font-weight:600; color:#3B4654">Days 15–35</p>
+      <p style="font-size:32px; font-weight:600; color:#132238">Shadow</p>
+      <p style="font-size:24px; line-height:1.35; color:#3B4654">RAD-SMART plans; staff compare; nothing changes</p>
+    </div>
+    <div style="flex:55; display:flex; flex-direction:column; gap:6px; background:#1C5CAB; border-radius:10px; padding:20px 24px">
+      <p style="font-size:24px; font-weight:600; color:#DCE8F7">Days 36–90</p>
+      <p style="font-size:32px; font-weight:600; color:#F3F5F8">Live</p>
+      <p style="font-size:24px; line-height:1.35; color:#DCE8F7">Doctors and technologists use it in CARE; patients get their times by message</p>
     </div>
   </div>
-  <p style="font-size:26px; line-height:1.4; color:#132238; background:#FDF1EA; border:1px solid #F2C9B3; border-radius:12px; padding:18px 28px"><b>The price, over 12 weeks:</b> the last patient finishes about 00:07 instead of 21:55 · one new start in five begins a little later (0.4 days) · a time the patient asks for is kept less often · 8 min overtime a day</p>
+  <div style="display:flex; flex-direction:row; gap:32px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:10px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Pilot target</p>
+      <p style="font-family:'Source Serif 4', Georgia, serif; font-size:72px; font-weight:600; line-height:1.05; color:#132238">25% shorter</p>
+      <p style="font-size:28px; line-height:1.4; color:#3B4654">long waits (today 109 min), and no rule broken</p>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:32px 36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Safe by design</p>
+      <ul style="font-size:28px; line-height:1.4; color:#3B4654"><li>A person approves every change</li><li>Rules re-checked on every plan</li><li>No names or numbers sent to AI</li><li>Every change logged</li></ul>
+    </div>
+  </div>
+  <p style="font-size:28px; line-height:1.4; color:#3B4654"><b style="color:#132238">Our ask:</b> a pilot slot with mentors, Sarvam AI credits, and introductions to cancer centres. Cost about ₹2–3 lakh.</p>
   <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">90th-percentile wait, arrival to treatment room · original: recorded vs re-planned in the twin · simulated: same patients and events for both</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">9 / 10</p>
+    <p style="font-size:24px; color:#5F6B7A">Pilot on the Elekta Versa HD, Q1 2027 · if a rule is broken in practice, the department returns to manual</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">9 / 9</p>
   </div>
-  <aside>Two datasets, kept apart. On the original dataset, the department's 55 recorded days, the 90th-percentile wait falls from 108.6 to 70.4 minutes when the same day sizes are re-planned by RAD-SMART in the twin, and the share treated more than an hour late from 22% to 6%. The busiest days gain the most: 130 to 70 minutes. This is a replay in the twin, not a live trial; the pilot measures it on real days. On the simulated dataset, over 12 weeks with standing slots, the 90th percentile falls from 82 to 49 minutes and lateness over an hour from 19% to 4%; on breakdown days the gain is 69%. The price is real: the evening runs about two hours later, still inside the department's hours; one new patient in five starts later, by less than half a day; and a patient who asks for a particular time gets it within 15 minutes 4% of the time, against 31% today, because a standing slot must be free on every day of the course.</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>Two datasets, kept apart. On the original dataset, the department's 55 recorded days, the 90th-percentile wait falls from 108.6 to 70.4 minutes when the same day sizes are re-planned by RAD-SMART in the twin, and the share treated more than an hour late from 22% to 6%. The busiest days gain the most: 130 to 70 minutes. This is a replay in the twin, not a live trial; the pilot measures it on real days. On the simulated dataset, over 12 weeks with standing slots, the 90th percentile falls from 82 to 49 minutes and lateness over an hour from 19% to 4%; on breakdown days the gain is 69%. The price is real: the evening runs about two hours later, still inside the department's hours; one new patient in five starts later, by less than half a day; and a patient who asks for a particular time gets it within 15 minutes 4% of the time, against 31% today, because a standing slot must be free on every day of the course.</p></details></figure>
-<figure class="slide" id="s10" aria-label="Slide 10 of 10"><div class="frame"><div class="canvas"><section id="plan" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
-  <div style="display:flex; flex-direction:column; gap:16px">
-    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Guardrails and pilot</p>
-    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">Safe by design, then 90 days on the Versa HD</h2>
-  </div>
-  <div style="display:flex; flex-direction:row; gap:32px; align-items:stretch">
-    <div style="flex:4; display:flex; flex-direction:column; gap:14px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 32px">
-      <h3 style="font-family:'Source Serif 4', Georgia, serif; font-size:34px; font-weight:600; line-height:1.2; color:#132238">Safe by design</h3>
-      <ul style="font-size:22px; line-height:1.3; color:#3B4654"><li style="margin-bottom:8px"><b style="color:#132238">Proposal until approved.</b> The doctor approves every course; a technologist or doctor every breakdown response</li><li style="margin-bottom:8px"><b style="color:#132238">Rules re-checked.</b> An independent checker verifies all 8 hard rules, and each standing slot, before publishing</li><li style="margin-bottom:8px"><b style="color:#132238">Clinicians decide.</b> No diagnoses, doses, images or notes are read</li><li style="margin-bottom:8px"><b style="color:#132238">No identifiers to AI.</b> Models see pseudonymous IDs; names stay on the hospital server</li><li style="margin-bottom:8px"><b style="color:#132238">Full audit trail.</b> Every plan, override, rule version and message is logged</li><li style="margin-bottom:8px"><b style="color:#132238">Synthetic and anonymised only.</b> Records are used as aggregates; DPDP-aligned</li></ul>
-    </div>
-    <div style="flex:6; display:flex; flex-direction:column; gap:16px">
-      <div style="display:flex; flex-direction:row; gap:12px">
-        <div style="flex:14; display:flex; flex-direction:column; gap:4px; background:#E3E7EC; border-radius:10px; padding:16px 20px">
-          <p style="font-size:22px; font-weight:600; color:#3B4654">Days 1–14</p>
-          <p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">Baseline</p>
-          <p style="font-size:22px; line-height:1.35; color:#3B4654">Room entry and exit taps added</p>
-        </div>
-        <div style="flex:21; display:flex; flex-direction:column; gap:4px; background:#D5E5F8; border-radius:10px; padding:16px 20px">
-          <p style="font-size:22px; font-weight:600; color:#3B4654">Days 15–35</p>
-          <p style="font-size:26px; font-weight:600; line-height:1.3; color:#132238">Shadow mode</p>
-          <p style="font-size:22px; line-height:1.35; color:#3B4654">RAD-SMART plans nightly; RTTs compare, nothing changes</p>
-        </div>
-        <div style="flex:55; display:flex; flex-direction:column; gap:4px; background:#1C5CAB; border-radius:10px; padding:16px 20px">
-          <p style="font-size:22px; font-weight:600; color:#DCE8F7">Days 36–90</p>
-          <p style="font-size:26px; font-weight:600; line-height:1.3; color:#F3F5F8">Live</p>
-          <p style="font-size:22px; line-height:1.35; color:#DCE8F7">Doctors approve courses, technologists run the day in CARE; patients get times and live updates</p>
-        </div>
-      </div>
-      <div style="display:flex; flex-direction:row; gap:16px; flex:1">
-        <div style="flex:1; display:flex; flex-direction:column; gap:8px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:24px 28px">
-          <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Primary KPI</p>
-          <p style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.05; color:#132238">≥ 25% lower</p>
-          <p style="font-size:24px; line-height:1.4; color:#3B4654">90th-percentile wait from arrival to linac entry (records: 109 min)</p>
-        </div>
-        <div style="flex:1; display:flex; flex-direction:column; gap:8px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:24px 28px">
-          <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Also tracked</p>
-          <ul style="font-size:24px; line-height:1.35; color:#3B4654"><li>Over an hour late: 22% → 10% or fewer</li><li>At least 45% within ±15 min (today 29%)</li><li>Median wait, overtime and throughput no worse</li><li>Hard rules kept; no group worse off</li></ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <p style="font-size:24px; line-height:1.4; color:#3B4654"><b style="color:#132238">Now:</b> the app runs in CARE · <b style="color:#132238">next:</b> patient messaging, then a pilot in Q1 2027 · <b style="color:#132238">our ask:</b> a pilot slot with mentors, Sarvam API credits, NCG introductions</p>
-  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
-    <p style="font-size:24px; color:#5F6B7A">Interrupted time-series analysis · about ₹2–3 lakh: server, 3 tablets, QR printer, messaging</p>
-    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">10 / 10</p>
-  </div>
-  <aside>The pilot target is set below the prototype's results (35% lower on the department's own days re-planned, 40% lower over 12 synthetic weeks with standing slots), because the twin is not perfect and the real gain depends on how much of today's waiting comes from scheduling. The baseline is already in the department's records and is refreshed in the first two weeks. Stopping rule: if a hard rule is broken in practice, or balancing measures worsen for two weeks, the department reverts to manual mode. Team: Dr Akshay Dinesan (team leader, doctor partner), Abhinand T M (technical lead), P S Raghotham Rao (lead engineer), Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners).</aside>
-</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The pilot target is set below the prototype's results (35% lower on the department's own days re-planned, 40% lower over 12 synthetic weeks with standing slots), because the twin is not perfect and the real gain depends on how much of today's waiting comes from scheduling. The baseline is already in the department's records and is refreshed in the first two weeks. Stopping rule: if a hard rule is broken in practice, or balancing measures worsen for two weeks, the department reverts to manual mode. Team: Dr Akshay Dinesan (team leader, doctor partner), Abhinand T M (technical lead), P S Raghotham Rao (lead engineer), Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners).</p></details></figure>
+  <aside>The pilot target, at least 25% lower than the 109 minutes in the records, is set below the prototype's results (35% on the department's own days replayed, 40% over 12 synthetic weeks), because the twin is not perfect and the real gain depends on how much of today's waiting comes from scheduling. We also track lateness over an hour (22% today, aim 10% or less), punctuality, overtime and throughput. Stopping rule: if a hard rule is broken in practice, or balancing measures worsen for two weeks, the department reverts to manual mode. Budget about ₹2–3 lakh: a server, three tablets, a QR printer and messaging. Team: Dr Akshay Dinesan (team leader, doctor partner), Abhinand T M (technical lead), P S Raghotham Rao (lead engineer), Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners).</aside>
+</section></div></div><details class="notes"><summary>Speaker notes</summary><p>The pilot target, at least 25% lower than the 109 minutes in the records, is set below the prototype's results (35% on the department's own days replayed, 40% over 12 synthetic weeks), because the twin is not perfect and the real gain depends on how much of today's waiting comes from scheduling. We also track lateness over an hour (22% today, aim 10% or less), punctuality, overtime and throughput. Stopping rule: if a hard rule is broken in practice, or balancing measures worsen for two weeks, the department reverts to manual mode. Budget about ₹2–3 lakh: a server, three tablets, a QR printer and messaging. Team: Dr Akshay Dinesan (team leader, doctor partner), Abhinand T M (technical lead), P S Raghotham Rao (lead engineer), Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners).</p></details></figure>
 </main>
 <footer>RAD-SMART · Health-a-thon 2026 · Doctor partner: Dr Akshay Dinesan, Manipal · Assistive, not diagnostic</footer>
 <script>

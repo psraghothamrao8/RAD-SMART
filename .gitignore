@@ -27,3 +27,6 @@ additional_details.docx
 *.egg-info/
 node_modules/
 app/care_radsmart_fe/dist/
+
+# Original problem statement (contains contact details): kept locally, not published
+/RAD-SMART.pdf

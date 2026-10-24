@@ -4,9 +4,9 @@
 
 Outputs (poc/results/):
     results.json              all numbers quoted in the report
-    web_data.json             chart data for the interactive results page
+    web_data.json             chart data: waits, the day plan, both breakdowns, the forecast
     schedule_rad_smart.csv    the optimised day plan with reason codes
-    fig*.png                  figures used in the report and deck
+Figures (docs/figures/fig*.png), used in the report, the paper and the analysis.
 
 Patients are synthetic (fake); the department's rules come from its answers to
 our questions (21 Sep 2026). Today's booking pattern and patients' arrival
@@ -44,6 +44,7 @@ from radsmart.weeks import simulate_weeks
 
 OUT = Path(__file__).parent / "results"
 OUT.mkdir(exist_ok=True)
+FIGS = Path(__file__).resolve().parent.parent / "docs" / "figures"
 N_REP = 300
 N_PATIENTS = 87            # planned the evening before; 0-3 urgent starts join on the day
 FAULTS = [                 # one fault under each of the department's downtime rules (24 Oct 2026)
@@ -84,7 +85,7 @@ def hour_axis(ax, lo, hi, step=180):
 
 
 def save(fig, name):
-    fig.savefig(OUT / name, dpi=220, bbox_inches="tight")
+    fig.savefig(FIGS / name, dpi=220, bbox_inches="tight")
     plt.close(fig)
 
 

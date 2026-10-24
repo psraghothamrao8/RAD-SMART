@@ -10,9 +10,9 @@ Health-a-thon 2026, Cancer track · Manipal · 24 October 2026
 
 **Background.** Radiotherapy patients attend every weekday for one to seven weeks, so a single linear accelerator treats 70–90 patients a day. Appointment times are usually given by hand, without knowing how long each session takes. In our department, one patient in ten waits more than 109 minutes from arrival to treatment, and 22% are treated more than an hour after their appointment.
 
-**Methods.** RAD-SMART is an assistive scheduling system with four steps. It predicts each session's machine-minutes, plans the day with a mixed-integer program that cannot break the department's hard rules, tests the plan in a digital twin, and explains changes to staff and patients. Each course gets one standing time slot for its whole duration. When the machine breaks down, the rest of the day is re-planned under the department's own downtime rules. A person approves every change. We evaluated it on two datasets, kept apart: the department's 55 recorded days (October–December 2024), re-planned in a twin calibrated on those records, and synthetic patients, including 12 weeks of courses and two machine breakdowns.
+**Methods.** RAD-SMART is an assistive scheduling system with four steps. It predicts each session's machine-minutes, plans the day with a mixed-integer program that cannot break the department's hard rules, tests the plan in a digital twin, and tells patients in their own language, by a translated message and a voice note, through a page on their phone. Each course gets one standing time slot for its whole duration. When the machine breaks down, the rest of the day is re-planned under the department's own downtime rules. A person approves every change. We evaluated it on two datasets, kept apart: the department's 55 recorded days (October–December 2024), re-planned in a twin calibrated on those records, and synthetic patients, including 12 weeks of courses and two machine breakdowns.
 
-**Results.** On the department's own days, the 90th-percentile wait fell from 108.6 to 70.4 minutes (−35%), and the share treated more than an hour late from 22.2% to 5.7%. The busiest days gained most (130 to 70 minutes). Over 12 synthetic weeks with standing slots, the 90th-percentile wait fell from 81.6 to 49.3 minutes (−40%). After a 150-minute breakdown, live re-planning cut the median wait from 104 to 39 minutes, with a new plan in 14 seconds. An independent checker found no broken hard rule. The costs were a later evening, a short delay for one new patient in five and fewer requested times kept.
+**Results.** On the department's own days, the 90th-percentile wait fell from 108.6 to 70.4 minutes (−35%), and the share treated more than an hour late from 22.2% to 5.7%. The busiest days gained most (130 to 70 minutes). Over 12 synthetic weeks with standing slots, the 90th-percentile wait fell from 81.6 to 49.3 minutes (−40%). After a 150-minute breakdown, live re-planning cut the median wait from 104 to 39 minutes, with a new plan in 14 seconds. An independent checker found no broken hard rule. All 112 translated patient messages, in four Indian languages, kept every appointment time. The costs were a later evening, a short delay for one new patient in five and fewer requested times kept.
 
 **Conclusion.** Rule-guaranteed optimisation with live re-planning can remove most long waits in a single-machine department without new machines. A 90-day pilot will test this on real days.
 
@@ -110,6 +110,8 @@ The twin is a discrete-event simulation of the treatment day. It includes lognor
 
 The engine is about 3,700 lines of Python, using scikit-learn, NumPy and SciPy with HiGHS. It also runs inside CARE, the open-source hospital information system of the Open Healthcare Network, as a backend plugin (Django) and a frontend plugin (React), with no change to CARE's own code. The doctor starts from a **RADSMART** button on the patient's visit page, enters the course and approves the proposed slots. The technologist runs the day from a day board that records arrival, room entry and exit, and machine status, and declares breakdowns there.
 
+Patients are told through a page on their own phone, opened from one private link sent on WhatsApp, with no app and no login. It shows the next treatment times, the department's messages with a voice note, and a QR code that reception scans to check the patient in; four buttons let the patient say they are on the way, late, cannot come, or want another time, and staff decide what to do. After every approval, RAD-SMART drafts a message for each patient affected, from fixed templates in English. Sarvam Translate puts it into the patient's language (Kannada, Malayalam, Hindi or Konkani; Sarvam has no Tulu model, so Tulu speakers get Kannada, which they read) and Sarvam Bulbul reads it aloud; a technologist reviews it and presses send in WhatsApp. A translation is used only if it keeps exactly the clock times of the English text; otherwise the English is sent. On request, Sarvam-105B explains a proposed slot in plain words from the engine's own reasons, and an answer that mentions any time not in the plan is discarded. Only the message text reaches these services, never a name, hospital number or phone number.
+
 ## 4. Results
 
 ### 4.1 Original dataset: the department's own days
@@ -166,7 +168,11 @@ Under the up-to-60-minute rule nobody was sent home. Under the over-60-minute ru
 
 On 2,000 held-out synthetic sessions, gradient boosting predicted session length with a mean absolute error of 2.15 minutes, against 2.62 for a table of averages. The 87-patient day (about 4,800 variables and 1,662 constraints) was solved to a proven optimum in 7.1 seconds with predicted minutes and 30.9 seconds with the table of averages, on a laptop. With averages alone, the 90th-percentile wait was 82 minutes rather than 76, so most of the benefit is available before any session times are recorded.
 
-### 4.5 Costs
+### 4.5 Patient messages
+
+We tested the language step on synthetic text, with the app's own settings. Seven message templates (a new course, a pelvic course, a new standing time and four breakdown messages), each with four sets of times, were translated into all four languages. All 112 translations kept every time, so none would have fallen back to English; the median was 1.3–2.0 seconds. Translating back into English and comparing with the source (chrF, 0–100) gave medians of 76–80 by language, with the lowest scores on the pelvic message, which native speakers will check first. For 20 synthetic plans, Sarvam-105B gave an explanation the time check accepted every time, with no invented time; 16 stated both arrival times. Back-translation is only a rough check of meaning: native speakers at the department will rate every template before the pilot.
+
+### 4.6 Costs
 
 Over the 12 weeks, standing slots had clear costs:
 
@@ -189,6 +195,7 @@ Over the 12 weeks, standing slots had clear costs:
 - **Synthetic patients.** Session lengths and the patient mix are estimates. The real gain depends on how much of today's waiting is caused by scheduling rather than by transport, machine checks or paperwork.
 - **Patient behaviour.** The benefit assumes that patients stop arriving very early once times are kept. If they keep today's habits, the 90th-percentile wait on the busy day is 110 minutes rather than 76, still below the busiest recorded days.
 - **One machine.** Live sequencing was tested on one machine; two machines were tested only for the three-week capacity forecast.
+- **Messages not yet rated by patients.** The translations were checked automatically and by back-translation, not yet by native speakers or patients.
 
 **Next step.** A 90-day pilot on the Versa HD will run in three phases: two weeks of baseline measurement, three weeks in shadow mode, and eight weeks live. The primary target, a 90th-percentile wait at least 25% below the recorded 109 minutes, is set below the results above. If a hard rule is broken in practice, the department returns to manual scheduling.
 

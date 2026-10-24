@@ -1,8 +1,8 @@
 import { loadFont as loadSans } from "@remotion/google-fonts/IBMPlexSans";
 import { loadFont as loadSerif } from "@remotion/google-fonts/SourceSerif4";
-import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 
-import { chapters, type Ev, events, frameFileAt, pieceAt, REC_H, REC_W, timeline } from "./timeline";
+import { chapters, type Ev, events, FPS, frameFileAt, INTRO_VOICE, OUTRO_VOICE, PHONE, phoneAt, pieceAt, REC_H, REC_W, timeline, videoFrameOf } from "./timeline";
 
 const { fontFamily: sans } = loadSans("normal", { weights: ["400", "500", "600"], subsets: ["latin"] });
 const { fontFamily: serif } = loadSerif("normal", { weights: ["600"], subsets: ["latin"] });
@@ -25,7 +25,7 @@ const WIN_H = REC_H * K;
 const WIN_X = (1920 - WIN_W) / 2;
 const WIN_Y = 92;
 
-const ROLE = ["Doctor", "Technologist", "Technologist", "Technologist", "Doctor and technologist"];
+const ROLE = chapters.map((c) => c.role ?? "");
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const ease = Easing.bezier(0.33, 0, 0.2, 1);
 
@@ -35,19 +35,62 @@ export const Demo: React.FC = () => {
   const local = frame - p.from;
   const fade = interpolate(local, [0, 10, p.dur - 10, p.dur], [0, 1, 1, 0], clamp);
 
-  if (p.kind === "intro") return <Intro opacity={fade} local={local} />;
-  if (p.kind === "outro") return <Outro opacity={interpolate(local, [0, 12], [0, 1], clamp)} local={local} />;
-  if (p.kind === "card") return <Card index={p.index} opacity={fade} local={local} />;
-
-  const recT = p.recFrom + (local / p.dur) * (p.recTo - p.recFrom);
+  let view: React.ReactNode;
+  if (p.kind === "intro") view = <Intro opacity={fade} local={local} />;
+  else if (p.kind === "outro") view = <Outro opacity={interpolate(local, [0, 12], [0, 1], clamp)} local={local} />;
+  else if (p.kind === "card") view = <Card index={p.index} opacity={fade} local={local} />;
+  else {
+    const recT = p.recFrom + (local / p.dur) * (p.recTo - p.recFrom);
+    view = (
+      <AbsoluteFill style={{ background: C.bg, fontFamily: sans }}>
+        <TopBar chapter={p.chapter} />
+        {phoneAt(recT) ? <Phone recT={recT} skipped={p.skipped} /> : <Window recT={recT} skipped={p.skipped} />}
+        <Caption recT={recT} chapter={p.chapter} />
+      </AbsoluteFill>
+    );
+  }
   return (
-    <AbsoluteFill style={{ background: C.bg, fontFamily: sans }}>
-      <TopBar chapter={p.chapter} />
-      <Window recT={recT} skipped={p.skipped} />
-      <Caption recT={recT} chapter={p.chapter} />
-    </AbsoluteFill>
+    <>
+      {view}
+      {SOUNDS}
+    </>
   );
 };
+
+// The narrator (one MP3 per caption, from scripts/narrate.mjs) and the voice notes the
+// app played, each placed where its moment of the recording is shown.
+const outro = timeline.pieces.find((p) => p.kind === "outro");
+const SOUNDS = (
+  <>
+    {INTRO_VOICE.file && (
+      <Sequence from={12}>
+        <Audio src={staticFile(`narration/${INTRO_VOICE.file}`)} />
+      </Sequence>
+    )}
+    {events
+      .filter((e) => e.type === "caption" && e.file)
+      .map((e) => (
+        <Sequence key={`n${e.t}`} from={videoFrameOf(e.t)}>
+          <Audio src={staticFile(`narration/${e.file}`)} />
+        </Sequence>
+      ))}
+    {events
+      .filter((e) => e.type === "audio" && e.file)
+      .map((e) => {
+        const n = Math.round((e.sec ?? 5) * FPS);
+        return (
+          <Sequence key={`a${e.t}`} from={videoFrameOf(e.t)} durationInFrames={n}>
+            <Audio src={staticFile(`rec/${e.file}`)} volume={(f) => interpolate(f, [0, 4, n - 18, n], [0, 1, 1, 0], clamp)} />
+          </Sequence>
+        );
+      })}
+    {outro && OUTRO_VOICE.file && (
+      <Sequence from={outro.from + 20}>
+        <Audio src={staticFile(`narration/${OUTRO_VOICE.file}`)} />
+      </Sequence>
+    )}
+  </>
+);
 
 function TopBar({ chapter }: { chapter: number }) {
   return (
@@ -116,6 +159,35 @@ function Window({ recT, skipped }: { recT: number; skipped?: string }) {
       {skipped && (
         <div style={{ position: "absolute", right: 20, top: 18, fontFamily: sans, fontSize: 22, fontWeight: 600, color: "#fff", background: "rgba(14,26,43,0.85)", borderRadius: 999, padding: "8px 18px" }}>
           ⏩ {skipped === "Page loading" ? "Page loading, sped up" : `${skipped}, sped up`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The patient's page, recorded at phone size, shown in a phone.
+function Phone({ recT, skipped }: { recT: number; skipped?: string }) {
+  const ph = PHONE ?? { w: 390, h: 844, dsf: 2 };
+  const BEZEL = 14;
+  const k = (WIN_H - 2 * BEZEL) / ph.h;
+  const w = ph.w * k + 2 * BEZEL;
+  const pos = cursorAt(recT);
+  const clicks = events.filter((e) => e.type === "click" && recT >= e.t && recT - e.t < 650);
+  return (
+    <div style={{ position: "absolute", left: 960 - w / 2, top: WIN_Y, width: w, height: WIN_H, borderRadius: 52, background: "#05080d", padding: BEZEL, boxShadow: "0 24px 60px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.12)" }}>
+      <div style={{ width: ph.w * k, height: ph.h * k, borderRadius: 40, overflow: "hidden", position: "relative", background: "#fff" }}>
+        <div style={{ width: ph.w, height: ph.h, scale: String(k), transformOrigin: "0 0", position: "relative" }}>
+          <Img src={staticFile(`rec/frames/${frameFileAt(recT)}`)} style={{ width: ph.w, height: ph.h, display: "block" }} />
+          {clicks.map((c) => {
+            const q = (recT - c.t) / 650;
+            return <div key={c.t} style={{ position: "absolute", left: (c.x ?? 0) - 22 - 20 * q, top: (c.y ?? 0) - 22 - 20 * q, width: 44 + 40 * q, height: 44 + 40 * q, borderRadius: "50%", background: "rgba(57,135,229,0.35)", opacity: 1 - q }} />;
+          })}
+          <div style={{ position: "absolute", left: pos.x - 16, top: pos.y - 16, width: 32, height: 32, borderRadius: "50%", background: "rgba(20,20,20,0.28)", border: "2px solid rgba(255,255,255,0.9)" }} />
+        </div>
+      </div>
+      {skipped && (
+        <div style={{ position: "absolute", left: "100%", marginLeft: 24, top: 18, whiteSpace: "nowrap", fontFamily: sans, fontSize: 22, fontWeight: 600, color: "#fff", background: "rgba(14,26,43,0.85)", borderRadius: 999, padding: "8px 18px" }}>
+          ⏩ Page loading, sped up
         </div>
       )}
     </div>

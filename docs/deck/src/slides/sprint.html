@@ -1,0 +1,22 @@
+<section id="sprint" data-transition="push" style="background:#EEF2F6; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">4 · Build sprint</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">What we built, and what comes next</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:32px; align-items:flex-start">
+    <div style="flex:7; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#12805A">Built and working in CARE</p>
+      <ul style="font-size:28px; line-height:1.4; color:#132238"><li>Course entry with one standing time, approved by a doctor</li><li>Day board: arrival, in room, out, live rule check</li><li>Breakdown re-planning under the department's rules</li><li>Requests for another time, decided by staff</li><li>Messages in 4 Indian languages with voice notes, via WhatsApp</li><li>Patient phone page, replies and QR check-in</li><li>Plain-words explanations, with a time check</li><li>Insights from the recorded times · 20 safety tests</li></ul>
+    </div>
+    <div style="flex:5; display:flex; flex-direction:column; gap:12px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:28px 36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#B0461D">Not yet built</p>
+      <ul style="font-size:28px; line-height:1.4; color:#3B4654"><li>Automatic WhatsApp sending (needs Meta business verification)</li><li>Spoken replies from patients</li><li>Importing Excel lists and paper prescriptions</li><li>Changing rules in plain words</li><li>A read-only feed from MOSAIQ or ARIA</li></ul>
+    </div>
+  </div>
+  <p style="font-size:28px; line-height:1.4; color:#3B4654"><b style="color:#132238">Changed after the department's answers:</b> one standing time per course, new starts before 17:00, their 60-minute breakdown rule, doctor-only course approval, and WhatsApp messages in the patient's language.</p>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Round 1 on 19 Sep · working CARE app on 24 Oct · Sarvam layer, patient page and check-in on 25 Oct</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">8 / 12</p>
+  </div>
+  <aside>Since Round 1 on 19 September we built the department's two sets of written answers into the engine: one standing daily time per course, free on every treatment date; new patients start and finish before 17:00, with 150 minutes kept free for future new starts; their breakdown rule (up to 60 minutes everyone is treated the same day, longer and patients still at home are told not to travel); and roles (only a doctor enters or approves a course). On 24 October the engine became a working application inside CARE, and on 25 October we added the Sarvam AI layer, the patient phone page, QR check-in and plain-language explanations, with 20 automated safety tests. Testing found and fixed four problems: Kannada suffixes on times that the first time check missed, Konkani turning "the next working day" into "next week" (messages now name the date), an explanation using the proposed rather than the current time, and one ambiguous patient button. Not yet built: automatic WhatsApp sending through the Business API, spoken replies, Excel and prescription import, plain-language rule editing, and an oncology information system feed.</aside>
+</section>

@@ -1,13 +1,17 @@
 // Drives the RAD-SMART CARE plugin through the demonstration story in headless Chrome and
 // records it: screencast frames plus a log of pointer moves, clicks, captions and chapters,
 // which the Remotion project turns into the demo video. Synthetic demonstration data only.
+// Each caption waits for its narration (public/narration/index.json, from narrate.mjs) to
+// finish before the next one, and the voice notes the app plays are saved beside the frames.
 //
 // usage: CARE_PW=<fixture password> node record.mjs <outDir>
 // env:   FACILITY, PATIENT, ENCOUNTER (CARE ids), TZ_DEMO (browser time zone, so the demo
 //        clock reads a working afternoon), HOST (care_fe), API (care backend)
 import { spawn } from "node:child_process";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
+import { LINES } from "./script.mjs";
 
 const outDir = process.argv[2];
 const HOST = process.env.HOST || "http://localhost:19101";
@@ -17,6 +21,10 @@ const P = process.env.PATIENT;
 const E = process.env.ENCOUNTER;
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const W = 1600, H = 900, DSF = 1.2;
+const PHONE = { w: 390, h: 844, dsf: 2 };
+const SPEED = 1.15;   // the video plays the recording this much faster (src/timeline.ts)
+const NARRATION = JSON.parse(readFileSync(join(import.meta.dirname, "..", "public", "narration", "index.json"), "utf8"));
+let VH = H;           // the viewport height now: the phone chapter is recorded at phone size
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 rmSync(join(outDir, "frames"), { recursive: true, force: true });
@@ -131,8 +139,8 @@ async function reveal(js) {
     const r = await rectOf(js);
     if (!r) throw new Error(`not found: ${js}`);
     const cy = r.y + r.h / 2;
-    if (cy > 90 && cy < H - 110) return r;
-    const dy = Math.max(-240, Math.min(240, cy - H * 0.55));
+    if (cy > 90 && cy < VH - 110) return r;
+    const dy = Math.max(-240, Math.min(240, cy - VH * 0.55));
     await send("Input.dispatchMouseEvent", { type: "mouseWheel", x: cursor.x, y: cursor.y, deltaX: 0, deltaY: dy });
     await sleep(260);   // wheel scrolling is animated: let it settle before measuring again
     const after = await rectOf(js);
@@ -187,8 +195,39 @@ async function setValue(js, value) {
   await evaluate(`__set(${js}, ${JSON.stringify(value)})`);
   await sleep(600);
 }
-const caption = (text) => log("caption", { text });
-const chapter = (title, role) => log("chapter", { title, role });
+// The narration: a caption appears with its voice, and the next caption (or step) waits
+// until the voice has finished. Actions carry on while it speaks.
+let voiceEnd = 0;
+async function voiceDone() {
+  while (now() < voiceEnd) await sleep(50);
+}
+async function say(key) {
+  const line = LINES[key], n = NARRATION[key];
+  if (!line || !n) throw new Error(`no narration for ${key}: run narrate.mjs`);
+  await voiceDone();
+  log("caption", { text: line.text, key, file: n.file, sec: n.sec });
+  voiceEnd = now() + n.sec * 1000 * SPEED + 350;
+}
+// `prep` (switching device, opening the first page) runs off camera: the video cuts
+// from the end of the last step to the title card, and starts this step after it.
+async function chapter(title, role, prep) {
+  await voiceDone();
+  if (prep) {
+    log("cut");
+    await prep();
+  }
+  log("chapter", { title, role });
+}
+// A voice note the app plays: saved for the video, which plays its first `sec` seconds.
+let audioN = 0;
+async function playAudio(url, headers, sec) {
+  const r = await fetch(url, { headers });
+  if (!r.ok) return console.warn(`voice note ${r.status}: ${url}`);
+  const file = `audio_${++audioN}.mp3`;
+  writeFileSync(join(outDir, file), Buffer.from(await r.arrayBuffer()));
+  log("audio", { file, sec });
+  voiceEnd = Math.max(voiceEnd, now() + sec * 1000 * SPEED + 300);
+}
 const zoom = (r, scale) => log("zoom", r ? { cx: r.x + r.w / 2, cy: r.y + r.h / 2, scale } : { scale: 1 });
 async function fast(label, fn) {
   log("fast", { on: true, label });
@@ -205,16 +244,64 @@ async function signIn(user) {
   scriptId = r.result.identifier;
 }
 
+
+// ---- the demonstration's patients, chosen through the API ----
+const RS = `${API}/api/care_radsmart`;
+const staffToken = (await token("care-staff")).access;
+async function api(path) {
+  const r = await fetch(`${RS}${path}${path.includes("?") ? "&" : "?"}facility=${F}`, { headers: { Authorization: `Bearer ${staffToken}` } });
+  if (!r.ok) throw new Error(`${path}: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
+  return r.json();
+}
+const TZ = process.env.TZ_DEMO || "America/Denver";
+const hm = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+const nowMin = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+const soon = (await api("/day/")).sessions
+  .filter((s) => s.demo && s.status === "scheduled" && toMin(s.report) > nowMin + 10)
+  .sort((a, b) => a.start - b.start);
+// One patient comes in today (their phone, then reception); another has said they will be late.
+const arriving = soon.find((s) => s.language === "Kannada") || soon[0];
+const late = soon.find((s) => arriving && s.course !== arriving.course);
+if (!arriving || !late) throw new Error("no demonstration patients still to come today: reseed");
+const arrivingLink = await api(`/courses/${arriving.course}/patient-link/`);
+const lateLink = await api(`/courses/${late.course}/patient-link/`);
+await fetch(lateLink.url, { method: "POST", body: new URLSearchParams({ kind: "late", minutes: "30" }), redirect: "manual" });
+console.log(`arriving: ${arriving.patient_name} (${arriving.report}), late: ${late.patient_name}`);
+
 // ---- set up ----
 await send("Page.enable");
 await send("Runtime.enable");
+await send("Network.enable");
+let audioUrl = null;   // the voice note the Messages page fetched last
+handlers["Network.requestWillBeSent"] = ({ request }) => {
+  if (/\/messages\/[^/]+\/audio\//.test(request.url)) audioUrl = request.url;
+};
 await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: DSF, mobile: false });
-await send("Emulation.setTimezoneOverride", { timezoneId: process.env.TZ_DEMO || "America/Denver" });
+await send("Emulation.setTimezoneOverride", { timezoneId: TZ });
 await signIn("care-doctor");
 // warm up care_fe and the plugin so the recording does not open on a loading screen
 await send("Page.navigate", { url: `${HOST}/facility/${F}/radsmart` });
 await waitFor(`document.querySelector(".care-radsmart-container h1")`, 90000);
 await sleep(1500);
+
+const screencast = (w, h, dsf) => send("Page.startScreencast", { format: "jpeg", quality: 82, maxWidth: Math.round(w * dsf), maxHeight: Math.round(h * dsf), everyNthFrame: 1 });
+// The patient's chapter is recorded at phone size; the video shows it in a phone.
+async function phone(on) {
+  await send("Page.stopScreencast");
+  const [w, h, dsf] = on ? [PHONE.w, PHONE.h, PHONE.dsf] : [W, H, DSF];
+  await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: dsf, mobile: on });
+  VH = h;
+  cursor = { x: w / 2, y: h / 2 };
+  log("device", { phone: on, w, h });
+  await screencast(w, h, dsf);
+}
+async function open(url, ready) {
+  await send("Page.navigate", { url });
+  await sleep(600);
+  await waitFor(ready, 60000);
+  await sleep(900);
+}
 
 const visit = `/facility/${F}/patient/${P}/encounter/${E}/updates`;
 const rsButton = `document.querySelector('button[title*="RAD-SMART"]')`;
@@ -222,187 +309,232 @@ const tab = (t) => `__byText(${JSON.stringify(t)}, "a,button", true)`;
 const btn = (t, exact = false) => `__byText(${JSON.stringify(t)}, "button,a", ${exact})`;
 const field = (l) => `__field(${JSON.stringify(l)})`;
 const text = (t, sel = "h1,h2,h3,p,span,div,td,legend") => `__byText(${JSON.stringify(t)}, ${JSON.stringify(sel)})`;
+const rowOf = (name) => `[...document.querySelectorAll("tr")].filter(__vis).find((r) => r.innerText.includes(${JSON.stringify(name)}))`;
+const inRow = (name, b) => `(${rowOf(name)}) && [...(${rowOf(name)}).querySelectorAll("button")].find((x) => x.innerText.trim() === ${JSON.stringify(b)})`;
+const fit = (r, max = 1.4) => Math.max(1, Math.min(max, 1300 / r.w, 640 / r.h));
 
 await nav(visit, rsButton);
-await send("Page.startScreencast", { format: "jpeg", quality: 82, maxWidth: Math.round(W * DSF), maxHeight: Math.round(H * DSF), everyNthFrame: 1 });
+await screencast(W, H, DSF);
 await sleep(800);
 
 try {
   // ======== 1 · Doctor: a new course ========
-  chapter("The doctor plans a new course", "Doctor");
-  await sleep(2600);
-  caption("The doctor opens the patient's visit in CARE. RAD-SMART adds one button: RADSMART.");
+  await chapter("The doctor plans a new course", "Doctor");
+  await sleep(1200);
+  await say("visit");
   const b = await hover(rsButton, 900);
   zoom(b, 1.8);
   await sleep(2600);
   zoom(null);
   await click(rsButton, { pause: 300 });
   await waitFor(`__byText("New course", "button", true)`);
-  await sleep(800);
-  caption("It lists this patient's radiotherapy courses. The doctor starts a new one.");
-  await sleep(1800);
+  await sleep(500);
+  await say("newCourse");
   await click(`__byText("New course", "button", true)`);
   await waitFor(`__byText("Darsh Mandal", "p", true)`);
-  await sleep(900);
+  await sleep(600);
 
-  caption("The doctor enters the prescription, as on the paper form.");
+  await say("prescription");
   await type(field("Hospital number"), "RT-2026-0412");
   await type(field("Diagnosis"), "Carcinoma cervix, stage IIB", { delay: 40 });
   await type(field("Total dose (Gy)"), "50");
   await type(field("Number of fractions"), "25");
   await setValue(field("Site"), "PELVIS");
-  await sleep(600);
 
-  caption("Then ticks what matters for this patient. Each tick becomes a rule RAD-SMART must keep.");
+  await say("ticks");
   await hover(text("Priority checklist", "h2,h3,p,div"), 600);
   await scroll(360);
   await click(`__byText("Travels by public transport", "label")`);
   await click(`__byText("Gap-sensitive radical course", "label")`);
   const older = await hover(`__byText("Older patient (70+)", "label")`, 700);
-  caption("Some ticks are automatic: this patient is 79, so 'older patient' is already ticked.");
+  await say("older");
   zoom(older, 1.6);
   await sleep(2800);
   zoom(null);
-  await sleep(500);
 
-  caption("Saving asks RAD-SMART to propose a time.");
+  await say("save");
   await click(btn("Save and propose slots"), { pause: 200 });
-  await fast("RAD-SMART is planning", () => waitFor(text("RAD-SMART's proposal", "h2,h3,p,div"), 60000));
-  await sleep(1200);
+  await fast("RAD-SMART is planning", () => waitFor(text("Standing slot, every later fraction", "p,span,div"), 180000));
+  await sleep(800);
 
-  caption("RAD-SMART proposes a first day before 17:00 and one standing time for the whole course.");
+  await say("proposal");
   const prop = await hover(text("Standing slot, every later fraction", "p,span,div"), 900);
   zoom({ x: 140, y: prop.y - 20, w: 1300, h: 260 }, 1.35);
-  await sleep(4200);
+  await sleep(3800);
   zoom(null);
-  await sleep(400);
-  caption("It explains why, and offers alternatives. The doctor stays in charge.");
-  await hover(`document.querySelector('[role=radiogroup]')`, 800);
-  await sleep(3000);
-  caption("The doctor approves. The patient keeps this time every day until the course ends.");
+
+  await say("explain");
+  await click(btn("Explain in plain words"), { pause: 200 });
+  await fast("Sarvam AI is writing", () => waitFor(btn("Explain again"), 60000));
+  await sleep(500);
+  const whyBox = `__byText("Why these times", "p", true).closest(".rounded-lg")`;
+  const why = await reveal(whyBox);
+  zoom(why, fit(why, 1.5));
+  await moveTo(Math.round(why.x + why.w * 0.6), Math.round(why.y + why.h * 0.55), 900);
+  await say("guard");
+  await sleep(2500);
+  zoom(null);
+
+  await say("approve");
   await click(btn("Approve course and slots"), { pause: 200 });
   await fast("Saving", () => waitFor(text("Approved by", "dt,span,p,div"), 30000));
-  await sleep(1500);
-  await scroll(520);
-  await sleep(2500);
+  await sleep(1200);
+  const courseId = await evaluate(`location.pathname.split("/").filter(Boolean).pop()`);
 
-  caption("Back on the visit page, the button now shows the patient's daily time.");
-  await nav(visit, `${rsButton} && ${rsButton}.innerText.includes("·")`);
-  const b2 = await hover(rsButton, 900);
-  zoom(b2, 1.8);
-  await sleep(3200);
+  await say("link");
+  const cardSel = `__byText("The patient's phone page", "h2", true).closest("section")`;
+  const card = await reveal(cardSel);
+  zoom(card, fit(card));
+  await hover(btn("Send on WhatsApp"), 900);
+  await sleep(2500);
   zoom(null);
-  await sleep(600);
 
-  // ======== 2 · Technologist: the day ========
-  await signIn("care-staff");
-  chapter("The technologist runs the day", "Technologist");
-  await nav(`/facility/${F}/radsmart`, `__byText("hard rules hold", "p,span,div") && document.querySelector(".care-radsmart-container svg[viewBox]")`);
-  await sleep(2500);
-  caption("Today's board: the machine, a check that every rule holds, and the day on a timeline.");
+  // ======== 2 · The patient's phone ========
+  const own = await api(`/courses/${courseId}/patient-link/`);
+  await chapter("The patient's phone", "Patient", async () => {
+    await phone(true);
+    await open(own.url, `document.querySelector("h1")`);
+  });
+  await say("phone");
+  await hover(`document.querySelector("ul.next") || document.querySelector("h1")`, 900);
+  await sleep(1500);
+  const note = await evaluate(`document.querySelector("audio")?.src || ""`);
+  if (note) {
+    await say("voice");
+    const au = await reveal(`document.querySelector("audio")`);
+    await moveTo(Math.round(au.x + 22), Math.round(au.y + au.h / 2), 700);
+    log("click", { x: cursor.x, y: cursor.y });
+    await playAudio(note, {}, 6);
+  }
+  await say("treatDay");
+  await open(arrivingLink.url, `document.querySelector(".code")`);
+  await hover(`document.querySelector(".code")`, 900);
+  await sleep(1200);
+  await say("tap");
+  await click(`document.querySelector("button.primary")`, { pause: 300 });
+  await waitFor(`document.querySelector(".note.ok")`);
+  await sleep(600);
+  await hover(`document.querySelector(".note.ok")`, 600);
+  await sleep(1500);
+
+  // ======== 3 · Reception ========
+  const codeBox = `document.querySelector('.care-radsmart-container input[placeholder^="Six letters"]')`;
+  await chapter("Reception checks the patient in", "Reception", async () => {
+    await phone(false);
+    await signIn("care-staff");
+    await nav(`/facility/${F}/radsmart/checkin`, codeBox);
+  });
+  await say("scan");
+  await hover(codeBox, 700);
+  for (const ch of arrivingLink.code) {   // a barcode scanner types fast
+    await evaluate(`(() => { const e = ${codeBox}; __set(e, e.value + ${JSON.stringify(ch)}); return true; })()`);
+    await sleep(35);
+  }
+  await sleep(300);
+  await click(btn("Check in", true), { pause: 300 });
+  const listed = `__byText(${JSON.stringify(arriving.patient_name)}, "p,span,div,li,td")`;
+  await waitFor(listed, 15000);
+  await say("checkedIn");
+  await hover(listed, 800);
+  await sleep(1500);
+
+  // ======== 4 · Technologist: the day ========
+  await chapter("The technologist runs the day", "Technologist");
+  await click(tab("Today"));
+  await waitFor(`__byText("hard rules hold", "p,span,div") && document.querySelector(".care-radsmart-container svg[viewBox]")`);
+  await sleep(800);
+  await say("board");
   await hover(text("hard rules hold", "p,span,div"), 900);
-  await sleep(2400);
-  caption("Each block is one patient: green for a new start, blue for a standing slot. The red line is now.");
+  await sleep(1500);
+  await say("blocks");
   const tlr = await reveal(`document.querySelector(".care-radsmart-container svg[role=img]")`);
   if (tlr) {
     zoom(tlr, 1.3);
     await moveTo(Math.round(tlr.x + tlr.w * 0.35), Math.round(tlr.y + tlr.h * 0.6), 1200);
     await moveTo(Math.round(tlr.x + tlr.w * 0.7), Math.round(tlr.y + tlr.h * 0.6), 1600);
-    await sleep(1200);
+    await voiceDone();
     zoom(null);
-  } else await sleep(3000);
-  await sleep(500);
+  }
+  await say("replies");
+  const repSel = `__byText("From patients' phones", "h2").closest("section")`;
+  const rep = await reveal(repSel);
+  zoom(rep, fit(rep));
+  await hover(repSel, 800);
+  await voiceDone();
+  zoom(null);
 
-  caption("When a patient arrives, the technologist taps Arrived, then In room, then Out.");
-  const firstArrive = `__byText("Arrived", "button", true)`;
-  await reveal(firstArrive);
-  const row = `${firstArrive}.closest("tr")`;
-  await evaluate(`(${row}).setAttribute("data-demo-row", "1"), true`).catch(() => {});
-  const inRow = (t) => `document.querySelector('[data-demo-row]') && __byText(${JSON.stringify(t)}, "button", true) && [...document.querySelector('[data-demo-row]').querySelectorAll("button")].find((b) => b.innerText.trim() === ${JSON.stringify(t)})`;
-  const rr = await rectOf(`document.querySelector('[data-demo-row]')`);
+  await say("taps");
+  await reveal(inRow(arriving.patient_name, "In room"));
+  const rr = await rectOf(rowOf(arriving.patient_name));
   if (rr) zoom({ x: 140, y: rr.y - 40, w: 1300, h: rr.h + 80 }, 1.3);
-  await click(firstArrive, { pause: 1400 });
-  await waitFor(inRow("In room"), 15000);
-  await click(inRow("In room"), { pause: 1400 });
-  await waitFor(inRow("Out"), 15000);
-  caption("These taps measure the real waiting time, so the department can see if waits are falling.");
-  await click(inRow("Out"), { pause: 1800 });
+  await click(inRow(arriving.patient_name, "In room"), { pause: 1400 });
+  await waitFor(inRow(arriving.patient_name, "Out"), 15000);
+  await click(inRow(arriving.patient_name, "Out"), { pause: 1600 });
   zoom(null);
-  await sleep(800);
 
-  // ======== 3 · A patient asks for another time ========
-  chapter("A patient asks for another time", "Technologist");
-  await click(tab("Courses"));
-  await waitFor(`document.querySelector('input[placeholder="Name or hospital number"]')`);
-  await sleep(800);
-  caption("The patient asks to come earlier, because of the bus home. The technologist opens the course.");
-  await type(`document.querySelector('input[placeholder="Name or hospital number"]')`, "Darsh", { delay: 90 });
-  const active = `[...document.querySelectorAll("a")].filter(__vis).find((a) => a.innerText.trim() === "Darsh Mandal" && !(a.closest("tr")?.innerText || "").includes("Cancelled"))`;
-  await waitFor(active);
-  await sleep(700);
-  await click(active);
-  await waitFor(text("The patient asks for another time", "p"));
-  await sleep(900);
-  await hover(text("The patient asks for another time", "p"), 800);
-  await sleep(600);
-  await setValue(field("Asks for"), "16:00");
-  await type(field("Reason"), "Bus timing", { delay: 70 });
-  caption("RAD-SMART finds the nearest time that keeps every rule for every patient.");
-  await click(btn("Find a time", true), { pause: 200 });
-  await fast("RAD-SMART is checking the rules", () => waitFor(`document.querySelector('[role=radiogroup]')`, 60000));
-  await sleep(900);
-  const rg = await hover(`document.querySelector('[role=radiogroup]')`, 800);
-  zoom({ x: 140, y: rg.y - 30, w: 1300, h: 200 }, 1.35);
-  await sleep(2400);
-  await click(`[...document.querySelectorAll('[role=radio]')].filter((b) => !b.innerText.includes("current slot")).sort((x, y) => y.innerText.includes("recommended") - x.innerText.includes("recommended"))[0]`, { pause: 1200 });
-  zoom(null);
-  caption("The time changes only when someone approves it.");
-  await click(`[...document.querySelectorAll("button")].filter(__vis).find((b) => b.innerText.trim().startsWith("Approve"))`, { pause: 2200 });
-  await sleep(1200);
-
-  // ======== 4 · Breakdown ========
-  chapter("The machine breaks down", "Technologist");
-  await click(tab("Today"));
-  await waitFor(btn("Report breakdown"));
-  await sleep(900);
-  caption("The machine fails. The technologist reports it and gives the engineer's estimate.");
+  // ======== 5 · Breakdown ========
+  await chapter("The machine breaks down", "Technologist");
+  await say("fault");
   await click(btn("Report breakdown"));
   await waitFor(btn("Take offline and propose"));
-  await sleep(900);
+  await sleep(600);
   await setValue(field("Expected downtime"), "120");
   await type(field("What happened"), "MLC fault, engineer called", { delay: 45 });
   await click(btn("Take offline and propose"), { pause: 200 });
   await fast("Re-planning the day", () => waitFor(btn("Approve and notify"), 90000));
-  await sleep(1200);
-  caption("In seconds, RAD-SMART proposes a new plan that follows the department's breakdown rules.");
+  await sleep(800);
+  await say("replan");
   const tiles = await hover(text("Treated today", "p,span,div"), 900);
   zoom({ x: 140, y: tiles.y - 60, w: 1300, h: 260 }, 1.3);
-  await sleep(4200);
+  await voiceDone();
   zoom(null);
-  await sleep(500);
-  caption("Who gets a new time, who comes back another day, and why. Patients still at home are asked to wait.");
+  await say("who");
   await scroll(420);
-  await sleep(3800);
-  caption("Nothing changes until a technologist or doctor approves. Messages are drafted in the patient's language.");
-  await click(btn("Approve and notify"), { pause: 2400 });
+  await voiceDone();
+  await say("approveFault");
+  await click(btn("Approve and notify"), { pause: 600 });
+  await waitFor(btn("Open messages"), 30000);
   await sleep(800);
+  await click(btn("Open messages"), { pause: 300 });
+  await fast("Sarvam AI is translating", () => waitFor(`${btn("Open WhatsApp")} && !${text("Translating into", "p,span,div")}`, 180000));
+  await sleep(600);
+  await say("messages");
+  const msgSel = `${btn("Open WhatsApp")}.closest("section")`;
+  const msg = await reveal(msgSel);
+  zoom(msg, fit(msg));
+  await hover(msgSel, 900);
+  await voiceDone();
+  if (await evaluate(`!!__byText("Listen", "button", true)`)) {
+    await say("listen");
+    audioUrl = null;
+    await click(`__byText("Listen", "button", true)`, { pause: 200 });
+    const until = Date.now() + 30000;
+    while (!audioUrl && Date.now() < until) await sleep(100);
+    if (audioUrl) await playAudio(audioUrl, { Authorization: `Bearer ${staffToken}` }, 5);
+  }
+  await say("whatsapp");
+  await hover(btn("Open WhatsApp"), 800);
+  await sleep(1400);
+  await click(btn("Mark sent", true), { pause: 1200 });
+  zoom(null);
   await click(tab("Today"));
   await waitFor(btn("Back online"));
-  await sleep(1200);
-  caption("When the engineer fixes it, one tap brings the machine back online.");
-  await click(btn("Back online"), { pause: 2200 });
+  await sleep(800);
+  await say("online");
+  await click(btn("Back online"), { pause: 1500 });
 
-  // ======== 5 · Insights ========
-  chapter("Is it working?", "Doctor and technologist");
+  // ======== 6 · Insights ========
+  await chapter("Is it working?", "Doctor and technologist");
   await click(tab("Insights"));
   await waitFor(text("Wait at the 90th percentile", "h2,h3,p,div"), 30000);
-  await sleep(1200);
-  caption("Insights shows the measured waits against today's baseline (109 min) and the 25% lower target.");
+  await sleep(800);
+  await say("insights");
   await hover(text("Wait, median", "p,span,div,dt"), 900);
-  await sleep(2200);
+  await sleep(1800);
   await scroll(300);
   await hover(text("Wait at the 90th percentile", "h2,h3,p,div"), 900);
-  await sleep(4200);
+  await voiceDone();
+  await sleep(1200);
   log("end");
   await sleep(600);
 } catch (e) {
@@ -413,7 +545,7 @@ try {
 } finally {
   await send("Page.stopScreencast");
   await sleep(300);
-  writeFileSync(join(outDir, "rec.json"), JSON.stringify({ width: W, height: H, scale: DSF, frames, events }, null, 1));
+  writeFileSync(join(outDir, "rec.json"), JSON.stringify({ width: W, height: H, scale: DSF, phone: PHONE, speed: SPEED, frames, events }, null, 1));
   console.log(`frames ${frames.length}, events ${events.length}, ${(now() / 1000).toFixed(1)} s`);
   ws.close();
   chrome.kill();

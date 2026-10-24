@@ -1,0 +1,130 @@
+{
+ "intro": {
+  "file": "1b517f5419e0.mp3",
+  "sec": 6.37
+ },
+ "outro": {
+  "file": "6f9aa5e3cc51.mp3",
+  "sec": 5.36
+ },
+ "visit": {
+  "file": "3fb50d4e655f.mp3",
+  "sec": 3.89
+ },
+ "newCourse": {
+  "file": "b9cd6e58d5d5.mp3",
+  "sec": 2.27
+ },
+ "prescription": {
+  "file": "6154a283d603.mp3",
+  "sec": 2.53
+ },
+ "ticks": {
+  "file": "8d0ea643feca.mp3",
+  "sec": 3.81
+ },
+ "older": {
+  "file": "beaceb191cf1.mp3",
+  "sec": 4.68
+ },
+ "save": {
+  "file": "a9fec30ea2e4.mp3",
+  "sec": 2.38
+ },
+ "proposal": {
+  "file": "5f9bd1e32ac4.mp3",
+  "sec": 4.49
+ },
+ "explain": {
+  "file": "78a997e4c191.mp3",
+  "sec": 7.39
+ },
+ "guard": {
+  "file": "3ef6420e501b.mp3",
+  "sec": 3.21
+ },
+ "approve": {
+  "file": "8040713692f1.mp3",
+  "sec": 4.08
+ },
+ "link": {
+  "file": "b9d1846f3bcd.mp3",
+  "sec": 4.08
+ },
+ "phone": {
+  "file": "2d8d713fcae0.mp3",
+  "sec": 5.43
+ },
+ "voice": {
+  "file": "fc6e494e2002.mp3",
+  "sec": 3.47
+ },
+ "treatDay": {
+  "file": "a131121ca72b.mp3",
+  "sec": 3.74
+ },
+ "tap": {
+  "file": "e8d1ebd14658.mp3",
+  "sec": 5.36
+ },
+ "scan": {
+  "file": "c9357087f837.mp3",
+  "sec": 3.21
+ },
+ "checkedIn": {
+  "file": "506c05bcfc48.mp3",
+  "sec": 3.55
+ },
+ "board": {
+  "file": "ff149b4b5113.mp3",
+  "sec": 5.28
+ },
+ "blocks": {
+  "file": "6073ae231d1b.mp3",
+  "sec": 5.69
+ },
+ "replies": {
+  "file": "9f25882429a5.mp3",
+  "sec": 4.26
+ },
+ "taps": {
+  "file": "5191b90a0e88.mp3",
+  "sec": 5.54
+ },
+ "fault": {
+  "file": "01131e3aacd7.mp3",
+  "sec": 4.08
+ },
+ "replan": {
+  "file": "e38424b66841.mp3",
+  "sec": 4.68
+ },
+ "who": {
+  "file": "4eefa5696540.mp3",
+  "sec": 5.88
+ },
+ "approveFault": {
+  "file": "7d1a3e362ac1.mp3",
+  "sec": 4.6
+ },
+ "messages": {
+  "file": "3cb1fb6e62be.mp3",
+  "sec": 5.17
+ },
+ "listen": {
+  "file": "dd9253175bba.mp3",
+  "sec": 2.12
+ },
+ "whatsapp": {
+  "file": "d3cfc2ed8496.mp3",
+  "sec": 3.81
+ },
+ "online": {
+  "file": "f5b97cbf989e.mp3",
+  "sec": 3.32
+ },
+ "insights": {
+  "file": "dc955e1d2c4e.mp3",
+  "sec": 6.22
+ }
+}

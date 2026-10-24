@@ -219,7 +219,7 @@
       <div class="step" style="--c:var(--c1)"><span class="n">1 · Predict</span><p>How many minutes each patient needs on the machine.</p></div>
       <div class="step" style="--c:var(--c2)"><span class="n">2 · Plan</span><p>One time slot for each course, with every rule guaranteed.</p></div>
       <div class="step" style="--c:var(--c3)"><span class="n">3 · Test</span><p>Try the plan in a virtual copy of the department first.</p></div>
-      <div class="step" style="--c:var(--c4)"><span class="n">4 · Tell</span><p>Explain and message patients in Kannada, Tulu and more.</p></div>
+      <div class="step" style="--c:var(--c4)"><span class="n">4 · Tell</span><p>Messages and voice notes in Kannada, Malayalam, Hindi and Konkani, by Sarvam AI.</p></div>
     </div>
     <p class="decide"><b>People decide.</b> The doctor approves each course and its time slot. A technologist or doctor approves every change on the day. RAD-SMART decides only <i>when</i> a patient is treated, never <i>whether</i> or <i>how</i>.</p>
   </section>
@@ -231,11 +231,11 @@
       <p>RAD-SMART runs as a plugin in CARE, the open-source hospital information system of the Open Healthcare Network, with a <b>RADSMART</b> button on the patient's visit page. All patients shown are synthetic.</p>
     </div>
     <div class="video" id="demo">
-      <video controls preload="metadata" playsinline poster="media/demo_poster.jpg" aria-label="RAD-SMART demo: a recording of the app in CARE, with captions">
+      <video controls preload="metadata" playsinline poster="media/demo_poster.jpg" aria-label="RAD-SMART demo: a narrated recording of the app in CARE, with captions">
         <source src="media/RAD-SMART_demo.mp4" type="video/mp4">
         <a href="media/RAD-SMART_demo.mp4">Download the demo video</a>
       </video>
-      <p class="muted">A 2¾-minute recording of the real app, with captions: the doctor plans a course, the technologist runs the day, a patient changes time, the machine breaks down, and the waits are measured. Step by step in the <a href="RAD-SMART_User_Guide.pdf">user guide</a>.</p>
+      <p class="muted">A narrated recording of the real app, with captions: the doctor plans a course, the patient sees it on their phone in Kannada, reception checks them in, the technologist runs the day, the machine breaks down and every patient's message is drafted in their language, and the waits are measured. Step by step in the <a href="RAD-SMART_User_Guide.pdf">user guide</a>.</p>
     </div>
     <div class="shots">
       <figure>
@@ -250,7 +250,20 @@
         <a href="figures/app5_breakdown.png"><img src="figures/app5_breakdown.png" alt="The breakdown screen: the expected downtime, RAD-SMART's proposed response and the approval button" loading="lazy"></a>
         <figcaption><b>Breakdown:</b> enter the downtime and approve the new plan.</figcaption>
       </figure>
+      <figure>
+        <a href="figures/app10_patient_phone.png"><img src="figures/app10_patient_phone.png" alt="The patient's page on a phone, in Kannada: today's time, a code for reception, the department's message with a voice note, and reply buttons" loading="lazy"></a>
+        <figcaption><b>Patient:</b> one private link, no app: times, voice notes, and a tap to say they are late.</figcaption>
+      </figure>
+      <figure>
+        <a href="figures/app12_messages.png"><img src="figures/app12_messages.png" alt="Messages after a breakdown: each in the patient's language and in English, with Listen and Open WhatsApp buttons" loading="lazy"></a>
+        <figcaption><b>Messages:</b> translated by Sarvam AI; a translation that changes a time is never used.</figcaption>
+      </figure>
+      <figure>
+        <a href="figures/app11_checkin.png"><img src="figures/app11_checkin.png" alt="Reception check-in: a box for the scanned or typed six-letter code" loading="lazy"></a>
+        <figcaption><b>Reception:</b> scans the code on the patient's phone.</figcaption>
+      </figure>
     </div>
+    <p class="muted"><b>Tested:</b> 112 of 112 Sarvam translations in four languages kept every time; 20 of 20 plain-word explanations used only the plan's times. <b>Next phase:</b> reading the paper prescription by photo, importing the department's past records, and spoken replies from patients. Details in the <a href="Phase2_Submission.pdf">Phase 2 submission</a>.</p>
   </section>
 
   <section id="results" aria-labelledby="h-results">
@@ -325,6 +338,7 @@
           <li>A person approves every change</li>
           <li>Every plan is re-checked against the rules</li>
           <li>No names or phone numbers go to AI models</li>
+          <li>A translation that changes a time is never sent</li>
           <li>Every change is logged</li>
         </ul>
       </div>
@@ -337,7 +351,8 @@
       <h2 id="h-docs">Documents</h2>
     </div>
     <div class="docs">
-      <a class="doc" href="deck/"><b>Pitch deck</b><span>Nine slides, on the web and as a PDF</span></a>
+      <a class="doc" href="Phase2_Submission.pdf"><b>Phase 2 submission</b><span>What we built, how we tested it, and what comes next</span></a>
+      <a class="doc" href="deck/"><b>Pitch deck</b><span>Twelve slides in the Phase 2 order, on the web and as a PDF</span></a>
       <a class="doc" href="RAD-SMART_User_Guide.pdf"><b>User guide</b><span>How to use the app, and a 5-minute demo script</span></a>
       <a class="doc" href="RAD-SMART_Research_Paper.pdf"><b>Research paper</b><span>The method and results in eight pages</span></a>
       <a class="doc" href="RAD-SMART_Impact_Analysis.pdf"><b>Impact analysis</b><span>With and without RAD-SMART, on each dataset, in four pages</span></a>

@@ -6,7 +6,11 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 **It runs inside CARE**, the Open Healthcare Network's open-source hospital information system, as a pair of plugins with a **RADSMART** button on the patient's visit page (`app/`, see [`app/README.md`](app/README.md)).
 
-**Demo video (2¾ min, with captions):** https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4 file](docs/media/RAD-SMART_demo.mp4)
+**Patients and Sarvam AI.** After each approval RAD-SMART drafts the patient's message in Kannada, Malayalam, Hindi or Konkani (Tulu speakers read Kannada script) with Sarvam Translate, and a voice note with Bulbul v3; a technologist opens it in WhatsApp and presses send. Each patient has one private phone page, with no app and no login: today's time, changes after a breakdown, messages with voice notes, a QR code that reception scans to check them in, and four reply buttons (on my way, late, cannot come, want another time). Sarvam-105B explains a proposed time in plain words. A translation that changes a time, or an explanation that invents one, is thrown away; without Sarvam everything works in English. In our evaluation ([`docs/evaluation/`](docs/evaluation/sarvam_evaluation.md)), 140 of 140 translations across five languages kept every time, and 20 of 20 explanations were accepted.
+
+**Phase 2 final submission:** [PDF](docs/Phase2_Submission.pdf) ([DOCX](docs/Phase2_Submission.docx)): the eight template sections, what is built and what is not, and the evidence.
+
+**Demo video (3½ min, narrated, with captions):** https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4 file](docs/media/RAD-SMART_demo.mp4)
 
 [![The RAD-SMART demo: a recording of the app in CARE](docs/media/demo_poster.jpg)](https://psraghothamrao8.github.io/RAD-SMART/#demo)
 
@@ -24,6 +28,8 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 | Path | What it is |
 |---|---|
+| `docs/Phase2_Submission.pdf` (`.docx`, `.md`) | The Phase 2 final submission: team and problem, users and solution, the working MVP and AI approach, build sprint progress, evaluation, safety, deployment and costs, next steps, with a short version of each section |
+| `docs/evaluation/` | The Sarvam AI evaluation (`sarvam_evaluation.md`), its raw results, and every translation with its back-translation for native speakers to rate (`sarvam_translations_for_rating.csv`). Rerun with `python tools/evaluate_sarvam.py --env-file <file with SARVAM_API_KEY>`; it fetches only missing results |
 | `docs/RAD-SMART_User_Guide.pdf` (`.docx`, `.md`) | How to use the app (doctor and technologist, step by step with screenshots) and how to show it: setup checklist, a 5-minute demo script, fallbacks and likely questions |
 | `docs/media/` | The demo video (`RAD-SMART_demo.mp4`) and its poster image |
 | `docs/RAD-SMART_Research_Paper.pdf` (`.docx`, `.md`) | Eight-page research paper: the problem, the method, results on both datasets, limitations |

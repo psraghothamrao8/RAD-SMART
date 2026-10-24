@@ -9,29 +9,36 @@
     "cover",
     "problem",
     "constraints",
-    "approaches",
     "howitworks",
+    "approaches",
     "app",
+    "patients",
+    "sprint",
     "results",
     "breakdown",
+    "validation",
     "plan"
   ],
   "cover": "cover",
   "sections": {
     "problem": {
-      "description": "The problem and why it is hard",
+      "description": "1 · Team and problem",
       "start": "cover"
     },
     "solution": {
-      "description": "The approach we chose and how it works",
-      "start": "approaches"
+      "description": "2–3 · Users, solution, AI approach and the working app",
+      "start": "howitworks"
+    },
+    "sprint": {
+      "description": "4 · Build sprint progress",
+      "start": "sprint"
     },
     "evidence": {
-      "description": "Evidence from the proof of concept",
+      "description": "5–6 · Evaluation and safety",
       "start": "results"
     },
     "plan": {
-      "description": "Guardrails, pilot and next steps",
+      "description": "7–8 · Deployment and next steps",
       "start": "plan"
     }
   },

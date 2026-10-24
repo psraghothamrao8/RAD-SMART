@@ -6,23 +6,25 @@ Health-a-thon 2026, Cancer track · Manipal · 25 October 2026
 
 ---
 
-RAD-SMART plans the radiotherapy machine's day. It gives every course one fixed daily time that keeps all the department's rules, and it re-plans in seconds when the machine breaks down. It runs inside CARE, the hospital information system, as an extra button and six pages. **RAD-SMART only suggests. A doctor or technologist approves every change.**
+RAD-SMART plans the radiotherapy machine's day. It gives every course one fixed daily time that keeps all the department's rules, and it re-plans in seconds when the machine breaks down. It runs inside CARE, the hospital information system, as an extra button and eight pages, and each patient gets a page on their phone. Messages to patients are translated into their language by Sarvam AI, with a voice note. **RAD-SMART only suggests. A doctor or technologist approves every change.**
 
-> **Watch the demo first.** A 2¾-minute recording of the real app, with captions, is on the project website: [psraghothamrao8.github.io/RAD-SMART](https://psraghothamrao8.github.io/RAD-SMART/#demo). The file is also in the repository as `docs/media/RAD-SMART_demo.mp4`. Every patient in the video and in this guide is synthetic.
+> **Watch the demo first.** A recording of the real app, narrated and captioned, is on the project website: [psraghothamrao8.github.io/RAD-SMART](https://psraghothamrao8.github.io/RAD-SMART/#demo). The file is also in the repository as `docs/media/RAD-SMART_demo.mp4`. Every patient in the video and in this guide is synthetic.
 
 ## Who does what
 
 | Person | Uses RAD-SMART to | Pages |
 |---|---|---|
-| **Doctor** (radiation oncologist) | enter a course and approve its time | RADSMART button, New course, Courses |
-| **Technologist** (RTT) | run the day: arrivals, time changes, breakdowns | Today, Courses, Breakdown |
-| **Both** | see whether waits are falling | Insights |
+| **Doctor** (radiation oncologist) | enter a course, approve its time, explain it in plain words | RADSMART button, New course, Courses |
+| **Technologist** (RTT) | run the day: arrivals, time changes, breakdowns, messages to patients | Today, Courses, Breakdown, Messages |
+| **Reception** | check patients in by scanning the code on their phone | Check-in |
+| **Patient and family** | see their times and messages, and tell the department if they are late | their own phone page (no app, no login) |
+| **Doctor and technologist** | see whether waits are falling | Insights |
 
 A technologist can do everything except enter or approve a course. Only a doctor can do that.
 
 ## Part A · Everyday use
 
-The five steps below follow one patient and one working day. They are the same five steps as the demo video.
+The steps below follow one patient and one working day, in the same order as the demo video.
 
 ### 1. The doctor plans a new course
 
@@ -37,9 +39,32 @@ The five steps below follow one patient and one working day. They are the same f
 ![The intake form: prescription and priority checklist.](figures/app2_intake.png){width=5.4}
 
 5. Click **Save and propose slots**. Within seconds RAD-SMART proposes a **first day** (always finishing before 17:00) and **one standing time** for every later fraction. It lists its reasons and offers alternatives.
-6. Pick the recommended time or an alternative, and click **Approve course and slots**. The patient keeps this time every day until the course ends. To start on a different date, use **Try another start date** and **Propose again**.
+6. Pick the recommended time or an alternative. To see the reasons in plain words, click **Explain in plain words**: Sarvam AI writes two or three sentences in English and in the patient's language, using only RAD-SMART's own reasons. If the explanation mentions any time that is not in the plan, it is thrown away and RAD-SMART's reasons are shown instead.
+7. Click **Approve course and slots**. The patient keeps this time every day until the course ends. To start on a different date, use **Try another start date** and **Propose again**.
 
 ![RAD-SMART's proposal, waiting for the doctor's approval.](figures/app3_proposal.png){width=6.2}
+
+![Explain in plain words: the reasons in English and in Kannada.](figures/app9_explain.png){width=6.2}
+
+8. After approval the course page shows **The patient's phone page**: a QR code, a six-letter check-in code and the patient's private link. Click **Send on WhatsApp** to send the link once, from the department's WhatsApp. The first message to the patient (their first day and daily time) is drafted on the **Messages** page.
+
+### The patient's phone page
+
+The patient opens the link on any phone. There is no app and no login, and the page shows the first name only. It is in the patient's language, with a switch to English. It shows:
+
+- today's time to come, or the new time after a breakdown;
+- the next five treatment days and their times;
+- the department's messages, each with a voice note to play;
+- on treatment days, the QR code and six letters to show at reception;
+- four buttons: **I am on my way**, **I will be late** (15 to 60 minutes), **I cannot come today**, and **I want a different daily treatment time**. Nothing changes until staff decide; a patient can send at most six replies a day.
+
+![The patient's page on a phone, in Kannada.](figures/app10_patient_phone.png){width=2.6}
+
+### Reception checks patients in
+
+Open **RAD-SMART → Check-in**. A USB barcode scanner types the code from the patient's phone into the box; or click **Scan with camera**; or type the six letters the patient reads out. Click **Check in**. The patient is marked arrived on Today's board, and any "on my way" or "late" reply is closed.
+
+![Check-in at reception.](figures/app11_checkin.png){width=6.2}
 
 ### 2. The technologist runs the day
 
@@ -56,6 +81,8 @@ For each patient, tap **Arrived** when they come, **In room** when they go in, a
 
 - **Undo** corrects a wrong tap.
 - **Not today** sends a patient home for the day, and adds the missed fraction at the end of the course.
+
+**From patients' phones** lists what patients said today: on the way, late by about N minutes, cannot come, or want another time. A badge also appears beside the patient. Click **Done** when it is handled. A request for another time also appears under the course, where you can **Find a time** (step 3).
 
 ![Recording arrivals: one patient waiting, one in the room, the next ones still to come.](figures/app6_arrivals.png){width=6.2}
 
@@ -81,6 +108,19 @@ For each patient, tap **Arrived** when they come, **In room** when they go in, a
 
 ![A two-hour breakdown: the proposal waits for approval.](figures/app5_breakdown.png){width=6.2}
 
+### Messages to patients
+
+After every approval (a new course, a new daily time, a breakdown response), RAD-SMART drafts a message for each patient it affects. Open **RAD-SMART → Messages**:
+
+1. Each message shows the text in the patient's language and in English. Sarvam AI translates it; if the translation drops or changes any time, it is not used and the message goes in English.
+2. Click **Listen** to hear the voice note in the patient's language (**English** for the English one).
+3. Click **Open WhatsApp**. WhatsApp opens with the patient's number and the message filled in. Check it and press send there. **Copy** puts the text on the clipboard for SMS or any other app.
+4. Click **Mark sent**. **Do not send** cancels a message that is no longer needed.
+
+The patient also sees every message on their phone page, with the voice note.
+
+![Messages after a breakdown, translated, with a voice note.](figures/app12_messages.png){width=6.2}
+
 ### 5. Check that it is working
 
 **Insights** shows the measured waits for any date range:
@@ -96,8 +136,9 @@ The chart compares each day with the department's baseline (108.6 minutes) and t
 ### What RAD-SMART never does
 
 - It never decides **whether** or **how** a patient is treated, only **when**.
-- It never changes a time, sends a patient back or messages anyone without a person's approval.
-- It never sends names or hospital numbers to an AI service.
+- It never changes a time, sends a patient back or messages anyone without a person's approval. A technologist presses send on every WhatsApp message.
+- It never sends names, hospital numbers or phone numbers to an AI service. Only the message text goes to Sarvam AI.
+- It never uses a translation or an explanation that changes or invents a time.
 
 <!-- pagebreak -->
 
@@ -111,7 +152,8 @@ The chart compares each day with the department's baseline (108.6 minutes) and t
    - sign in as **care-doctor** in one, and open a patient's visit page;
    - sign in as **care-staff** in the other, and open **RAD-SMART → Today**.
 4. Keep the demo video open in a third tab as a backup.
-5. Pick a patient with no radiotherapy course, so the RADSMART button starts a new course.
+5. To show the patient's side, open the patient's page on a phone (or a narrow browser window) from **Open the page** on the course. Messages, voice notes and Explain need Sarvam AI: check that the header shows **Sarvam AI on**. Without it, everything still works in English.
+6. Pick a patient with no radiotherapy course, so the RADSMART button starts a new course.
 
 The refresh command, run in the CARE workspace:
 
@@ -126,9 +168,11 @@ The refresh command, run in the CARE workspace:
 | 0:00 | Visit page (doctor) | Point to **RADSMART**, click it, then **New course** | "RAD-SMART lives inside the hospital system. The doctor starts from the patient's visit." |
 | 0:30 | New course | Fill in the prescription, then tick *public transport* and *gap-sensitive* | "The doctor fills the form as on paper. Each tick becomes a rule the computer must keep." |
 | 1:15 | Proposal | Click **Save and propose slots**, point to the first day and the standing time, then **Approve** | "One time for the whole course, with the reasons. The doctor stays in charge." |
-| 2:00 | Today (technologist) | Show the green rule check and the timeline; tap **Arrived**, **In room**, **Out** for one patient | "Every rule holds. These taps measure the real wait." |
-| 2:45 | Course (technologist) | Patient asks for 16:00: **Find a time**, then **Approve** | "The nearest time that keeps every rule, for everyone." |
-| 3:30 | Breakdown | **Report breakdown**, 2 hours: show the summary and the list, then **Approve and notify** | "A new plan in seconds, under the department's own rules. Patients at home are told to come later." |
+| 1:40 | Proposal (doctor) | **Explain in plain words**, then, after approving, point to the QR code and **Send on WhatsApp** | "Sarvam AI explains the time in the patient's language. Any invented time is thrown away." |
+| 2:10 | Phone (patient) | Show the patient's page in Kannada; play the voice note; tap **I am on my way** | "No app, no login. The patient hears the message in their language." |
+| 2:40 | Check-in (reception) | Type or scan the six-letter code | "Reception scans the phone. The board shows the patient waiting." |
+| 3:00 | Today (technologist) | Show the rule check, the timeline and **From patients' phones**; tap **In room**, **Out** | "Every rule holds. These taps measure the real wait." |
+| 3:30 | Breakdown | **Report breakdown**, 2 hours: show the summary, **Approve and notify**, then **Open messages**: **Listen**, **Open WhatsApp** | "A new plan in seconds, under the department's own rules. Every patient's message is drafted in their language." |
 | 4:30 | Insights | Point to the long wait against the baseline and the target | "This is how the department will know if it works: 109 minutes today, target 25% lower." |
 
 ### If something goes wrong
@@ -141,7 +185,8 @@ The refresh command, run in the CARE workspace:
 
 - **"Is this real patient data?"** No. All patients are synthetic. The department's records were used only as anonymised totals.
 - **"What if the AI is wrong?"** The plan comes from an optimiser that cannot break a hard rule. A rule checker re-checks every plan, and a person approves every change.
-- **"Does it work without internet?"** Planning, the rule check and the board run on the hospital's own server. Sending messages needs the SMS or WhatsApp gateway. If the language model is unavailable, staff still see the reasons and the fixed message templates still work.
+- **"Does it work without internet?"** Planning, the rule check, the board and check-in run on the hospital's own server. Translation, voice notes and Explain need Sarvam AI over the internet; without it, messages go in English and staff see RAD-SMART's own reasons. Messages are sent from the department's WhatsApp.
+- **"What if the translation is wrong?"** A translation that drops or changes a time is never used. In our test, 112 of 112 translations in four languages kept every time. (Sarvam has no Tulu model: Tulu speakers get Kannada, and staff can record a Tulu voice note.) Native speakers at the department rate every translation before the pilot.
 - **"What does staff have to do extra?"** Three taps per patient. The doctor fills in one form per course, which replaces the paper booking.
 
 ---

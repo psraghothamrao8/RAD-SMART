@@ -1,0 +1,31 @@
+<section id="patients" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#4A3AA7">3 · Working MVP: patients</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:64px; font-weight:600; line-height:1.1; color:#132238">Patients hear their time, in their language</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:40px; align-items:flex-start">
+    <img src="../figures/app10_patient_phone.png" alt="The patient's page on a phone, in Kannada: today's time to come, a QR code and six letters for reception, the next treatment days and reply buttons" style="width:280px; height:600px; object-fit:contain; background:#132238; border-radius:20px">
+    <div style="flex:1; display:flex; flex-direction:column; gap:24px">
+      <img src="../figures/app12_messages_crop.png" alt="The Messages page after a breakdown: each message in the patient's language and in English, with Listen, Open WhatsApp and Mark sent buttons" style="width:1300px; height:380px; object-fit:contain; background:#EEF2F6; border:1px solid #D9DFE6; border-radius:8px">
+      <div style="display:flex; flex-direction:row; gap:20px">
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:18px 24px">
+          <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#4A3AA7">Phone page</p>
+          <p style="font-size:24px; line-height:1.35; color:#3B4654">One private link, no app, no login. Taps: on my way, late, cannot come</p>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:18px 24px">
+          <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#4A3AA7">Sarvam AI</p>
+          <p style="font-size:24px; line-height:1.35; color:#3B4654">Translates into 4 Indian languages and reads it aloud; staff press send</p>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:18px 24px">
+          <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#4A3AA7">Explain</p>
+          <p style="font-size:24px; line-height:1.35; color:#3B4654">Plain words for a proposed time; any invented time is rejected</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">Kannada, Malayalam, Hindi, Konkani (Tulu speakers get Kannada) · no names or numbers sent to Sarvam · synthetic patients</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">7 / 12</p>
+  </div>
+  <aside>The patient's side is built. Each patient gets one private link, sent once on WhatsApp from the department's own number. The page needs no app and no login, shows the first name only, and is in the patient's language with a switch to English: today's time to come, the next treatment days, the department's messages with a voice note, and on treatment days a QR code and six letters for reception. Four buttons let the patient say they are on the way, late, cannot come, or want another daily time; staff decide. After every approval RAD-SMART drafts each affected patient's message from fixed English templates. Sarvam Translate puts it into Kannada, Malayalam, Hindi or Konkani (Sarvam has no Tulu model, so Tulu speakers get Kannada, and staff can record a Tulu voice note), Sarvam Bulbul reads it aloud, and a technologist checks it and presses send in WhatsApp. A translation that drops or changes a time is never used: the patient gets the English text.</aside>
+</section>

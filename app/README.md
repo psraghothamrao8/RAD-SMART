@@ -11,6 +11,8 @@ unchanged: the plugins use CARE's documented plugin system.
 
 Every patient shown in the screenshots and the demonstration is synthetic.
 
+For a step-by-step guide with screenshots, and a 5-minute demo script, see the [user guide](../docs/RAD-SMART_User_Guide.pdf). A captioned recording of the app is on the [project website](https://psraghothamrao8.github.io/RAD-SMART/#demo).
+
 ## Who uses it, and for what
 
 **Doctor (radiation oncologist)**: enters and approves each course.

@@ -6,6 +6,12 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 **It runs inside CARE**, the Open Healthcare Network's open-source hospital information system, as a pair of plugins with a **RADSMART** button on the patient's visit page (`app/`, see [`app/README.md`](app/README.md)).
 
+**Demo video (2¾ min, with captions):** https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4 file](docs/media/RAD-SMART_demo.mp4)
+
+[![The RAD-SMART demo: a recording of the app in CARE](docs/media/demo_poster.jpg)](https://psraghothamrao8.github.io/RAD-SMART/#demo)
+
+**How to use the app, and how to demo it:** [User guide (PDF)](docs/RAD-SMART_User_Guide.pdf): the five everyday tasks with screenshots, and a 5-minute demo script
+
 **Website:** https://psraghothamrao8.github.io/RAD-SMART/ (a one-page summary with simple charts; GitHub Pages, served from `docs/`)
 
 **Pitch deck:** https://psraghothamrao8.github.io/RAD-SMART/deck/ (web) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf)
@@ -18,6 +24,8 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 | Path | What it is |
 |---|---|
+| `docs/RAD-SMART_User_Guide.pdf` (`.docx`, `.md`) | How to use the app (doctor and technologist, step by step with screenshots) and how to show it: setup checklist, a 5-minute demo script, fallbacks and likely questions |
+| `docs/media/` | The demo video (`RAD-SMART_demo.mp4`) and its poster image |
 | `docs/RAD-SMART_Research_Paper.pdf` (`.docx`, `.md`) | Eight-page research paper: the problem, the method, results on both datasets, limitations |
 | `docs/RAD-SMART_Research_Report.pdf` (`.docx`, `.md`) | Full research report: problem, evidence, five approaches and the choice, solution design, PoC results, KPIs, implementation plan, pilot, requirements, budget, risks, references |
 | `docs/RAD-SMART_Impact_Analysis.pdf` (`.docx`, `.md`) | Four pages: how much RAD-SMART improves waiting, with and without it, on the original dataset (the department's records) and on the simulated dataset, and what it costs |
@@ -30,6 +38,7 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 | `tools/build_docs.py` | Rebuilds the DOCX and PDF from the Markdown: `python tools/build_docs.py docs/<file>.md` |
 | `docs/index.html` | The project website (the prototype link), served by GitHub Pages. Plain HTML: edit it directly |
 | `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 9 slide sources in `src/` |
+| `tools/demo-video/` | How the demo video is made: a script drives the app in headless Chrome and records it, and a Remotion project adds titles, captions and the pointer (see its README) |
 | `tools/build_deck.py` | Rebuilds the web deck and its PDF from `docs/deck/src/` (needs Google Chrome): `python tools/build_deck.py` |
 
 ## Key dates

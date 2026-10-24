@@ -103,6 +103,9 @@
   .way.best { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .way p b { color: var(--ink); }
 
+  .video { display: grid; gap: 10px; scroll-margin-top: 16px; }
+  .video video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 12px; border: 1px solid var(--line); background: #0e1a2b; }
+
   .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   figure { margin: 0; display: grid; gap: 8px; align-content: start; }
   figure a { display: block; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
@@ -150,7 +153,8 @@
     <p class="lede">Radiotherapy patients come every weekday for weeks, and many wait more than an hour and a half for a few minutes on the machine. RAD-SMART plans the machine's day so that waits are short and every department rule is kept, and it re-plans in seconds when the machine breaks down. A doctor or technologist approves every change.</p>
     <p class="team"><b>Dr Akshay Dinesan</b>, Manipal (team leader) · <b>Abhinand T M</b> (technical lead) · <b>P S Raghotham Rao</b> (lead engineer) · <b>Dr Shirley Lewis Salins</b> · <b>Dr Umesh Velu</b></p>
     <div class="links">
-      <a class="btn primary" href="deck/">Pitch deck</a>
+      <a class="btn primary" href="#demo">Watch the demo</a>
+      <a class="btn" href="deck/">Pitch deck</a>
       <a class="btn" href="RAD-SMART_Research_Paper.pdf">Research paper</a>
       <a class="btn" href="#results">Results</a>
       <a class="btn" href="https://github.com/psraghothamrao8/RAD-SMART">Code on GitHub</a>
@@ -225,6 +229,13 @@
       <p class="eyebrow">The app</p>
       <h2 id="h-app">A working app inside CARE</h2>
       <p>RAD-SMART runs as a plugin in CARE, the open-source hospital information system of the Open Healthcare Network, with a <b>RADSMART</b> button on the patient's visit page. All patients shown are synthetic.</p>
+    </div>
+    <div class="video" id="demo">
+      <video controls preload="metadata" playsinline poster="media/demo_poster.jpg" aria-label="RAD-SMART demo: a recording of the app in CARE, with captions">
+        <source src="media/RAD-SMART_demo.mp4" type="video/mp4">
+        <a href="media/RAD-SMART_demo.mp4">Download the demo video</a>
+      </video>
+      <p class="muted">A 2¾-minute recording of the real app, with captions: the doctor plans a course, the technologist runs the day, a patient changes time, the machine breaks down, and the waits are measured. Step by step in the <a href="RAD-SMART_User_Guide.pdf">user guide</a>.</p>
     </div>
     <div class="shots">
       <figure>
@@ -327,6 +338,7 @@
     </div>
     <div class="docs">
       <a class="doc" href="deck/"><b>Pitch deck</b><span>Nine slides, on the web and as a PDF</span></a>
+      <a class="doc" href="RAD-SMART_User_Guide.pdf"><b>User guide</b><span>How to use the app, and a 5-minute demo script</span></a>
       <a class="doc" href="RAD-SMART_Research_Paper.pdf"><b>Research paper</b><span>The method and results in eight pages</span></a>
       <a class="doc" href="RAD-SMART_Impact_Analysis.pdf"><b>Impact analysis</b><span>With and without RAD-SMART, on each dataset, in four pages</span></a>
       <a class="doc" href="RAD-SMART_Research_Report.pdf"><b>Full research report</b><span>Every detail, the pilot plan and requirements</span></a>

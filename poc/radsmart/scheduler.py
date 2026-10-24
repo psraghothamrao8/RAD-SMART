@@ -158,9 +158,12 @@ class DayScheduler:
         if p.new_start:
             hi = min(hi, d["new_start_latest_end"] - buf)
             why.append(f"new start: finish by {fmt(d['new_start_latest_end'])}")
-        if p.transport and p.latest_end:
+        if p.latest_end:
             hi = min(hi, p.latest_end - buf)
-            why.append(f"public transport: finish by {fmt(p.latest_end)}")
+            why.append(f"{'public transport' if p.transport else 'doctor'}: finish by {fmt(p.latest_end)}")
+        if p.earliest_start:
+            lo = max(lo, p.earliest_start)
+            why.append(f"doctor: not before {fmt(p.earliest_start)}")
         if p.mhrc:
             mlo, mhi = d["mhrc_window"]
             lo, hi = max(lo, mlo), min(hi, mhi - d["mhrc_buffer_min"])
@@ -176,16 +179,22 @@ class DayScheduler:
             why.append(f"cannot arrive before {fmt(earliest[p.pid])}")
         return lo, hi, why
 
-    def _soft_cost(self, p, start, end, prev_time):
+    def _soft_cost(self, p, start, end, prev_time, standing=False):
+        """standing=True scores a standing slot for a new course: there is no
+        usual time to stay near, and flexible patients leave the day (before
+        17:00) to patients who need it."""
         d, w = self.d, self.d["weights"]
         c = 0.0
-        target = p.requested if p.requested is not None else p.usual_time
-        paying = p.requested is not None
+        target = p.requested if p.requested is not None else (None if standing else p.usual_time)
+        paying = p.requested is not None and p.paying
         weight = (w["pref_complex"] if p.complex
                   else w["pref_paying"] if paying
                   else w["pref_flexible"] if p.flexible else w["pref_general"])
         tol = w["pref_tolerance_paying"] if paying else w["pref_tolerance"]
-        c += weight * max(0.0, abs(start - target) - tol) / 10
+        if target is not None:
+            c += weight * max(0.0, abs(start - target) - tol) / 10
+        if standing and p.flexible:
+            c += w["flexible_daytime"] * max(0, d["new_start_latest_end"] - start) / 10
         if p.elderly:
             c += w["elderly_after_1pm"] * max(0, start - d["elderly_pref_before"]) / 10
         if not p.flexible:
@@ -474,11 +483,13 @@ class DayScheduler:
         return out
 
 
-def check_plan(patients, schedule, dept: dict | None = None) -> dict:
+def check_plan(patients, schedule, dept: dict | None = None, standing: dict | None = None) -> dict:
     """Independent check of every hard rule in a published plan.
 
     Written separately from the optimiser (the "rule checker" in the design):
     a plan is only offered for approval if this finds no violation.
+    standing: pid -> (machine, start) of patients who must keep their standing
+    slot today (continuing courses without an approved change).
     """
     d = dept or DEPARTMENT
     g = d["grid_min"]
@@ -498,11 +509,18 @@ def check_plan(patients, schedule, dept: dict | None = None) -> dict:
                                              (s < d["mhrc_window"][0] or e > d["mhrc_window"][1])],
         "public transport finish by 21:00": [p.pid for p, _, _, e in rows if p.transport
                                              and e > d["public_transport_latest_end"]],
+        "time windows set by the doctor": [p.pid for p, _, s, e in rows
+                                           if (p.earliest_start and s < p.earliest_start)
+                                           or (p.latest_end and e > p.latest_end)],
         "blood irradiation 13:30-14:00 kept free": [
             p.pid for p, m, s, e in rows for b in d["machines"][m]["blocks"] if s < b["end"] and e > b["start"]],
         "one patient at a time on each machine": [],
         "accessories never double-booked with the CT simulator": [],
     }
+    if standing is not None:
+        rules["standing slots kept for the course"] = [
+            p.pid for p, m, s, _ in rows if p.pid in standing
+            and (standing[p.pid][0] != m or abs(standing[p.pid][1] - s) > 0.5)]
     for i, (p, m, s, e) in enumerate(rows):
         for q, m2, s2, e2 in rows[i + 1:]:
             if m == m2 and s < e2 and s2 < e:

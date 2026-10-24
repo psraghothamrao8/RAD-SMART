@@ -1,0 +1,48 @@
+{
+  "name": "care_radsmart_fe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "RAD-SMART radiotherapy scheduling for CARE (frontend plugin)",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "strings": "node scripts/strings.mjs"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.2",
+    "@tailwindcss/vite": "^4.1.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.575.0",
+    "tailwind-merge": "^3.2.0",
+    "tailwindcss": "^4.1.4"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.72.2",
+    "raviger": "^5.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-i18next": "^15.4.1 || ^17.0.0",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "@tanstack/react-query": "^5.100.14",
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react-swc": "^3.8.1",
+    "i18next": "^25.0.0",
+    "raviger": "^5.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-i18next": "^15.4.1",
+    "sonner": "^2.0.7",
+    "typescript": "~5.8.3",
+    "vite": "^6.2.6"
+  }
+}

@@ -146,17 +146,20 @@ DEPARTMENT = {
         {"accessory": "BREAST_BOARD", "start": hm("14:50"), "end": hm("15:30"), "label": "Breast planning CT"},
         {"accessory": "BREAST_BOARD", "start": hm("17:10"), "end": hm("17:50"), "label": "Breast planning CT"},
     ],
-    # Machine downtime rules (department answers):
-    #   up to 60 min:  nobody is sent home; ongoing patients are all treated
-    #                  today; a few new starts may be proposed for deferral (when
-    #                  they can no longer finish by 17:00, or fitting them in would
-    #                  keep patients already waiting much longer); the rest of the
-    #                  day is re-planned.
-    #   over 120 min:  new starts move to the next day except urgent palliative
-    #                  starts; some ongoing patients may be deferred.
-    #   Either way the oncologist or senior RTT approves every deferral.
+    # Machine downtime rules (department answers, 24 Oct 2026). A fault can last
+    # 15 minutes to 48 hours, depending on the problem, the engineer and spare
+    # parts; the technologist enters the expected (or exact) length.
+    #   up to 60 min:  nobody is sent home; everyone is treated today, working
+    #                  up to 60 min of overtime.
+    #   over 60 min:   RAD-SMART proposes who is sent back, enough to free the
+    #                  minutes that 60 min of overtime and the gaps in today's
+    #                  plan cannot absorb. Patients who have not left home are
+    #                  asked to postpone travel until further notice.
+    #   Either way, the day's new starts wait until the machine is back (and
+    #   move to the next day if they can no longer finish by 17:00), and the
+    #   technologist or oncologist approves every proposal before anyone is told.
     "downtime_short_max_min": 60,
-    "downtime_long_min": 120,
+    "downtime_overtime_budget_min": 60,
     # Soft-constraint weights (cost per 10 minutes of deviation). Tunable per
     # department; the Rule Studio exposes them as plain-language sliders.
     "weights": {
@@ -167,6 +170,8 @@ DEPARTMENT = {
         "pref_tolerance_paying": 15,
         "elderly_after_1pm": 1.5,  # older patients: earlier is better
         "late_evening": 2.0,       # non-flexible patients finishing after 21:00
+        "flexible_daytime": 0.3,   # standing slots: flexible patients leave the day to others
+        "fragment": 2.0,           # standing slots: minutes stranded in slivers too short to use
         "night": 1.0,              # anyone finishing after 23:00 (keeps the day short)
         "mhrc_wait": 2.0,          # MHRC patients: as soon after 16:00 as possible
         "complex_outside_block": 3.0,
@@ -182,7 +187,35 @@ DEPARTMENT = {
     "late_evening_after": hm("21:00"),
     "night_after": hm("23:00"),
     "target_utilisation": 0.92,    # for new-start capacity forecasting
+    # Standing slots (department answers, 24 Oct 2026): a patient keeps the
+    # slot they are given until the course ends, unless they ask to change it;
+    # the slot is freed when the course ends. New starts are treated before
+    # 17:00; later fractions may take evening slots so that, every day, enough
+    # time before 17:00 stays free for the next new starts.
+    "new_start_reserve_min": 150,   # free minutes kept before 17:00 for new starts (about five)
+    "new_start_gap_min": 30,        # a gap shorter than this cannot take a new start
+    "bid_min_gap_min": 360,         # twice-daily fractions at least 6 hours apart
+    "sliver_min": 8,                # a free gap shorter than this is wasted
 }
+
+# Treatment days a doctor can choose on the intake form.
+PATTERNS = {
+    "daily": "Every working day (Mon-Fri)",
+    "alternate": "Alternate days (Mon, Wed, Fri)",
+    "bid": "Twice daily, at least 6 hours apart",
+    "twice_weekly": "Twice a week (Mon, Thu)",
+    "weekly": "Once a week",
+}
+
+# Treatment-gap categories, after the Royal College of Radiologists' guidance on
+# unscheduled interruptions (2019). They only order who RAD-SMART proposes to
+# send back during a breakdown; the oncologist sets the category on intake.
+#   1: radical treatment where a gap lowers tumour control (e.g. head and neck,
+#      cervix, lung squamous cancers): never proposed for sending back
+#   2: other radical treatment
+#   3: palliative treatment
+GAP_CATEGORIES = {1: "Category 1: gap-sensitive radical", 2: "Category 2: other radical",
+                  3: "Category 3: palliative"}
 
 # Total body irradiation: about once every two to three months, known a month
 # ahead. Two fractions a day of 60-90 min: the first treatment of the morning

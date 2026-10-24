@@ -33,23 +33,27 @@ import numpy as np
 
 from radsmart.config import DEPARTMENT, TECHNIQUES, TBI_PLAN, ct_booking_problems, fmt, hm
 from radsmart.department import PROFILE
+from radsmart.downtime import TRAVEL_NOTICE_MIN, triage
 from radsmart.duration_model import LookupPredictor, QuantileGBMPredictor, evaluate
 from radsmart.forecast import (capacity_profile, committed_load, daily_capacity, make_pipeline,
                                naive, occupancy_label, recommend)
 from radsmart.scheduler import DayScheduler, check_plan, planning_minutes
 from radsmart.simulate import monte_carlo, summarise
 from radsmart.synth import available_minutes, expected_duration, make_day, make_history
+from radsmart.weeks import simulate_weeks
 
 OUT = Path(__file__).parent / "results"
 OUT.mkdir(exist_ok=True)
 N_REP = 300
 N_PATIENTS = 87            # planned the evening before; 0-3 urgent starts join on the day
-FAULTS = [                 # the department's two downtime rules
-    ("short", "45-minute fault at 11:00", ("VERSA", hm("11:00"), 45)),
-    ("long", "150-minute fault at 10:00", ("VERSA", hm("10:00"), 150)),
+FAULTS = [                 # one fault under each of the department's downtime rules (24 Oct 2026)
+    ("short", "45-minute fault at 11:00", ("VERSA", hm("11:00"), 45)),     # up to 60 min: overtime
+    ("long", "150-minute fault at 10:00", ("VERSA", hm("10:00"), 150)),    # over 60 min: send some back
 ]
 TBI_DAYS = [10, 11, 12]    # working days 11-13 of the forecast (known a month ahead)
-VALIDATION_DAYS = ((60, "60-69"), (74, "70+"))   # twin vs the department's records, same day size
+VALIDATION_DAYS = ((40, "0-44"), (52, "45-59"), (64, "60-69"), (74, "70+"))   # recorded day sizes
+WEEKS_CENSUS = 70          # patients on treatment, as on the department's busy days
+WEEKS_REP = 15             # twin replications per evaluation day
 PIPELINE_RATE = 7.0        # new patients approved per working day (two machines)
 
 # ---------------------------------------------------------------- chart style
@@ -201,15 +205,20 @@ def main():
     res["disruption"], res["disruption_results"], web["scenarios"] = {}, {}, {}
     fault_curves = {}
     for key, label, fault in FAULTS:
-        rp = reoptimise(sch, day, s_ml, ml, fault)
+        rp = replan_fault(day, s_ml, fault)
+        tr = rp["tr"]
         res["disruption"][key] = {
             "label": label, "rule": rp["rule"],
-            "reoptimisation_seconds": round(rp["schedule"].solve_seconds, 1),
+            "reoptimisation_seconds": round(tr.solve_seconds, 1),
+            "restart": fmt(tr.restart) if tr.restart is not None else None,
+            "overtime_min": tr.overtime_min, "minutes_to_free": tr.minutes_to_free,
+            "actions": tr.counts(),
             "patients_replanned": len(rp["new_appt"]), "patients_moved": rp["moved"],
             "patients_messaged": len(rp["notified"]),
             "new_starts_moved_to_next_day": sorted(rp["postponed"]),
-            "deferral_proposals": sorted(rp["deferred"] - rp["postponed"]),
-            "plan_check": check_plan([p for p in day if p.pid in rp["patients"]], rp["schedule"]),
+            "sent_back": sorted(tr.sent_back), "oncologist_decides": sorted(tr.flagged),
+            "deferral_proposals": sorted(tr.sent_back | tr.flagged),
+            "plan_check": tr.check,
         }
         dpol = {
             "Current practice": dict(policies["Current practice"], fault=fault),
@@ -235,6 +244,18 @@ def main():
                          f"fig4{'b' if key == 'short' else 'c'}_fault_waiting_room.png",
                          f"{label[0].upper()}{label[1:]}: patients waiting in the department",
                          "Average over 300 simulated days", fault=fault)
+
+    # 3b. weeks of standing slots: the patient keeps the slot for the whole course
+    wk = simulate_weeks(ml, lookup, census=WEEKS_CENSUS, n_rep=WEEKS_REP)
+    res["weeks"] = {k: v for k, v in wk.items() if k not in ("summary", "per_day")}
+    res["weeks"]["results"] = rounded(wk["summary"])
+    res["weeks"]["per_day"] = [{k: (round(v, 1) if isinstance(v, float) else v) for k, v in r.items()}
+                               for r in wk["per_day"]]
+
+    # 3c. the analysis: without and with RAD-SMART, on the original and simulated data
+    res["analysis"] = analysis(res)
+    fig_original(res["analysis"]["original"])
+    fig_simulated(res["analysis"]["simulated"])
 
     # 4. two machines, three weeks, a TBI course: new-start recommendations ----
     M, H = ("VERSA", "HALCYON"), 15
@@ -301,31 +322,62 @@ def appt_of(schedule, day):
 
 
 def validate(lookup, ml):
-    """Replay days the size of the department's recorded ones and compare the
-    twin's current practice (and RAD-SMART) with the records."""
+    """The original dataset, without and with RAD-SMART.
+
+    Without: the department's records (Oct-Dec 2024), by day size. With: days of
+    the same sizes re-planned by RAD-SMART and played out in the twin with the
+    patients' recorded arrival habits. The twin's copy of today's booking is
+    shown too, to check that the twin reproduces the records. The overall row
+    pools every day size, weighted by how many recorded days had that size.
+    """
     buckets = {b["patients_per_day"]: b for b in PROFILE["by_volume"]}
     keys = ("wait_median", "wait_p90", "within_15_pct", "late_15_pct", "late_60_pct")
-    out = []
+    names = ("Current practice (twin)", "RAD-SMART (ML)")
+    out, pooled = [], {n: ([], []) for n in names}
     for n, bucket in VALIDATION_DAYS:
         day = make_day(seed=7, n_patients=n)
         s = DayScheduler().solve(day, ml)
-        pols = {"Current practice (twin)": dict(appt={p.pid: (p.machine, p.usual_time) for p in day},
-                                                rule="fcfs", estimate=planning_minutes(day, lookup),
-                                                lead=False, arrivals="today"),
-                "RAD-SMART (ML)": dict(appt=appt_of(s, day), rule="appointment",
-                                       estimate=planning_minutes(day, ml))}
-        S = summarise(monte_carlo(day, pols, n_rep=N_REP)[0])
+        pols = {names[0]: dict(appt={p.pid: (p.machine, p.usual_time) for p in day},
+                               rule="fcfs", estimate=planning_minutes(day, lookup),
+                               lead=False, arrivals="today"),
+                names[1]: dict(appt=appt_of(s, day), rule="appointment",
+                               estimate=planning_minutes(day, ml))}
+        runs, _, waits, _ = monte_carlo(day, pols, n_rep=N_REP)
+        S = summarise(runs)
         m = buckets[bucket]
         row = {"patients": n, "recorded_days": bucket, "n_recorded_days": m["days"],
                "Recorded": {"wait_median": m["wait"]["median"], "wait_p90": m["wait"]["p90"],
                             "within_15_pct": m["punctuality"]["within_15_pct"],
                             "late_15_pct": m["punctuality"]["late_over_15_pct"],
                             "late_60_pct": m["punctuality"]["late_over_60_pct"]}}
-        for name in pols:
+        for name in names:
             row[name] = {k: round(S[name][k], 1) for k in keys}
             row[name]["last_end"] = fmt(S[name]["last_end"])
+            w = np.asarray(waits[name], dtype=float)
+            pooled[name][0].append(w)
+            pooled[name][1].append(np.full(len(w), m["days"] / len(w)))
         out.append(row)
-    return out
+    days = sum(r["n_recorded_days"] for r in out)
+    overall = {"recorded_days": days, "Recorded": {
+        "wait_median": PROFILE["wait"]["median"], "wait_p90": PROFILE["wait"]["p90"],
+        "within_15_pct": PROFILE["punctuality"]["within_15_pct"],
+        "late_15_pct": PROFILE["punctuality"]["late_over_15_pct"],
+        "late_60_pct": PROFILE["punctuality"]["late_over_60_pct"]}}
+    for name in names:
+        w, wt = np.concatenate(pooled[name][0]), np.concatenate(pooled[name][1])
+        share = {r["recorded_days"]: r["n_recorded_days"] * r["patients"] for r in out}
+        total = sum(share.values())
+        overall[name] = {"wait_median": round(weighted_percentile(w, wt, 50), 1),
+                         "wait_p90": round(weighted_percentile(w, wt, 90), 1),
+                         **{k: round(sum(r[name][k] * share[r["recorded_days"]] for r in out) / total, 1)
+                            for k in ("within_15_pct", "late_15_pct", "late_60_pct")}}
+    return {"buckets": out, "overall": overall}
+
+
+def weighted_percentile(values, weights, q):
+    order = np.argsort(values)
+    v, c = values[order], np.cumsum(weights[order])
+    return float(v[np.searchsorted(c, q / 100 * c[-1])])
 
 
 def buffer_tradeoff(day, predictor, estimate, baseline):
@@ -374,48 +426,24 @@ def plan_stats(day, s):
     }
 
 
-def reoptimise(sch, day, s_plan, predictor, fault):
-    """Re-plan the rest of the day when the machine fails at fault[1] for fault[2] min.
+def replan_fault(day, s_plan, fault):
+    """The department's breakdown rules (24 Oct 2026) through downtime.triage.
 
-    Department rules: up to 60 min, nobody is sent home, every ongoing patient is
-    treated today and a few new starts may be proposed for deferral. Over 120
-    min, new starts move to the next working day (urgent palliative starts
-    excepted) and, if the day cannot hold everyone, some ongoing patients are
-    proposed for deferral. The oncologist or senior RTT
-    approves every deferral.
+    At the fault, sessions before it are treated, patients booked within the
+    next 45 minutes are taken to be in the department or on the way, and the
+    rest have not left home and can be told a new time.
     """
-    d = DEPARTMENT
     m, f0, flen = fault
-    long = flen > d["downtime_long_min"]
-    remaining = [p for p in day if s_plan.assignments[p.pid].start is not None
-                 and s_plan.assignments[p.pid].start >= f0]
-    notice = f0 + 45                         # patients booked later can still be told
-    prev = {p.pid: s_plan.assignments[p.pid].start for p in remaining}
-    postponed = {p.pid for p in remaining if long and p.new_start and not p.urgent}
-    todo = [p for p in remaining if p.pid not in postponed]
-    earliest = {p.pid: (f0 + flen if prev[p.pid] < notice else notice) for p in todo}
-    # Who is proposed first if the day cannot hold everyone: patients who can
-    # still be told before leaving home, never those already here or on the MHRC bus.
-    defer_cost = {}
-    for p in todo:
-        if p.new_start or p.complex:
-            continue                         # default (5x): kept unless impossible
-        defer_cost[p.pid] = 5000.0 if p.mhrc else 3000.0 if prev[p.pid] < notice else 1000.0
-    present = {p.pid for p in todo if prev[p.pid] < notice}
-    s = sch.solve(todo, predictor, earliest=earliest, prev_time=prev, defer_cost=defer_cost,
-                  present=present, time_limit=10.0,
-                  extra_blocks={m: [(d["day_start"], f0 + flen, "Past / fault")]})
-    new_appt = {pid: a.start for pid, a in s.assignments.items() if a.start is not None}
-    deferred = set(s.unscheduled()) | postponed
-    moved = sum(1 for pid in new_appt if abs(new_appt[pid] - prev[pid]) >= 5)
-    notified = frozenset([pid for pid in new_appt if prev[pid] >= notice and abs(new_appt[pid] - prev[pid]) >= 5]
-                         + [pid for pid in deferred if prev[pid] >= notice])
-    rule = ("over 120 min: new starts to the next day (urgent palliative excepted); "
-            "ongoing patients deferred only if the day cannot hold them" if long else
-            "up to 60 min: nobody sent home; all ongoing patients treated today; "
-            "a few new starts may be deferred, for approval")
-    return dict(new_appt=new_appt, notified=notified, deferred=deferred, postponed=postponed,
-                moved=moved, schedule=s, patients={p.pid for p in todo}, rule=rule)
+    plan = {pid: (a.machine, a.start, a.planned_minutes) for pid, a in s_plan.assignments.items()
+            if a.start is not None}
+    status = {pid: "done" if t + mins <= f0 else "in_room" if t < f0 else
+              "waiting" if t < f0 + TRAVEL_NOTICE_MIN else "not_arrived"
+              for pid, (_, t, mins) in plan.items()}
+    tr = triage([p for p in day if p.pid in plan], plan, status, fault)
+    moved = sum(1 for pid, t in tr.new_appt.items() if abs(t - plan[pid][1]) >= 5)
+    deferred = tr.sent_back | tr.postponed | tr.flagged
+    return dict(tr=tr, new_appt=tr.new_appt, notified=frozenset(tr.notified), deferred=deferred,
+                postponed=tr.postponed, moved=moved, rule=tr.rule)
 
 
 def curve_json(curves):
@@ -644,6 +672,80 @@ def fig_disruption(summary):
     save(fig, "fig4_fault_recovery.png")
 
 
+METRICS = ("wait_median", "wait_p90", "within_15_pct", "late_60_pct")
+
+
+def analysis(res):
+    """Without and with RAD-SMART, side by side: the department's own records,
+    then the simulated days, weeks and breakdowns."""
+    v = res["validation"]
+    pick = lambda row: {k: row[k] for k in METRICS}
+    original = {"by_day_size": [{"day_size": r["recorded_days"], "recorded_days": r["n_recorded_days"],
+                                 "patients": r["patients"], "without": pick(r["Recorded"]),
+                                 "with": pick(r["RAD-SMART (ML)"]),
+                                 "twin_today": pick(r["Current practice (twin)"])}
+                                for r in v["buckets"]],
+                "all_days": {"recorded_days": v["overall"]["recorded_days"],
+                             "without": pick(v["overall"]["Recorded"]),
+                             "with": pick(v["overall"]["RAD-SMART (ML)"]),
+                             "twin_today": pick(v["overall"]["Current practice (twin)"])}}
+    d, w = res["day_results"], res["weeks"]["results"]
+    live = "RAD-SMART live re-planning + messages"
+    simulated = [
+        {"key": "day", "label": f"One day, {N_PATIENTS} patients",
+         "without": pick(d["Current practice"]), "with": pick(d["RAD-SMART (ML)"])},
+        {"key": "weeks", "label": f"12 weeks, standing slots (~{res['weeks']['patients_per_day_mean']:.0f} a day)",
+         "without": pick(w["Today's booking"]), "with": pick(w["RAD-SMART"])},
+    ] + [{"key": k, "label": res["disruption"][k]["label"].capitalize(),
+          "without": pick(res["disruption_results"][k]["Current practice"]),
+          "with": pick(res["disruption_results"][k][live])} for k, _, _ in FAULTS]
+    return {"original": original, "simulated": simulated,
+            "costs": {"weeks_last_end": {k: fmt(w[k]["last_end"]) for k in w},
+                      "weeks_starts_delayed_pct": res["weeks"]["starts_delayed_pct"],
+                      "weeks_start_delay_days_mean": res["weeks"]["start_delay_days_mean"]}}
+
+
+def fig_pairs(rows, name, head, sub, without_label, with_label):
+    """Two bars per row: P90 wait without (grey) and with RAD-SMART (blue)."""
+    fig, ax = plt.subplots(figsize=(7.6, 0.62 * len(rows) + 1.5))
+    y = np.arange(len(rows))[::-1]
+    h = 0.36
+    a = [r["without"]["wait_p90"] for r in rows]
+    b = [r["with"]["wait_p90"] for r in rows]
+    ax.barh(y + h / 2, a, height=h - 0.04, color=BASE, label=without_label)
+    ax.barh(y - h / 2, b, height=h - 0.04, color=RS_ML, label=with_label)
+    pad = 0.012 * max(a + b)
+    for yy, va, vb in zip(y, a, b):
+        ax.text(va + pad, yy + h / 2, f"{va:.0f}", va="center", fontsize=8.5, color=INK2)
+        ax.text(vb + pad, yy - h / 2, f"{vb:.0f}  ({100 * (vb - va) / va:+.0f}%)", va="center",
+                fontsize=8.5, color=INK, fontweight="bold")
+    ax.set_yticks(y, [r["label"] for r in rows], fontsize=9)
+    ax.set_xlim(0, max(a + b) * 1.28)
+    ax.set_xlabel("Wait at the 90th percentile, arrival to treatment room (min)", fontsize=8.5, color=INK2)
+    ax.legend(loc="lower right", fontsize=8.5, frameon=False)
+    ax.grid(axis="x", color=GRID, lw=0.6)
+    ax.set_axisbelow(True)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    title(ax, head, sub)
+    save(fig, name)
+
+
+def fig_original(o):
+    rows = [{"label": f"{r['day_size']} patients ({r['recorded_days']} days)", **r} for r in o["by_day_size"]]
+    rows.append({"label": f"All {o['all_days']['recorded_days']} days", **o["all_days"]})
+    fig_pairs(rows, "fig7_original_dataset.png", "Original dataset: the department's own days",
+              "Recorded waits (Oct-Dec 2024) against the same day sizes re-planned by RAD-SMART",
+              "Recorded (today's booking)", "RAD-SMART")
+
+
+def fig_simulated(rows):
+    fig_pairs(rows, "fig8_simulated_dataset.png", "Simulated dataset: synthetic patients",
+              "Same patients and random events for both policies; days: 300 runs each; weeks: 20 days x 15 runs",
+              "Today's booking", "RAD-SMART")
+
+
 def fig_forecast(days, committed, rec_load, n_load, flat, cap, M):
     fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.9), sharey=True)
     x = np.arange(len(days))
@@ -691,6 +793,8 @@ def print_summary(res):
     lines.append("\narrival sensitivity " + json.dumps(res["arrival_sensitivity"]))
     lines.append("\nvalidation " + json.dumps(res["validation"], indent=1))
     lines.append("\ndisruption " + json.dumps(res["disruption"], indent=1))
+    lines.append("\nweeks " + json.dumps({k: v for k, v in res["weeks"].items() if k != "per_day"}, indent=1))
+    lines.append("\nanalysis " + json.dumps(res["analysis"], indent=1))
     f = res["forecast"]
     lines.append(f"\nforecast peaks  RAD-SMART {f['rad_smart_peak_pct']}  head-count {f['headcount_peak_pct']}"
                  f"  TBI days {f['rad_smart_tbi_peak_pct']} vs {f['headcount_tbi_peak_pct']}"

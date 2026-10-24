@@ -64,6 +64,27 @@ def window(p) -> tuple[int, int]:
     return hm("08:00"), hm("21:00")
 
 
+def _slot_counts(n):
+    return _SLOTS_BY_VOLUME[max(lo for lo in _SLOTS_BY_VOLUME if lo <= max(n, min(_SLOTS_BY_VOLUME)))]
+
+
+def book_one(p, n, rng) -> float:
+    """One patient's current-practice time, kept for the course: a draw from the
+    recorded spread of appointment times on days of about n patients, inside
+    the patient's own window. Nothing checks that the machine is free then."""
+    if p.mhrc:
+        return float(hm("16:00"))
+    if p.requested is not None:
+        return float(round(p.requested / 5) * 5)
+    lo, hi = window(p)
+    counts = _slot_counts(n)
+    slots = np.array([int(k) for k in counts if lo <= int(k) < hi], dtype=float)
+    if not len(slots):
+        return float(lo)
+    w = np.array([counts[str(int(s))] for s in slots], dtype=float)
+    return float(rng.choice(slots, p=w / w.sum()))
+
+
 def book_today(patients, rng) -> dict:
     """Current-practice appointment times (pid -> minute) for one day.
 
@@ -76,7 +97,7 @@ def book_today(patients, rng) -> dict:
     time they asked for.
     """
     n = len(patients)
-    counts = _SLOTS_BY_VOLUME[max(lo for lo in _SLOTS_BY_VOLUME if lo <= max(n, min(_SLOTS_BY_VOLUME)))]
+    counts = _slot_counts(n)
     slots = np.array(sorted(int(k) for k in counts), dtype=float)
     cdf = np.cumsum([counts[str(int(k))] for k in slots]) / sum(counts.values())
     marks = (rng.random() + np.arange(n)) / n

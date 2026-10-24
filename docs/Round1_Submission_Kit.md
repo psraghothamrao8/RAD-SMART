@@ -4,7 +4,9 @@ Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient F
 
 > **Deadline: Thursday 25 September 2026, 23:59.** There is no late lane, and a draft that is never submitted is not judged. Any team member can edit and submit, and the last version saved before the deadline is the one evaluated. **Aim to submit by Wednesday 23 September**, then keep improving until the deadline.
 
-This kit contains ready-to-paste answers for the five Round 1 sections, the outline of our 8-slide deck, a 3-minute video script, likely jury questions, and a checklist. The deck and an interactive results page are already built and published (sections 2.5 and 2.6). Each answer comes in a **full version** and a **short version** in case the form limits length. Replace the text in [square brackets] before submitting.
+> **Updated 24 October 2026, for the build sprint.** We were shortlisted. On 24 October the department described its roles, standing slots, breakdown rules and the screens it needs, and we built them into the engine and into a working application inside CARE, the Open Healthcare Network's hospital information system (`app/`, report Section 6.10). A separate impact analysis compares each dataset with and without RAD-SMART (`docs/RAD-SMART_Impact_Analysis.pdf`): on the department's own 55 days the 90th-percentile wait falls from 108.6 to 70.4 minutes (−35%), and over 12 synthetic weeks with standing slots from 82 to 49 minutes (−40%). The answers below are as submitted for Round 1, with figures that have since changed updated; the deck now has 10 slides.
+
+This kit contains ready-to-paste answers for the five Round 1 sections, the outline of our deck, a 3-minute video script, likely jury questions, and a checklist. The deck and an interactive results page are already built and published (sections 2.5 and 2.6). Each answer comes in a **full version** and a **short version** in case the form limits length. Replace the text in [square brackets] before submitting.
 
 ---
 
@@ -74,18 +76,18 @@ RAD-SMART is an assistive operations layer between the patient list and the trea
 3. **Simulate.** A digital twin, calibrated on the department's records of appointment and arrival times, stress-tests every plan against late arrivals, overruns and faults. It also produces a three-week load forecast that plans around TBI courses, and two-day-ahead advice on how many new patients each machine can take, balanced by minutes rather than head-count.
 4. **Explain and converse.** A copilot on Sarvam AI (Sarvam-105B with tool calling via LangGraph) explains every placement ("why was this patient moved?") and turns rule changes written in plain language into versioned, validated configuration. Bulbul, Saaras and Sarvam Translate send patients and caregivers their reporting time and live updates by WhatsApp, SMS or voice call in Kannada, Malayalam, Hindi or English, and understand spoken "I'm running late" replies. Tulu, which no Sarvam model covers yet, gets Kannada-script text with a voice note recorded by Tulu-speaking staff. The LLM never makes a scheduling decision.
 
-It works with what the clinic already has (an Excel list, a photo of the paper register read by Sarvam Vision OCR, QR check-in and WhatsApp) and runs on a hospital server. The stack is Python, FastAPI, PostgreSQL and a tablet web app.
+It works with what the clinic already has (an Excel list, a photo of the paper register read by Sarvam Vision OCR, QR check-in and WhatsApp) and runs on a hospital server. It now runs inside CARE as a plugin (Python and Django on the server, React in the browser), with a RADSMART button on the patient's visit page.
 
 **Short version**
 
-An assistive scheduling layer with four parts. Machine learning predicts each session's machine-minutes. A constraint optimiser (OR-Tools / HiGHS) builds and live-repairs the plan with hard rules guaranteed. A digital twin tests plans and forecasts new-start capacity two days ahead. A Sarvam AI copilot explains decisions, edits rules from plain language and messages patients by WhatsApp, SMS or voice in their language, with recorded voice notes for Tulu. A senior RTT or oncologist approves every change. It works from Excel, paper (OCR) and QR check-in, on an on-premise server.
+An assistive scheduling layer with four parts. Machine learning predicts each session's machine-minutes. A constraint optimiser (OR-Tools / HiGHS) builds and live-repairs the plan with hard rules guaranteed. A digital twin tests plans and forecasts new-start capacity two days ahead. A Sarvam AI copilot explains decisions, edits rules from plain language and messages patients by WhatsApp, SMS or voice in their language, with recorded voice notes for Tulu. The doctor approves every course and its standing slot, and a technologist or doctor approves every breakdown response. It runs inside CARE, the open-source hospital information system, and works from Excel, paper (OCR) and QR check-in, on an on-premise server.
 
 ### 2.3 Why yours is the right team to build it
 
 **Full version**
 
 - **The problem owner is on the team.** Dr Akshay Dinesan (Manipal) wrote the problem statement from daily experience in a working radiotherapy department that runs a Versa HD and is adding a second machine in early 2027. The department has already answered our detailed questions on its rules, from the MHRC bus to accessory reservations and downtime, and they are built into the prototype. Dr Akshay has a path to a real pilot and the RTT team who will use it.
-- **We have already built it.** In the Round 1 window we built a working prototype. It generates realistic synthetic departments under the department's own rules. It predicts session durations and solves an 87-patient day to a proven optimum in 10–35 seconds on a laptop. It re-plans machine faults in 2–11 seconds under the department's downtime rules, and forecasts new-start capacity for two machines around a TBI course. We tested it over 300 simulated days in a digital twin calibrated on the department's own arrival and treatment records, and compared it with those records.
+- **We have already built it.** In the Round 1 window we built a working prototype. It generates realistic synthetic departments under the department's own rules. It predicts session durations and solves an 87-patient day to a proven optimum in 7–31 seconds on a laptop. It re-plans machine faults in 10–14 seconds under the department's downtime rules, and forecasts new-start capacity for two machines around a TBI course. We tested it over 300 simulated days in a digital twin calibrated on the department's own arrival and treatment records, and compared it with those records.
 - **Doctors and engineers together.** Dr Akshay Dinesan is the team leader and doctor partner. Abhinand T M is the technical lead and P S Raghotham Rao the lead engineer. Dr Shirley Lewis Salins and Dr Umesh Velu are doctor partners, so three of the five members are practising doctors. Together we cover operations research, machine learning, Indian-language AI, product building and clinical practice.
 - **We designed for the guardrails from day one.** The system is assistive, not diagnostic: human approval, audit trail, synthetic patients, the department's records used only as anonymised aggregates, no clinical inputs, and no personal identifiers sent to AI models.
 
@@ -111,7 +113,7 @@ OIS calendars (MOSAIQ, ARIA) and academic schedulers exist. The academic ones mo
 
 ### 2.5 Deck
 
-The 8-slide deck is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
+The deck (now 10 slides) is built and published at https://claude.ai/artifact/LhSJi3g5j23xLHxTRYiSgw (section 3 lists the slides). Before uploading:
 
 1. Check the names and roles on slide 1.
 2. Download the deck as PDF from the page, and upload the PDF.
@@ -122,14 +124,14 @@ A copy is also on GitHub: the PDF at `docs/deck/RAD-SMART_Pitch_Deck.pdf` and a 
 
 ### 2.6 Optional items
 
-- **Supporting document:** `docs/RAD-SMART_Research_Report.pdf`, the full research report and implementation plan (40 pages).
+- **Supporting document:** `docs/RAD-SMART_Research_Report.pdf`, the full research report and implementation plan (45 pages), and `docs/RAD-SMART_Impact_Analysis.pdf`, the four-page analysis with and without RAD-SMART on both datasets.
 - **Prototype link:** the interactive results page at https://psraghothamrao8.github.io/RAD-SMART/, hosted on GitHub Pages and open to anyone. It opens with what the department's records show, then gives the PoC's results on synthetic patients: the wait curves against the records, the optimised day with a reason for every session, the trade-off of holding capacity for urgent starts, both downtime re-plans and the two-machine forecast with TBI. After re-running the PoC, run `python tools/build_results_page.py`, commit and push; the page updates within a few minutes.
 - **Code:** https://github.com/psraghothamrao8/RAD-SMART (public). It holds the PoC, the documents and the page source. Its patients are synthetic, and the department's records appear only as aggregates (`poc/data/department_profile.json`); the spreadsheet is never committed.
 - **Video walkthrough:** the script is in section 4.
 
 ---
 
-## 3. Deck outline (8 slides, published)
+## 3. Deck outline (10 slides)
 
 Each slide makes one point with large numbers, uses the figures from `docs/figures/`, and carries the footer "Assistive, not diagnostic · synthetic patients, anonymised aggregates". The deck has four sections: the problem, the solution, the evidence and the plan.
 
@@ -137,12 +139,14 @@ Each slide makes one point with large numbers, uses the figures from `docs/figur
 |---|---|---|---|
 | 1 | RAD-SMART | The right patient, on the right machine, at a predictable time | Title; the five team members and their roles; Cancer track, use case 04 |
 | 2 | Every weekday, 70–90 patients wait for one machine | The department's records: one patient in ten waits over 109 min, 22% are treated over an hour late, and the median wait grows from 19 min in the morning to 66 min in the evening. India: 69% of centres have one machine | Big numbers from the records |
-| 3 | Allocation under hard rules and soft priorities | Hard rules (new starts by 17:00, 10:00–17:00 complex window, blood slot, one breast board and one ABC, MHRC bus, public transport by 21:00, urgent by 18:00) versus soft priorities (paying patients' times, older patients, flexible patients in the evening) | Two rule cards |
+| 3 | Allocation under hard rules and soft priorities | Hard rules (new starts by 17:00, 10:00–17:00 complex window, blood slot, one breast board and one ABC, MHRC bus, public transport by 21:00, urgent by 18:00, one standing slot for the course) versus soft priorities (paying patients' times, older patients, flexible patients in the evening) | Two rule cards |
 | 4 | We compared five ways to build it | Rules, LLM-only, static optimisation, deep RL, hybrid. The hybrid wins at 4.85/5 | Decision table |
 | 5 | How RAD-SMART works, and who decides | Predict, optimise, simulate, explain, each with its PoC result; then the four points in the day where a named person decides, and the light-touch data sources | Four technique tiles + a human-in-the-loop band |
-| 6 | One optimised day, with every rule held | 87 patients from 08:30 to 00:39, all 7 hard rules re-checked, a reason for every placement | `fig3` day Gantt |
-| 7 | Fewer long waits, and times that hold | Against the busiest recorded days: 90th-percentile wait 130 → 76 min; over an hour late 27% → 6%; evening median 66 → 36 min; after a 150-min machine fault 104 → 36 min with live re-planning. The median stays about the same, preparation included | `fig1` wait curves (records vs simulated) + KPI numbers |
-| 8 | Safe by design, then 90 days on the Versa HD | Six guardrails (approval, independent rule check, clinicians decide, no identifiers to AI, audit trail, synthetic and anonymised data); baseline 2 weeks, shadow 3 weeks, live 8 weeks; primary KPI: 90th-percentile wait at least 25% lower (records: 109 min); the ask | Guardrail list + pilot timeline and KPI cards |
+| 6 | From the visit page to the treatment day | The application in CARE: the doctor's RADSMART button, intake and approval; the technologist's day board; breakdowns of 15 min to 48 h approved before anyone is told | Visit-page button + proposal screenshot |
+| 7 | One optimised day, with every rule held | 87 patients from 08:30 to 00:39, all 8 hard rules re-checked, a reason for every placement | `fig3` day Gantt |
+| 8 | Fewer long waits, and times that hold | Against the busiest recorded days: 90th-percentile wait 130 → 76 min; over an hour late 27% → 6%; evening median 66 → 36 min; after a 150-min machine fault 104 → 39 min with live re-planning. The median stays about the same, preparation included | `fig1` wait curves (records vs simulated) + KPI numbers |
+| 9 | Both datasets: far fewer long waits, at a price | Original (55 recorded days): 108.6 → 70.4 min; simulated (12 weeks, standing slots): 82 → 49 min; the price: a later evening, some new starts a little later, fewer requested times kept | `fig7` + `fig8` |
+| 10 | Safe by design, then 90 days on the Versa HD | Six guardrails (approval, independent rule check, clinicians decide, no identifiers to AI, audit trail, synthetic and anonymised data); baseline 2 weeks, shadow 3 weeks, live 8 weeks; primary KPI: 90th-percentile wait at least 25% lower (records: 109 min); the ask | Guardrail list + pilot timeline and KPI cards |
 
 The earlier 14-slide version, including the separate downtime-recovery and two-machine-forecast slides, is in the repository's git history (commit `af992f8`) if a longer deck is ever needed.
 
@@ -156,7 +160,7 @@ The earlier 14-slide version, including the separate downtime-recovery and two-m
 | 1:15–1:45 | Optimised-day Gantt, then the wait chart | "We tested it on a synthetic eighty-seven-patient day, busier than any in our records, under our own rules, three hundred times. The longest waits fell from a hundred and thirty minutes to seventy-six, only six percent were treated more than an hour late instead of twenty-seven, and every hard rule held." |
 | 1:45–2:10 | Fault chart; phone mock-up receiving a message in Kannada | "When the machine fails, RAD-SMART re-plans the rest of the day in seconds, following our department's downtime rules. Patients already waiting go first. It moves as few people as possible and tells only those who can still act, by WhatsApp, SMS or a voice call, even in Tulu." |
 | 2:10–2:30 | Forecast chart | "Two days ahead, it advises how many new patients each machine can start, balanced by minutes, not head-count, and it plans around total body irradiation. That keeps both machines at capacity instead of overloading one." |
-| 2:30–2:50 | Guardrails slide | "It is assistive, not diagnostic. It never decides treatment. A senior technologist or oncologist approves every plan with one tap, every change is logged, and no personal data goes to the AI models." |
+| 2:30–2:50 | Guardrails slide | "It is assistive, not diagnostic. It never decides treatment. The doctor approves every course, a technologist or doctor approves every breakdown response, every change is logged, and no personal data goes to the AI models." |
 | 2:50–3:00 | Pilot timeline and team | "Our 90-day pilot aims to cut the longest waits by at least a quarter. RAD-SMART: the right patient, on the right machine, at a predictable time." |
 
 ---
@@ -164,13 +168,19 @@ The earlier 14-slide version, including the separate downtime-recovery and two-m
 ## 5. Likely jury questions
 
 **Is the data real?**
-The prototype's patients are synthetic. The rules are the department's (its answers of 21 September 2026), and its anonymised arrival and treatment records for 55 days (October–December 2024, 3,137 patient-days) calibrate the digital twin: how appointment times are spread over the day and how early patients arrive. We quote today's figures from those records, not from our model, and publish only aggregates (medians, percentages and hourly profiles). The spreadsheet never leaves the team.
+The prototype's patients are synthetic. The rules are the department's (its answers of 21 September and 24 October 2026), and its anonymised arrival and treatment records for 55 days (October–December 2024, 3,137 patient-days) calibrate the digital twin: how appointment times are spread over the day and how early patients arrive. We quote today's figures from those records, not from our model, and publish only aggregates (medians, percentages and hourly profiles). The spreadsheet never leaves the team.
 
 **Why doesn't the median wait fall?**
 Every patient is asked to arrive 20 minutes early (45 for pelvic patients) to change and prepare, so a short wait is built in. What RAD-SMART removes is the long, unpredictable wait. On a day busier than any recorded, one patient in ten waits 76 minutes or more instead of 130, only 6% are treated more than an hour late instead of 27%, and evening patients no longer wait three times as long as morning ones. Morning patients wait a little longer than today, mostly that preparation time.
 
 **Why does one patient in the prototype move from 08:50 to 19:24?**
-Because the prototype plans each day from scratch, and it draws each patient's current time from the department's recorded booking pattern, which clusters people into the morning and again in the late evening. In a real deployment a patient's slot is anchored across their course: the first fraction sets it, and later fractions stay there unless a rule, a disruption or the patient asks for a change. Report Sections 6.4 and 7.8 explain this, and the anchor is part of the build sprint.
+That happens only in the single-day test, which plans each day from scratch and draws each patient's current time from the department's recorded booking pattern. Since 24 October RAD-SMART gives each course a standing slot, as the department does: a new start before 17:00, then one time for every later fraction, kept until the course ends unless the patient asks to change it. A patient's time no longer moves from day to day.
+
+**What happens when the machine breaks down for hours?**
+The department's rules of 24 October are built in. Up to 60 minutes, nobody is sent home and everyone is treated with overtime. Over 60 minutes, RAD-SMART sends back only as many patients as the expected downtime needs, those who have not left home first, and never a gap-sensitive course or a hospice patient without the oncologist. New starts wait for the machine, patients at home are told to postpone travel, and a technologist or doctor approves before anyone is told. A missed fraction is added at the end of the course.
+
+**Does it work inside our hospital system?**
+It runs inside CARE, the Open Healthcare Network's open-source hospital information system, as a plugin with a RADSMART button on the patient's visit page. The same pattern applies to the hospital's own EMR through its integration route.
 
 **Isn't this clinical decision support?**
 No. RAD-SMART decides only *when* and *on which machine* a session happens. Urgency, technique and machine eligibility are entered by clinicians and physicists, and it reads no diagnoses, doses, images or notes. Its only prediction is how many minutes a session will take.
@@ -191,7 +201,7 @@ The department asked for paying patients to get their preferred time as far as p
 Not yet. Sarvam's speech models cover 11 languages (Bulbul v3) and the 22 scheduled languages plus English (Saaras v3), and Tulu is not among them. Tulu speakers get the text in Kannada script, which is how Tulu is usually written, with a short voice note recorded by Tulu-speaking staff for each approved template. If a Tulu model appears, it replaces the recordings.
 
 **Why does the day end later with RAD-SMART?**
-The test day has 87 patients, 10 more than the busiest recorded day, and the plan holds 40 minutes for same-day urgent starts and imaging re-treatments. Holding that time keeps waits short, but the last patient finishes at about 01:03. Holding nothing ends the day at 00:49, with a 90th-percentile wait of 88 minutes instead of 76. It is one setting, and the department chooses.
+Two reasons. On the 87-patient test day, the plan holds 40 minutes for same-day urgent starts and imaging re-treatments: the last patient finishes at about 01:03, and holding nothing ends the day at 00:49, with a 90th-percentile wait of 88 minutes instead of 76. With standing slots, patients are spread out instead of being given the same time, and 150 minutes before 17:00 are kept for new starts, so over 12 weeks the last patient finishes at about 00:07 instead of 21:55, still inside the department's hours. Both are settings the department chooses.
 
 **What happens when the internet or WhatsApp is down?**
 Planning runs on the hospital server over the LAN. Messages fall back to SMS or a voice call, and a printed list is always available.

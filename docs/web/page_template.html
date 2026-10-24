@@ -169,6 +169,15 @@
   .fact .v { font: 600 22px/1.2 var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
   .fact .k { font-size: 13.5px; color: var(--muted); }
 
+  .pairs { display: grid; gap: 14px; margin-top: 10px; }
+  .pair { display: grid; grid-template-columns: minmax(0, 160px) minmax(0, 1fr); gap: 3px 12px; align-items: center; font-size: 14px; }
+  .pair .lab { grid-row: span 2; color: var(--ink-2); line-height: 1.3; }
+  .barrow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .barrow .bar { height: 14px; border-radius: 0 4px 4px 0; flex: none; }
+  .barrow.wo .bar { background: var(--base); } .barrow.wi .bar { background: var(--accent); }
+  .barrow .val { font: 13px/1 var(--mono); color: var(--muted); white-space: nowrap; }
+  .barrow.wi .val { color: var(--ink); font-weight: 600; }
+  .price { margin-top: 16px; font-size: 15px; }
   .about { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .about .card { display: grid; gap: 8px; align-content: start; }
   .about ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 15px; }
@@ -189,6 +198,7 @@
     th, td { padding: 6px 7px; }
     .tiles { grid-template-columns: minmax(0, 1fr); }
     .facts.facts4 { grid-template-columns: minmax(0, 1fr); }
+    .pair { grid-template-columns: minmax(0, 104px) minmax(0, 1fr); font-size: 13px; }
   }
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
@@ -197,15 +207,15 @@
   <header class="top">
     <p class="eyebrow">Health-a-thon 2026 · Cancer track · Proof of concept</p>
     <h1>RAD-SMART prototype results</h1>
-    <p class="lede">RAD-SMART plans radiotherapy sessions by predicted machine-minutes, keeps every hard rule, and re-plans when the day goes wrong. These results come from our working prototype, run on a synthetic 87-patient day under the department's own rules, calibrated on the department's records and simulated 300 times. Today's figures come from those records.</p>
+    <p class="lede">RAD-SMART plans radiotherapy sessions by predicted machine-minutes, keeps every hard rule, and re-plans when the day goes wrong. These results come from our working prototype, run under the department's own rules and calibrated on the department's records: the department's own days re-planned, 12 weeks of synthetic courses with standing slots, and a synthetic 87-patient day simulated 300 times. Today's figures come from those records. RAD-SMART also runs inside CARE, the open-source hospital information system, as a plugin.</p>
     <div class="notice">
       <span>Prototype patients are synthetic</span>
-      <span>Rules from the department's answers (21 Sep 2026)</span>
+      <span>Rules from the department's answers (21 Sep and 24 Oct 2026)</span>
       <span>Today's figures: the department's anonymised records, as aggregates</span>
-      <span>Assistive, not diagnostic: a senior RTT or oncologist approves every plan</span>
+      <span>Assistive, not diagnostic: a doctor or technologist approves every plan</span>
     </div>
     <nav class="toc" aria-label="Sections">
-      <a href="#today">What happens today</a><a href="#waits">Waiting times</a><a href="#day">The optimised day</a><a href="#fault">Machine downtime</a>
+      <a href="#today">What happens today</a><a href="#impact">With and without</a><a href="#waits">Waiting times</a><a href="#day">The optimised day</a><a href="#fault">Machine downtime</a>
       <a href="#forecast">Two machines and TBI</a><a href="#minutes">Predicting minutes</a><a href="#about">About</a><a href="https://psraghothamrao8.github.io/RAD-SMART/tech/">Technical guide</a><a href="https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html">The maths</a>
     </nav>
   </header>
@@ -222,6 +232,22 @@
     <div class="card">
       <div class="toolbar"><div class="legend" id="lg-today"></div></div>
       <div class="split" id="ch-today"></div>
+    </div>
+  </section>
+
+  <section class="block" id="impact" aria-labelledby="h-impact">
+    <div class="head">
+      <p class="eyebrow">With and without RAD-SMART</p>
+      <h2 id="h-impact">Both datasets: far fewer long waits</h2>
+      <p class="takeaway">The 90th-percentile wait, from arrival to the treatment room: the time one patient in ten waits longer than. The original dataset is the department's own recorded days, re-planned by RAD-SMART in the digital twin. The simulated dataset is synthetic patients, with the same patients and random events for both ways of booking.</p>
+    </div>
+    <div class="card">
+      <div class="toolbar"><div class="legend" id="lg-impact"></div></div>
+      <div class="split">
+        <div><h3>Original dataset: the department's days</h3><div class="pairs" id="pairs-orig"></div></div>
+        <div><h3>Simulated dataset: synthetic patients</h3><div class="pairs" id="pairs-sim"></div></div>
+      </div>
+      <p class="price" id="impact-price"></p>
     </div>
   </section>
 
@@ -274,7 +300,7 @@
     <div class="head">
       <p class="eyebrow">Machine downtime</p>
       <h2 id="h-fault">When the machine goes down</h2>
-      <p class="takeaway">The department's rules: for downtime of up to an hour, nobody is sent home, every ongoing patient is treated the same day, and a few new starts may be deferred. Beyond two hours, new starts move to the next day (urgent palliative starts excepted) and some patients may be deferred. RAD-SMART applies these rules, re-plans the rest of the day with the fewest changes, messages only patients with at least 45 minutes' notice, and proposes every deferral to the oncologist or senior RTT for approval.</p>
+      <p class="takeaway">The department's rules (24 Oct 2026): a breakdown lasts 15 minutes to 48 hours. Up to 60 minutes, nobody is sent home and everyone is treated with overtime. Over 60 minutes, patients are sent back according to the expected downtime, those who have not left home first. New starts wait until the machine works, and patients not yet reported are told to postpone travel. RAD-SMART applies these rules, treats patients already waiting first, re-plans the rest of the day with the fewest changes, and a technologist or doctor approves before anyone is told.</p>
     </div>
     <div class="facts facts4" id="facts-fault"></div>
     <div class="card">
@@ -336,7 +362,7 @@
       <div class="card">
         <h3>Safety by design</h3>
         <ul>
-          <li>Plans, re-plans and deferrals are proposals until a designated senior RTT or oncologist approves them.</li>
+          <li>Courses, plans and breakdown responses are proposals: the doctor approves each course and its slots, and a technologist or doctor approves the day and every breakdown response.</li>
           <li>No diagnoses, doses, images or notes are used. Urgency and eligibility come from clinicians.</li>
           <li>Language models never make a scheduling decision and never see names or phone numbers.</li>
           <li>Every plan, override, rule version and message is logged.</li>
@@ -550,7 +576,7 @@ python run_poc.py</pre>
     ["urgent_same_day_pct", "Urgent starts treated by 18:00", pct0, null],
   ];
   const KPI_FAULT = KPI_DAY.filter((k) => k[0] !== "paying_within_15_pct" && k[0] !== "accessory_delays")
-    .concat([["deferred", "Patients moved to another day, after approval (per day)", f1, null]]);
+    .concat([["deferred", "Patients sent back or moved to another day, after approval (per day)", f1, null]]);
   function kpiTable(tb, res, cols, rows, caption) {
     const names = cols.map((c) => c[0]);
     let html = `<caption class="note" style="caption-side:bottom;text-align:left;padding-top:8px">${caption}</caption><thead><tr><th>Mean of 300 simulated days</th>` +
@@ -772,7 +798,7 @@ python run_poc.py</pre>
     const s = sc(r);
     let change = "";
     if (s) {
-      if (s.deferred) change = `<p class="change moved">${s.postponed ? "New start moved to the next working day: the downtime is over two hours, and only urgent palliative starts go ahead." : "Proposed for deferral: the day cannot hold every patient."} The oncologist or senior RTT approves. ` +
+      if (s.deferred) change = `<p class="change moved">${s.postponed ? "New start moved to the next working day: it can no longer finish by 17:00 once the machine is back." : "Sent back: the downtime is over 60 minutes and the day cannot hold every patient. The fraction is added at the end of the course."} A technologist or doctor approves. ` +
         (s.notified ? `Told by message in ${esc(langNote(r.language))}.` : "Told in person: already on the way or in the department.") + "</p>";
       else if (s.t == null) change = `<p class="change">Treated before the fault; unchanged.</p>`;
       else if (!isMoved(r)) change = `<p class="change">Unchanged by the re-plan.</p>`;
@@ -819,7 +845,7 @@ python run_poc.py</pre>
     const s = R.disruption[wrMode], dr = R.disruption_results[wrMode];
     const ns = s.new_starts_moved_to_next_day.length, dp = s.deferral_proposals.length;
     facts($("facts-fault"), [["Re-plan time", `${f1(s.reoptimisation_seconds)} s`], ["Patients moved, and messaged", `${s.patients_moved}, ${s.patients_messaged} messaged`],
-      ["Moved to another day", ns || dp ? `${ns} new start${ns === 1 ? "" : "s"}${dp ? `, ${dp} other` : ""}` : "nobody"],
+      ["Sent back or moved to another day", ns || dp ? `${ns} new start${ns === 1 ? "" : "s"}${dp ? `, ${dp} sent back` : ""}` : "nobody"],
       ["Median wait, without → with re-planning", `${f0(dr[NORP].wait_median)} → ${f0(dr[LIVE].wait_median)} min`]]);
   }
   function drawWR() {
@@ -913,6 +939,29 @@ python run_poc.py</pre>
     legend($("lg-min"), DM.map(([k, cls, name]) => [cls, `${name}: mean error ${dm[k].mae_min.toFixed(1)} min, ${f0(dm[k].within_3min_pct)}% within 3 min`]));
   }
 
+  // ------------------------------------------------------------ with and without
+  const AN = R.analysis;
+  const half = (v) => { const r = Math.round(v); return Math.abs(v % 1) === 0.5 && r % 2 ? r - 1 : r; };   // round half to even, as the charts do
+  function pairs(host, rows) {
+    const max = Math.max(...rows.map((r) => Math.max(r[1], r[2])));
+    host.innerHTML = "";
+    rows.forEach(([lab, wo, wi]) => {
+      const pct = (v) => `calc((100% - 96px) * ${(v / max).toFixed(4)})`;
+      host.appendChild(h("div", { className: "pair" },
+        `<span class="lab">${esc(lab)}</span>` +
+        `<span class="barrow wo"><span class="bar" style="width:${pct(wo)}"></span><span class="val">${half(wo)}</span></span>` +
+        `<span class="barrow wi"><span class="bar" style="width:${pct(wi)}"></span><span class="val">${half(wi)} (−${pctDown(wo, wi)}%)</span></span>`));
+    });
+  }
+  function drawImpact() {
+    legend($("lg-impact"), [["base", "Without RAD-SMART (today's booking)"], ["ml", "With RAD-SMART"]]);
+    pairs($("pairs-orig"), AN.original.by_day_size.map((b) => [`${b.day_size.replace("-", "–")} patients (${b.recorded_days} days)`, b.without.wait_p90, b.with.wait_p90])
+      .concat([[`All ${AN.original.all_days.recorded_days} days`, AN.original.all_days.without.wait_p90, AN.original.all_days.with.wait_p90]]));
+    pairs($("pairs-sim"), AN.simulated.map((x) => [x.label, x.without.wait_p90, x.with.wait_p90]));
+    const C = AN.costs;
+    $("impact-price").innerHTML = `<b>The price</b>, over 12 weeks with standing slots: the last patient finishes at about ${C.weeks_last_end["RAD-SMART"]} instead of ${C.weeks_last_end["Today's booking"]}, and ${f0(C.weeks_starts_delayed_pct)}% of new patients start a little later (${f1(C.weeks_start_delay_days_mean)} working days on average). Waits on the original dataset come from a replay in the twin, not a live trial.`;
+  }
+
   // ------------------------------------------------------------ about
   const A = R.assumptions, DAY = R.day;
   [`${DAY.patients} patients planned on one machine, plus 0–3 same-day urgent starts: ${DAY.new_starts} new starts, ${DAY.complex} complex, ${DAY.expected_machine_minutes} of ${DAY.available_minutes} machine-minutes (${DAY.load_pct}% load).`,
@@ -920,16 +969,16 @@ python run_poc.py</pre>
    `Reporting: ${A.reporting}. Accessories: ${A.accessories}.`,
    `Arrivals ${A.arrival_offset}; ${Math.round(A.no_show_rate * 100)}% no-shows; ${Math.round(A.message_compliance * 100)}% act on an updated time; urgent starts ${A.urgent_same_day_starts_per_day}; imaging holds: ${A.imaging_holds}.`,
    `Today's booking: ${A.current_practice_booking}. Today's figures come from the department's anonymised records (${DD.period[0]} to ${DD.period[1]}, ${DD.patient_days.toLocaleString("en-IN")} patient-days), used only as aggregates.`,
-   `The twin reproduces a typical recorded day (about 60 patients) closely on median wait and punctuality but under-predicts the longest waits, and over-predicts today's waits on busy days; see the report, Section 7.4.`,
+   `Replaying today's booking over all 55 recorded days, the twin gives a 90th-percentile wait of 106 against 109 minutes recorded; it under-predicts the longest waits on quieter days and over-predicts them on the busiest; see the report, Section 7.4.`,
    "Rules come from the department's answers. Session lengths and patient mixes are illustrative: the department does not record session durations, so the pilot starts from its own estimates.",
-   "Each day is planned from scratch, and every patient's current time is drawn from the recorded booking pattern, so the plan moves patients further than a real deployment would: in practice a patient's slot is anchored across their course. See the report, Sections 6.4 and 7.8.",
+   "The single-day test plans each day from scratch and draws every patient's current time from the recorded booking pattern, so it moves patients further than a real deployment would. Since 24 October each course gets a standing slot, kept until it ends; the 12-week test shows that, and its price: a later evening, a short delay for some new starts and fewer requested times kept (report, Sections 6.4 and 7.8).",
    "The day simulation covers one machine; the two-machine test covers the forecast only."]
     .forEach((x) => $("assumptions").appendChild(h("li", { textContent: x.replace(/(\d\d:\d\d)-(\d\d:\d\d)/g, "$1–$2") })));
   const SV = R.solver.ml;
   $("timing").textContent = `This run: the evening plan was solved ${SV.status === "optimal" ? "to a proven optimum" : `within ${SV.proven_gap_pct}% of the optimum`} in ${f1(SV.seconds)} s, with ${SV.unscheduled.length} patients left unplanned; an independent checker re-verified ${R.plan_check.ml.rules_checked} hard rules on ${R.plan_check.ml.sessions_checked} sessions: ${ruleCheck(R.plan_check.ml)}. Timings vary with the computer's load.`;
 
   // ------------------------------------------------------------ render + resize
-  const drawAll = () => { drawToday(); drawWaits(); drawDay(); drawWR(); drawFC(); drawMin(); };
+  const drawAll = () => { drawToday(); drawImpact(); drawWaits(); drawDay(); drawWR(); drawFC(); drawMin(); };
   drawAll(); drawDetail(); drawDayTable();
   let lastW = document.documentElement.clientWidth, timer;
   window.addEventListener("resize", () => {

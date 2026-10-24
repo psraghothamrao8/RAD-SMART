@@ -19,3 +19,11 @@ Thumbs.db
 
 # department data: never published
 *.xlsx
+
+# Material the department shared privately (EMR screenshots): never published
+additional_details.docx
+
+# Build output and installs
+*.egg-info/
+node_modules/
+app/care_radsmart_fe/dist/

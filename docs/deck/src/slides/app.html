@@ -1,0 +1,31 @@
+<section id="app" data-transition="push" style="background:#FCFCFB; color:#3B4654; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:40px">
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <p style="font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Built into CARE</p>
+    <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:56px; font-weight:600; line-height:1.1; color:#132238">From the visit page to the treatment day</h2>
+  </div>
+  <div style="display:flex; flex-direction:row; gap:40px; align-items:flex-start">
+    <div style="flex:5; display:flex; flex-direction:column; gap:16px">
+      <div style="display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:20px 24px">
+        <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1C5CAB">Doctor</p>
+        <p style="font-size:24px; line-height:1.35; color:#3B4654">Clicks <b style="color:#132238">RADSMART</b> on the visit page, enters the prescription and ticks a box for every rule. RAD-SMART proposes a new start before 17:00 and one standing slot for the whole course; the doctor approves.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:20px 24px">
+        <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#12805A">Technologist</p>
+        <p style="font-size:24px; line-height:1.35; color:#3B4654">Runs the day: rule check, timeline, <b style="color:#132238">Arrived → In room → Out</b>, machine status and slot-change requests.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; background:#FFFFFE; border:1px solid #D9DFE6; border-radius:12px; padding:20px 24px">
+        <p style="font-size:22px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#B0461D">Breakdown, 15 min to 48 h</p>
+        <p style="font-size:24px; line-height:1.35; color:#3B4654">Up to 60 min: everyone treated, with overtime. Longer: only as many sent back as needed; patients at home told to wait. Approved before anyone is told.</p>
+      </div>
+    </div>
+    <div style="flex:7; display:flex; flex-direction:column; gap:16px">
+      <img src="../figures/app0_visit_header.png" alt="The patient's visit page in CARE with the RADSMART button, showing the approved standing time 14:28 beside Encounter Actions" style="width:900px; height:75px; object-fit:contain; border:1px solid #D9DFE6; border-radius:8px">
+      <img src="../figures/app3_proposal.png" alt="RAD-SMART's proposal for a new course: first day Tuesday 27 October at 14:00, a standing slot at 14:28 for 24 later fractions, the reasons, an alternative time and the Approve course and slots button" style="width:900px; height:500px; object-fit:contain; border:1px solid #D9DFE6; border-radius:8px">
+    </div>
+  </div>
+  <div style="position:absolute; left:128px; right:128px; bottom:64px; display:flex; flex-direction:row; justify-content:space-between; gap:32px">
+    <p style="font-size:24px; color:#5F6B7A">A plugin of CARE (Open Healthcare Network); CARE's code unchanged · synthetic patients only</p>
+    <p style="font-size:24px; color:#5F6B7A; white-space:nowrap">6 / 10</p>
+  </div>
+  <aside>RAD-SMART now runs inside CARE, the Open Healthcare Network's open-source hospital information system, as a backend and a frontend plugin. The doctor starts from the patient's visit page, fills in the prescription and treatment days, and ticks the priority checklist. RAD-SMART proposes the new-start slot before 17:00 and one standing slot, free on every treatment date, which the patient keeps until the course ends. The technologist records arrival, room in and out, and machine status on the day board. When the machine breaks down, RAD-SMART proposes the response under the department's rules, with messages drafted in each patient's language, and a technologist or doctor approves it. The same button-on-the-visit-page pattern applies to the hospital's own EMR.</aside>
+</section>

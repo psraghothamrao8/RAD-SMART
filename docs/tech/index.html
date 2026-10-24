@@ -78,7 +78,7 @@
       </g>
       <path class="ln a" d="M217 89H258" marker-end="url(#ah)"/><path class="ln a" d="M469 89H510" marker-end="url(#ah)"/><path class="ln a" d="M721 89H762" marker-end="url(#ah)"/>
       <rect class="box" x="262" y="196" width="456" height="50" rx="25"/>
-      <text class="b" x="490" y="218" text-anchor="middle">Senior RTT or oncologist approves</text>
+      <text class="b" x="490" y="218" text-anchor="middle">Doctor or technologist approves</text>
       <text class="s" x="490" y="236" text-anchor="middle">every plan and every live change · one-tap override · manual fallback</text>
       <path class="ln d" d="M364 166V194" marker-end="url(#ah2)"/><path class="ln d" d="M616 166V194" marker-end="url(#ah2)"/>
     </svg>
@@ -96,7 +96,7 @@
       <defs><marker id="ah3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="arr"/></marker></defs>
       <rect class="box a" x="10" y="12" width="290" height="120" rx="12"/>
       <text class="b" x="26" y="38">Evening before</text>
-      <text x="26" y="62">Forecast load → predict minutes →</text><text x="26" y="80">optimise → check → approve →</text><text x="26" y="98">message each patient their time</text>
+      <text x="26" y="62">Standing slots + new starts →</text><text x="26" y="80">check rules → twin test → approve →</text><text x="26" y="98">message each patient their time</text>
       <text class="s" x="26" y="120">“Please come at 09:41”</text>
       <rect class="box g" x="335" y="12" width="290" height="120" rx="12"/>
       <text class="b" x="351" y="38">During the day</text>
@@ -123,7 +123,7 @@
       <defs>
         <marker id="ah4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="arr"/></marker>
       </defs>
-      <text class="s" x="10" y="14">INPUTS</text><text class="s" x="300" y="14">ENGINE (Python · FastAPI · PostgreSQL)</text><text class="s" x="760" y="14">OUTPUTS</text>
+      <text class="s" x="10" y="14">INPUTS</text><text class="s" x="300" y="14">ENGINE (Python · a CARE plugin · PostgreSQL)</text><text class="s" x="760" y="14">OUTPUTS</text>
       <g>
         <rect class="box" x="10" y="26" width="220" height="56" rx="10"/><text class="b" x="24" y="49">Patient list</text><text class="s" x="24" y="68">technique, fraction no., flags</text>
         <rect class="box" x="10" y="94" width="220" height="56" rx="10"/><text class="b" x="24" y="117">Department rules</text><text class="s" x="24" y="136">configuration, not code</text>
@@ -141,10 +141,10 @@
         <rect class="box n" x="510" y="230" width="200" height="56" rx="10"/><text class="b" x="524" y="253">Audit log</text><text class="s" x="524" y="272">append-only, versioned</text>
       </g>
       <g>
-        <rect class="box" x="760" y="26" width="190" height="56" rx="10"/><text class="b" x="774" y="49">RTT console</text><text class="s" x="774" y="68">tablet web app (PWA)</text>
+        <rect class="box" x="760" y="26" width="190" height="56" rx="10"/><text class="b" x="774" y="49">CARE pages</text><text class="s" x="774" y="68">button on the visit page</text>
         <rect class="box" x="760" y="94" width="190" height="56" rx="10"/><text class="b" x="774" y="117">Queue board</text><text class="s" x="774" y="136">TV in the waiting area</text>
         <rect class="box" x="760" y="162" width="190" height="56" rx="10"/><text class="b" x="774" y="185">Patient messages</text><text class="s" x="774" y="204">WhatsApp · SMS · voice</text>
-        <rect class="box" x="760" y="230" width="190" height="56" rx="10"/><text class="b" x="774" y="253">Approval step</text><text class="s" x="774" y="272">senior RTT / oncologist</text>
+        <rect class="box" x="760" y="230" width="190" height="56" rx="10"/><text class="b" x="774" y="253">Approval step</text><text class="s" x="774" y="272">doctor · technologist</text>
       </g>
       <path class="ln" d="M232 54H286" marker-end="url(#ah4)"/><path class="ln" d="M232 122H286" marker-end="url(#ah4)"/><path class="ln" d="M232 190H286" marker-end="url(#ah4)"/><path class="ln" d="M232 258H286" marker-end="url(#ah4)"/>
       <path class="ln" d="M712 122H756" marker-end="url(#ah4)"/><path class="ln" d="M712 190H756" marker-end="url(#ah4)"/><path class="ln" d="M712 54H756" marker-end="url(#ah4)"/><path class="ln" d="M712 258H756" marker-end="url(#ah4)"/>
@@ -200,7 +200,7 @@
         <p>For every patient, machine and 2-minute start time we make a yes/no variable: <code>x[p, m, s] = 1</code> means “patient p starts on machine m at time s”. Rules become inequalities on those variables, for example “each patient starts exactly once” and “no two sessions overlap on a machine”. Each choice also has a cost (how far from the patient's usual time, how late the day ends, and so on). The solver finds the cheapest allowed choice. This is a <b>mixed-integer linear program (MILP)</b>.</p>
         <p>A single huge model is slow, so we solve in <b>two stages</b> (diagram below).</p></div>
       <div><h4>What you can quote</h4>
-        <ul class="tight"><li>87 patients: about <b>4,700</b> yes/no variables and <b>1,660</b> constraints</li><li>Solved in <b>10 s</b> (ML durations) to 35 s (averages) on a laptop</li><li>The solver proves the plan is within <b>0.03%</b> of the best possible score under our cost definition (0.13% with averages)</li><li>No patient left unplanned; if someone cannot fit, they are flagged for a human, never silently dropped</li></ul></div>
+        <ul class="tight"><li>87 patients: about <b>4,700</b> yes/no variables and <b>1,660</b> constraints</li><li>Solved in <b>7 s</b> (ML durations) to 31 s (averages) on a laptop</li><li>The solver proves the plan is within <b>0.03%</b> of the best possible score under our cost definition (0.13% with averages)</li><li>No patient left unplanned; if someone cannot fit, they are flagged for a human, never silently dropped</li></ul></div>
     </div>
     <svg class="dg" viewBox="0 0 960 190" role="img" aria-label="Two-stage solving">
       <defs><marker id="ah5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="arr a"/></marker></defs>
@@ -218,6 +218,7 @@
       <text class="s" x="676" y="122">Small search window = fast,</text><text class="s" x="676" y="138">still proven near-optimal.</text>
       <path class="ln a" d="M302 95H331" marker-end="url(#ah5)"/><path class="ln a" d="M627 95H656" marker-end="url(#ah5)"/>
     </svg>
+    <div class="say" style="margin-top:12px"><b class="t">Standing slots (24 Oct)</b>The department keeps each patient's time until the course ends. So when the doctor approves a course, a slot allocator picks a <b>new-start slot before 17:00</b> and <b>one standing slot</b> for every later fraction: a time free on every treatment date that keeps every hard rule and leaves 150 minutes before 17:00 for future new starts. Most later fractions go to the evening. A patient who asks for another time gets the nearest one that keeps every rule, from a chosen date, once someone approves. The day optimiser above handles breakdowns and full re-plans.</div>
     <div class="ask"><b class="t">If they ask</b><b>“Why not a normal scheduling rule?”</b> Rules like “fill the first free slot” cannot balance a dozen competing rules at once, cannot show how good the result is, and cannot be re-configured without programming. <b>“Will it scale?”</b> The model maps one-to-one onto CP-SAT interval variables (<code>NoOverlap</code>, <code>Cumulative</code>), which removes the two-stage split at larger sizes.</div>
   </article>
 
@@ -225,11 +226,11 @@
   <article class="card mod" id="m3">
     <div class="top"><span class="no">3</span><div><h3>Independent checker: “don't trust, verify”</h3>
       <div class="tags"><span class="tag poc">now: check_plan(), written separately from the solver</span></div></div></div>
-    <div class="say"><b class="t">Say it simply</b>A second program, written separately, reads the finished plan and ticks the seven hard rules one by one. A plan that fails is never published. For the solver and the checker to both be wrong in the same way, they would have to share the same bug, and they share no code.</div>
+    <div class="say"><b class="t">Say it simply</b>A second program, written separately, reads the finished plan and ticks the eight hard rules one by one. A plan that fails is never published. For the solver and the checker to both be wrong in the same way, they would have to share the same bug, and they share no code.</div>
     <div class="cols">
-      <div><h4>The seven rules it re-checks</h4>
-        <ul class="tight"><li>New starts finish by 17:00</li><li>Complex cases inside the 10:00–17:00 senior-staff window</li><li>MHRC patients inside 16:00–16:55 (back on the 17:00 bus)</li><li>Public-transport patients finish by 21:00</li><li>Blood-irradiation block 13:30–14:00 stays free</li><li>One patient at a time on each machine</li><li>Accessories (ABC, breast board) never double-booked with the CT simulator</li></ul></div>
-      <div><h4>Result</h4><p>On the 87-patient prototype day: <b>7 rules checked, 87 sessions checked, 0 violations, 0 unplanned</b>, for both the average-duration plan and the machine-learning plan.</p>
+      <div><h4>The eight rules it re-checks</h4>
+        <ul class="tight"><li>New starts finish by 17:00</li><li>Complex cases inside the 10:00–17:00 senior-staff window</li><li>MHRC patients inside 16:00–16:55 (back on the 17:00 bus)</li><li>Public-transport patients finish by 21:00</li><li>Time windows set by the doctor (e.g. sedation, chemotherapy)</li><li>Blood-irradiation block 13:30–14:00 stays free</li><li>One patient at a time on each machine</li><li>Accessories (ABC, breast board) never double-booked with the CT simulator</li></ul></div>
+      <div><h4>Result</h4><p>On the 87-patient prototype day: <b>8 rules checked, 87 sessions checked, 0 violations, 0 unplanned</b>, for both the average-duration plan and the machine-learning plan. On days built from standing slots it adds a ninth rule, everyone in their standing slot: 0 violations over 20 days of the 12-week test.</p>
         <p class="note" style="margin-top:8px">The solver also keeps a safety buffer: it aims to finish 25 minutes before a hard deadline so ordinary delays do not break it.</p></div>
     </div>
   </article>
@@ -243,9 +244,9 @@
       <div><h4>How it works</h4>
         <ul class="tight"><li><b>Freeze</b> sessions that have started (the <code>locked</code> input).</li><li><b>Re-cost</b> the rest: moving someone not yet here costs 3 points per 10 min; making someone already here wait costs 20 points per 10 min, and 50 more beyond an hour. So waiting is about 7 times as costly as moving, and long waits much more.</li><li><b>Message only when worth it:</b> only patients whose time is at least 45 min away and moves by at least 5 min.</li><li><b>Never</b> ask anyone to come earlier than they were told unless they can be reached in time.</li><li><b>Propose, don't impose:</b> the approver sees who is affected, by how much, and any proposed deferral.</li></ul></div>
       <div><h4>Department downtime rules (built in)</h4>
-        <ul class="tight"><li><b>Up to 60 min:</b> nobody sent home; all ongoing patients treated; a few new starts may be proposed for deferral</li><li><b>60–120 min:</b> not specified, so the short rule is used; approver can switch</li><li><b>Over 120 min:</b> non-urgent new starts move to the next day; some ongoing patients may be deferred after review</li></ul>
+        <ul class="tight"><li>Breakdowns last <b>15 min to 48 h</b>; the technologist enters the expected downtime</li><li><b>Up to 60 min:</b> nobody sent home; everyone treated today, with up to 60 min of overtime</li><li><b>Over 60 min:</b> only as many patients sent back as the downtime needs, those not yet travelling first; never a gap-sensitive course or a hospice patient without the oncologist; the fraction is added at the end of the course</li><li>New starts wait until the machine works, or move to the next working day</li><li>Patients not yet reported are told to postpone travel</li><li>A technologist or doctor approves</li></ul>
         <h4 style="margin-top:12px">Prototype result (median wait, minutes)</h4>
-        <table><tr><th>Fault</th><th class="n">No re-plan</th><th class="n">Re-planned</th></tr><tr><td>45 min</td><td class="n">53</td><td class="n">39</td></tr><tr><td>150 min</td><td class="n">104</td><td class="n">36</td></tr></table></div>
+        <table><tr><th>Fault</th><th class="n">No re-plan</th><th class="n">Re-planned</th></tr><tr><td>45 min</td><td class="n">53</td><td class="n">37</td></tr><tr><td>150 min</td><td class="n">104</td><td class="n">39</td></tr></table></div>
     </div>
   </article>
 
@@ -330,7 +331,7 @@
   <div class="grid2">
     <div class="card"><span class="pill h">Hard rule</span><h3 style="margin:8px 0">Must never be broken</h3>
       <p>A plan that breaks one does not exist as far as the solver is concerned. If everyone cannot be placed, the answer is “these patients need a human decision”, never “we bent a rule”.</p>
-      <ul class="tight"><li>New starts end by 17:00</li><li>Complex cases only with senior staff, 10:00–17:00, one team at a time</li><li>MHRC patients in their 16:00–17:00 slots</li><li>Public-transport patients home by 21:00</li><li>Blood-irradiation block kept free</li><li>One patient per machine; accessories not double-booked</li></ul></div>
+      <ul class="tight"><li>New starts end by 17:00</li><li>Complex cases only with senior staff, 10:00–17:00, one team at a time</li><li>MHRC patients in their 16:00–17:00 slots</li><li>Public-transport patients home by 21:00</li><li>Blood-irradiation block kept free</li><li>One patient per machine; accessories not double-booked</li><li>A patient keeps one standing slot for the whole course</li></ul></div>
     <div class="card"><span class="pill s">Soft wish</span><h3 style="margin:8px 0">Traded off with a price</h3>
       <p>Each wish has a weight (cost per 10 minutes away from ideal). The department can change the weights; the solver finds the cheapest overall balance.</p>
       <ul class="tight"><li>Stay near the patient's usual time (free within 30 min; paying patients 15 min, weighted ×4)</li><li>Older patients before 13:00</li><li>Flexible patients (inpatients, dormitory, nearby) take the late evening</li><li>Others finish by 21:00 where possible; the day ends as early as it can</li><li>Complex cases in the 12:00–13:30 protected block</li><li>Minimise overtime (weight 6)</li></ul></div>
@@ -352,6 +353,13 @@
     <div class="tile"><span class="k">After 19:00, median wait</span><span class="v">66 → 36 min</span><span class="d">evening build-up</span></div>
   </div>
   <div class="card">
+    <h3>With and without RAD-SMART, on both datasets</h3>
+    <div class="tscroll"><table><tr><th>Dataset</th><th class="n">P90 wait, without → with</th><th class="n">More than 1 h late</th></tr>
+      <tr><td>Original: the department's 55 recorded days, re-planned in the twin</td><td class="n">108.6 → 70.4 min (−35%)</td><td class="n">22% → 6%</td></tr>
+      <tr><td>Simulated: 12 weeks of synthetic courses with standing slots</td><td class="n">82 → 49 min (−40%)</td><td class="n">19% → 4%</td></tr></table></div>
+    <p style="margin-top:8px"><b>The price</b> over 12 weeks: the last patient finishes about 00:07 instead of 21:55; one new start in five begins a little later (0.4 working days); a time the patient asks for is kept within 15 minutes 4% of the time, against 31% today. Details: <code>docs/RAD-SMART_Impact_Analysis.pdf</code>.</p>
+  </div>
+  <div class="card">
     <h3>The records behind the calibration</h3>
     <p>The department's anonymised arrival and treatment records: <b>3,137 patient-days</b>, 263 patients, 15 Oct–31 Dec 2024, Versa HD. Entries stored as 12:00 AM were treated as missing (416 removed) and 2,685 waits were usable. Median wait 34 min, 90th percentile 109 min. Only aggregates are used or published; no row-level data is in the repository.</p>
   </div>
@@ -363,12 +371,12 @@
   <div class="warn"><b class="t">Known limitations. Say these before they are found</b>
     <ul class="tight">
       <li><b>Synthetic patients.</b> Session lengths and the patient mix are our estimates; the pilot replaces them with measured values.</li>
-      <li><b>The twin is not perfect.</b> It under-predicts the longest waits slightly (93 vs 110 min at P90 on typical days), so our tail may be a little optimistic. On busy days it over-predicts today's waits, so today's figures are quoted from the records, not from the twin.</li>
-      <li><b>Patients move too far in the prototype.</b> It plans each day from scratch, so a patient's time can move by hours between days (median 57 min). A real deployment anchors a patient's slot across their course. We tried a stronger far-move penalty; it made things worse, so we documented it instead.</li>
+      <li><b>The twin is not perfect.</b> Over all 55 recorded days it gives a P90 of 106 against 109 min, but it under-predicts the longest waits on quieter days (82 vs 98 min on 45–59-patient days), so our tail may be a little optimistic. On busy days it over-predicts today's waits, so today's figures are quoted from the records, not from the twin.</li>
+      <li><b>Standing slots have a price.</b> They keep each patient's time for the whole course, but over 12 weeks the evening runs about two hours later, one new start in five waits a little, and requested times are kept less often. The 12-week test also starts from an empty machine; the pilot starts from today's patients.</li>
       <li><b>Behaviour is assumed.</b> The benefit assumes patients stop arriving very early once times are kept, and that 85% act on updates. With today's habits the P90 would be 110 min, not 76. The pilot measures both.</li>
       <li><b>One machine simulated live.</b> Two-machine work so far covers the forecast; simultaneous live sequencing is in the build.</li>
     </ul>
-    <p style="margin-top:8px"><b>So the pilot target is conservative:</b> P90 at least 25% lower than the records' 109 min, against 42% in the prototype.</p></div>
+    <p style="margin-top:8px"><b>So the pilot target is conservative:</b> P90 at least 25% lower than the records' 109 min, against 35% on the department's own days re-planned and 40% over 12 synthetic weeks.</p></div>
 </section>
 
 <!-- ============================================================ -->
@@ -397,9 +405,9 @@
     <h2 id="h-safe">Safety, data and deployment</h2>
   </div>
   <div class="grid2">
-    <div class="card"><h3>Human in control</h3><ul class="tight"><li>Every output is a <b>proposal</b>: plans, re-plans, deferrals, new-start advice, rule changes</li><li>A designated senior RTT or oncologist approves the next-day plan and each live change</li><li>One-tap override with a reason; overrides are reviewed weekly</li><li>Independent checker before anything is published</li><li>Append-only audit log: who, when, which rule and model version, every message</li><li>Printed fallback list and a one-click return to manual mode</li></ul></div>
+    <div class="card"><h3>Human in control</h3><ul class="tight"><li>Every output is a <b>proposal</b>: plans, re-plans, deferrals, new-start advice, rule changes</li><li>The doctor approves each course, its machine and its slots; a technologist or doctor approves the day and every breakdown response</li><li>One-tap override with a reason; overrides are reviewed weekly</li><li>Independent checker before anything is published</li><li>Append-only audit log: who, when, which rule and model version, every message</li><li>Printed fallback list and a one-click return to manual mode</li></ul></div>
     <div class="card"><h3>Data and privacy</h3><ul class="tight"><li>Operational data only: technique, fraction number, flags, times. <b>No diagnoses, doses, images or clinical notes</b></li><li>Pseudonymous patient tokens; names and phones stay on the hospital server</li><li>On-premise; role-based access; TLS; nightly encrypted backup</li><li>Consent before WhatsApp; SMS through registered templates</li><li>Designed for India's DPDP Rules 2025 (main obligations from May 2027)</li></ul></div>
-    <div class="card"><h3>Integration path</h3><ul class="tight"><li><b>Pilot start:</b> standalone, with QR check-in and tablet taps for arrival, room entry and exit</li><li><b>Phase 2:</b> read-only HL7 v2 / FHIR R4 feed from the oncology information system (MOSAIQ / ARIA)</li><li>It never writes into the treatment record</li></ul></div>
+    <div class="card"><h3>Integration path</h3><ul class="tight"><li><b>Now:</b> runs inside CARE (Open Healthcare Network) as a backend and a frontend plugin, with a RADSMART button on the visit page; the same pattern fits the hospital EMR</li><li><b>Pilot start:</b> QR check-in and tablet taps for arrival, room entry and exit</li><li><b>Phase 2:</b> read-only HL7 v2 / FHIR R4 feed from the oncology information system (MOSAIQ / ARIA)</li><li>It never writes into the treatment record</li></ul></div>
     <div class="card"><h3>Performance targets</h3><ul class="tight"><li>Evening plan for 90 patients in under 60 s</li><li>Live re-plan in under 30 s</li><li>Console responses under 1 s</li><li>Keeps working on the hospital LAN without internet; messages queue and fall back to SMS or voice</li></ul></div>
   </div>
   <div class="ask"><b class="t">If they ask</b><b>“Is it a medical device?”</b> Its intended purpose is operational scheduling, so we expect it falls outside software-as-a-medical-device classification. We will confirm that with the institution's regulatory team before the pilot.</div>
@@ -417,19 +425,20 @@
   <details class="qa"><summary>Why not just ask ChatGPT or another LLM to make the schedule?</summary><div class="ans"><p class="short">Because it cannot promise that a rule will hold.</p><p>Language models are weak at precise packing, give different answers to the same input and are hard to audit. A missed rule here could mean a complex case without senior staff. The solver guarantees the rules and a second program checks them.</p></div></details>
   <details class="qa"><summary>Why not reinforcement learning?</summary><div class="ans"><p class="short">It needs far more data than a single department has, it is a black box, and it offers no guarantee on hard rules.</p><p>It also cannot be re-configured by editing a rule. Our optimiser can be reconfigured by changing a number in a file.</p></div></details>
   <details class="qa"><summary>What is a MILP, in one sentence?</summary><div class="ans"><p class="short">A way to ask a computer for the cheapest plan that satisfies a list of yes/no and arithmetic rules.</p><p>“Mixed-integer” means some choices are whole-number yes/no decisions (starts at 09:10 or not). “Linear” means the rules and costs are sums, which lets the solver prove how close its answer is to the best possible. The maths page works a four-patient example.</p></div></details>
-  <details class="qa"><summary>How do you guarantee the rules are not broken?</summary><div class="ans"><p class="short">Twice: in the solver and again in a separate checker.</p><p>Hard rules are constraints, so a plan that breaks them is not a valid answer. Then a second program, which shares no code with the solver, re-verifies seven rules on every session. On the prototype day: 87 sessions checked, 0 violations.</p></div></details>
-  <details class="qa"><summary>What if there is no way to fit everyone?</summary><div class="ans"><p class="short">The system says so and a human decides.</p><p>Every patient must either start once or be flagged as unplanned at a very high cost, so unplanned is a last resort. Deferrals are proposed in a defined order (for example new starts that can no longer finish by 17:00) and only approved by the oncologist or senior RTT. Nobody already waiting or on the hospice bus is proposed.</p></div></details>
-  <details class="qa"><summary>How long does it take, and will it scale?</summary><div class="ans"><p class="short">10 to 35 seconds for 87 patients on a laptop; faster, scalable software is the plan.</p><p>The prototype uses an open-source solver (HiGHS) via SciPy. The build moves to Google OR-Tools CP-SAT, designed for scheduling with intervals. The target is a full evening plan for 90 patients in under 60 seconds and a live re-plan in under 30.</p></div></details>
+  <details class="qa"><summary>How do you guarantee the rules are not broken?</summary><div class="ans"><p class="short">Twice: in the solver and again in a separate checker.</p><p>Hard rules are constraints, so a plan that breaks them is not a valid answer. Then a second program, which shares no code with the solver, re-verifies eight rules on every session. On the prototype day: 87 sessions checked, 0 violations.</p></div></details>
+  <details class="qa"><summary>What if there is no way to fit everyone?</summary><div class="ans"><p class="short">The system says so and a human decides.</p><p>Every patient must either start once or be flagged as unplanned at a very high cost, so unplanned is a last resort. In a breakdown over 60 minutes, patients are sent back in a defined order (those not yet travelling first, palliative before other radical courses) and a technologist or doctor approves. A gap-sensitive course or a hospice patient is never sent back automatically: the oncologist decides.</p></div></details>
+  <details class="qa"><summary>How long does it take, and will it scale?</summary><div class="ans"><p class="short">7 to 31 seconds for 87 patients on a laptop; a breakdown re-plan in 10 to 14; faster, scalable software is the plan.</p><p>The prototype uses an open-source solver (HiGHS) via SciPy. The build moves to Google OR-Tools CP-SAT, designed for scheduling with intervals. The target is a full evening plan for 90 patients in under 60 seconds and a live re-plan in under 30.</p></div></details>
   <details class="qa"><summary>How accurate is the duration model?</summary><div class="ans"><p class="short">On synthetic test data: average error 2.15 minutes, versus 2.62 for a table of averages.</p><p>62% within 2 minutes; the P80 covers 78.6% of sessions (promise: 80%). These are synthetic so they prove the method, not the clinic. The pilot target is an error of at most 2.5 minutes on real data.</p></div></details>
   <details class="qa"><summary>Is the data real?</summary><div class="ans"><p class="short">The patients are synthetic; the behaviour is calibrated on aggregates of real anonymised records.</p><p>The hackathon allows only fake or fully anonymised data. The department's anonymised records (3,137 patient-days) were summarised into aggregates, such as how appointment times spread over the day and how early people arrive. Only those aggregates are in the repository. The head of department's sign-off on publishing them is on our checklist.</p></div></details>
-  <details class="qa"><summary>How do you know the simulation matches reality?</summary><div class="ans"><p class="short">We tested it against recorded days and are open about where it falls short.</p><p>On days with 60–69 patients the twin's current-practice median wait is 37.5 min against 35 recorded. It under-predicts the longest waits (93 vs 110 at P90), and on the busiest days it over-predicts. So we quote today's numbers from the records, not the twin, and set a pilot target well below the prototype result.</p></div></details>
+  <details class="qa"><summary>How do you know the simulation matches reality?</summary><div class="ans"><p class="short">We tested it against recorded days and are open about where it falls short.</p><p>Replaying today's booking over all 55 recorded days, the twin gives a P90 of 106 min against 109 recorded. It under-predicts the longest waits on quieter days, and on the busiest days it over-predicts. So we quote today's numbers from the records, not the twin, and set a pilot target well below the prototype result.</p></div></details>
   <details class="qa"><summary>Why doesn't the median wait come down?</summary><div class="ans"><p class="short">Because of reporting early, by design: 20 minutes before the slot, 45 for pelvic patients.</p><p>That gives a floor on the median. The improvement is in the tail: P90 falls from 130 to 76 minutes and the share more than an hour late from 27% to 6%.</p></div></details>
-  <details class="qa"><summary>Why does one patient in the prototype move from 08:50 to 19:24?</summary><div class="ans"><p class="short">The prototype plans every day from scratch; a real deployment anchors patients to their usual time.</p><p>Each simulated day draws a fresh “current” time from the department's recorded booking pattern, then plans anew, so times can jump. A stronger penalty for far moves did not help in the prototype, so we documented this as a limitation. In deployment, a patient's slot is kept across their course and only moved for a reason.</p></div></details>
+  <details class="qa"><summary>Why does one patient in the prototype move from 08:50 to 19:24?</summary><div class="ans"><p class="short">Only in the single-day test. Since 24 October each course gets a standing slot.</p><p>The single-day test draws a fresh “current” time from the department's recorded booking pattern, then plans the day anew, so times can jump. With standing slots, a patient's time is fixed when the doctor approves the course and stays until it ends, unless the patient asks to change it.</p></div></details>
+  <details class="qa"><summary>What happens when the machine is down for hours?</summary><div class="ans"><p class="short">Up to 60 minutes everyone is treated with overtime; longer, only as many are sent back as the downtime needs.</p><p>Those who have not left home are chosen first and told to postpone travel; their fraction is added at the end of the course. New starts wait for the machine. A technologist or doctor approves before anyone is told. In the prototype, a 150-minute fault sent back one patient and moved two new starts.</p></div></details>
   <details class="qa"><summary>What if a patient doesn't read WhatsApp or can't read?</summary><div class="ans"><p class="short">SMS or an automated voice call; staff can call; nearby patients can be called in.</p><p>We assume 85% act on updates and will measure it in the pilot. Messages carry times only, in the patient's language, with a caregiver copy if the patient agrees.</p></div></details>
   <details class="qa"><summary>How do you handle Tulu?</summary><div class="ans"><p class="short">Text in Kannada script plus a short recorded voice note.</p><p>Sarvam's current speech models do not include Tulu. Tulu-speaking staff record each approved template once, and the time comes from recorded number clips.</p></div></details>
   <details class="qa"><summary>Does patient data go to the language model?</summary><div class="ans"><p class="short">No names, no phone numbers.</p><p>The model sees pseudonymous IDs and operational tags. Personal details are added on the hospital's server when a message is sent. Patient messages come from fixed, pre-approved templates, so the model only fills in a time.</p></div></details>
-  <details class="qa"><summary>Who is responsible if the system is wrong?</summary><div class="ans"><p class="short">The approving clinician stays in control, and everything is logged.</p><p>All outputs are proposals; a senior RTT or oncologist approves; any plan can be overridden in one tap; a printed fallback list exists; and the audit log records the rule and model versions behind every plan. The pilot has stopping rules: if a hard rule is broken in practice, or balancing KPIs worsen for two weeks, we revert to manual.</p></div></details>
-  <details class="qa"><summary>How will it connect to our existing systems?</summary><div class="ans"><p class="short">Standalone at first; read-only connection later.</p><p>The pilot starts with QR check-in and tablet taps. Phase 2 adds a read-only HL7/FHIR feed from MOSAIQ or ARIA. It never writes into the treatment record.</p></div></details>
+  <details class="qa"><summary>Who is responsible if the system is wrong?</summary><div class="ans"><p class="short">The approving clinician stays in control, and everything is logged.</p><p>All outputs are proposals; the doctor approves courses and a technologist or doctor approves breakdown responses; any plan can be overridden in one tap; a printed fallback list exists; and the audit log records the rule and model versions behind every plan. The pilot has stopping rules: if a hard rule is broken in practice, or balancing KPIs worsen for two weeks, we revert to manual.</p></div></details>
+  <details class="qa"><summary>How will it connect to our existing systems?</summary><div class="ans"><p class="short">Inside the hospital information system, with a button on the visit page.</p><p>The build runs inside CARE as a plugin; the same pattern fits the hospital's own EMR. The pilot adds QR check-in and tablet taps. Phase 2 adds a read-only HL7/FHIR feed from MOSAIQ or ARIA. It never writes into the treatment record.</p></div></details>
   <details class="qa"><summary>What about paying patients, is it fair?</summary><div class="ans"><p class="short">Every priority is an explicit, visible weight chosen by the department.</p><p>Paying patients are weighted higher for keeping their preferred time (×4, within 15 minutes). We report waits by group (elderly, transport-dependent, language, paying vs non-paying), and a rule that makes any group worse off is treated as a problem to review.</p></div></details>
   <details class="qa"><summary>How will you prove it works in the pilot?</summary><div class="ans"><p class="short">One headline measure: 90th-percentile wait at least 25% lower than the records' 109 minutes by day 90.</p><p>The 90-day pilot has three phases: 14 days baseline logging, 3 weeks shadow mode where it plans but staff schedule as usual, then live on the Versa HD. Analysis is a segmented regression of the daily P90 wait with weekly control charts, plus secondary and balancing measures (punctuality, new starts on time, equity, override rate).</p></div></details>
   <details class="qa"><summary>Can another department reuse it?</summary><div class="ans"><p class="short">Yes. Every rule is configuration, not code.</p><p>Operating hours, windows, accessories, weights and downtime rules sit in one configuration structure. In the build, the Rule Studio edits it in plain language with a before/after diff and a twin impact estimate, and saves a new version only after approval.</p></div></details>
@@ -450,9 +459,11 @@
     <tr><td>Prototype day</td><td>87 patients + 0–3 urgent · 890 expected machine-minutes of 960 available (92.7%)</td></tr>
     <tr><td>RAD-SMART (simulated, 300 days)</td><td>P90 76 min · 6% more than an hour late · 53% within ±15 min · evening median 36 min</td></tr>
     <tr><td>Duration model</td><td>Error 2.15 min vs 2.62 · P80 covers 78.6%</td></tr>
-    <tr><td>Optimiser size and speed</td><td>~4,700 variables · ~1,660 constraints · 10–35 s · gap ≤ 0.13%</td></tr>
-    <tr><td>Checker</td><td>7 rules · 87 sessions · 0 violations</td></tr>
-    <tr><td>Fault median wait (no re-plan → re-plan)</td><td>45 min fault: 53 → 39 · 150 min fault: 104 → 36</td></tr>
+    <tr><td>Original dataset (55 recorded days, with vs without)</td><td>P90 108.6 → 70.4 min (−35%) · more than 1 h late 22% → 6%</td></tr>
+    <tr><td>Simulated, 12 weeks with standing slots</td><td>P90 82 → 49 min (−40%) · last patient 21:55 → 00:07</td></tr>
+    <tr><td>Optimiser size and speed</td><td>~4,700 variables · ~1,660 constraints · 7–31 s · gap ≤ 0.13%</td></tr>
+    <tr><td>Checker</td><td>8 rules (9 with standing slots) · 87 sessions · 0 violations</td></tr>
+    <tr><td>Fault median wait (no re-plan → re-plan)</td><td>45 min fault: 53 → 37 · 150 min fault: 104 → 39</td></tr>
     <tr><td>Forecast (two machines, TBI week)</td><td>Peak load 154% → 98% · days over capacity 10 → 0</td></tr>
     <tr><td>Pilot headline target</td><td>P90 at least 25% below 109 min within a 90-day pilot</td></tr>
     <tr><td>Team</td><td>Dr Akshay Dinesan (team leader, doctor partner) · Abhinand T M (technical lead) · P S Raghotham Rao (lead engineer) · Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners)</td></tr>
@@ -465,7 +476,7 @@
 
 <footer>
   <div>RAD-SMART · Health-a-thon 2026 · Cancer track · use case 04 · doctor partner Dr Akshay Dinesan, Manipal. Prototype patients are synthetic; department behaviour is calibrated on aggregates of its anonymised records.</div>
-  <div>Assistive, not diagnostic: a senior RTT or oncologist approves every plan. Full detail in the <a href="https://github.com/psraghothamrao8/RAD-SMART/blob/main/docs/RAD-SMART_Research_Report.pdf">research report</a>.</div>
+  <div>Assistive, not diagnostic: a doctor or technologist approves every plan. Full detail in the <a href="https://github.com/psraghothamrao8/RAD-SMART/blob/main/docs/RAD-SMART_Research_Report.pdf">research report</a>.</div>
 </footer>
 </div>
 </body>

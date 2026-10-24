@@ -84,8 +84,10 @@ class Patient:
     nearby: bool = False          # lives nearby (flexible)
     transport: bool = False       # depends on public transport: finish by 21:00
     latest_end: int | None = None  # must finish by, minutes
+    earliest_start: int | None = None  # cannot start before, minutes (e.g. sedation lists)
     paying: bool = False
-    requested: int | None = None  # paying patient's preferred time, minutes
+    requested: int | None = None  # preferred time, minutes (weighted up for paying patients)
+    gap_category: int = 2         # 1 gap-sensitive radical, 2 other radical, 3 palliative
     usual_time: float = 0         # current-practice appointment time
     language: str = "Kannada"
     urgent: bool = False          # same-day palliative start
@@ -178,6 +180,7 @@ def make_patient(rng, pid: str, technique: str, machine: str, new_start: bool,
         imaging=_pick(rng, IMAGING_BY_TECH[technique]), age=age, inpatient=inpatient,
         language=_pick(rng, LANGUAGES), eligible=list(t["machines"]),
     )
+    p.gap_category = 3 if technique == "PALL" else 1 if p.site in ("HN", "PELVIS") else 2
     if not inpatient:
         p.mhrc = rng.random() < (0.10 if technique == "PALL" or p.elderly else 0.02)
         p.dormitory = (not p.mhrc) and rng.random() < 0.12

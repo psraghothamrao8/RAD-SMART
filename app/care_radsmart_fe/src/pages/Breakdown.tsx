@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Power, Wrench, XCircle } from "lucide-react";
 import { useState } from "react";
-import { useQueryParams } from "raviger";
+import { navigate, useQueryParams } from "raviger";
 import { toast } from "sonner";
 
 import Layout from "@/components/Layout";
@@ -244,6 +244,21 @@ function TriageView({ t, facilityId, canOperate }: { t: Triage; facilityId: stri
       }
     >
       <p className="text-sm text-gray-700">{p.rule}</p>
+      {t.status === "approved" && actions.some((a) => a.message) && (
+        <div className="mt-3">
+          <Notice
+            kind="ok"
+            title={tr("msgs_ready", "Messages are drafted in each patient's language")}
+            action={
+              <Button size="sm" variant="outline" onClick={() => navigate(`/facility/${facilityId}/radsmart/messages`)}>
+                {tr("open_messages", "Open messages")}
+              </Button>
+            }
+          >
+            {tr("msgs_ready_text", "Send each one on WhatsApp from the Messages tab. Patients also see the new time on their own page.")}
+          </Notice>
+        </div>
+      )}
       <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Stat label={tr("t_restart", "Machine back")} value={p.restart ?? tr("not_today", "not today")} />
         <Stat label={tr("t_treated", "Treated today")} value={(c.treat ?? 0) + (c.treat_later ?? 0) + (c.new_time ?? 0)} sub={tr("t_treated_sub", "{{n}} at a new time", { n: (c.treat_later ?? 0) + (c.new_time ?? 0) })} />

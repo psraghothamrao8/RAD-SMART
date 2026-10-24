@@ -1,4 +1,4 @@
-import { Activity, CalendarClock, ClipboardPlus, ListChecks, Wrench } from "lucide-react";
+import { Activity, CalendarClock, ClipboardPlus, ListChecks, MessageCircle, ScanLine, Wrench } from "lucide-react";
 import type { PropsWithChildren, ReactNode } from "react";
 import { Link, usePath } from "raviger";
 
@@ -31,6 +31,8 @@ export default function Layout({
     { href: `${base}/courses`, label: tr("tab_courses", "Courses"), icon: ListChecks, active: path.startsWith(`${base}/courses`) && !path.endsWith("/new") },
     { href: `${base}/courses/new`, label: tr("tab_new", "New course"), icon: ClipboardPlus, active: path.endsWith("/courses/new") },
     { href: `${base}/breakdown`, label: tr("tab_breakdown", "Breakdown"), icon: Wrench, active: path.startsWith(`${base}/breakdown`) },
+    { href: `${base}/messages`, label: tr("tab_messages", "Messages"), icon: MessageCircle, active: path.startsWith(`${base}/messages`) },
+    { href: `${base}/checkin`, label: tr("tab_checkin", "Check-in"), icon: ScanLine, active: path.startsWith(`${base}/checkin`) },
     { href: `${base}/insights`, label: tr("tab_insights", "Insights"), icon: Activity, active: path.startsWith(`${base}/insights`) },
   ];
   return (
@@ -42,6 +44,11 @@ export default function Layout({
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {config?.sarvam && (
+              <Badge tone="blue" title={tr("sarvam_hint", "Translations, voice notes and plain-language explanations")}>
+                {tr("sarvam_on", "Sarvam AI on")}
+              </Badge>
+            )}
             {config?.demo && (
               <Badge tone="violet" title={tr("demo_hint", "This server shows synthetic patients only")}>
                 {tr("demo", "Demonstration data")}

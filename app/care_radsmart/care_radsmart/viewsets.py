@@ -10,6 +10,7 @@ import datetime as dt
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
@@ -24,8 +25,9 @@ from care.emr.models import Patient
 from care.facility.models import Facility
 from care.security.authorization import AuthorizationController
 
-from care_radsmart import engine
-from care_radsmart.models import Course, DayPlan, Machine, MachineEvent, Session, SlotRequest, Triage
+from care_radsmart import engine, messages, sarvam
+from care_radsmart.models import (Course, DayPlan, Machine, MachineEvent, Message, PatientReply, Session, SlotRequest,
+                                  Triage)
 from care_radsmart.serializers import (CourseSerializer, MachineSerializer, SlotRequestSerializer,
                                        TriageSerializer, parse_date, to_minutes)
 from care_radsmart.settings import plugin_settings
@@ -87,6 +89,7 @@ class ConfigView(APIView):
             require(request, "can_view_radsmart", facility)
         out = engine.options(facility)
         out["enabled"] = bool(plugin_settings.RADSMART_ENABLED)
+        out["sarvam"] = sarvam.enabled()
         if facility:
             out["permissions"] = {k: can(request, k, facility) for k in DENIED}
         day, minutes = clock()
@@ -219,8 +222,10 @@ class CourseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
         if not proposal or not proposal.get("ok"):
             raise ValidationError("Ask for a proposal first.")
         chosen = to_minutes(request.data.get("chosen_time")) if request.data.get("chosen_time") else None
-        engine.approve(course, request.user, proposal, chosen)
-        course.refresh_from_db()
+        with transaction.atomic():
+            engine.approve(course, request.user, proposal, chosen)
+            course.refresh_from_db()
+            messages.translate_later([messages.for_course(course, request.user, clock()[0])])
         return Response(CourseSerializer(course).data)
 
     @action(detail=True, methods=["post"])
@@ -259,6 +264,64 @@ class CourseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
         return Response(SlotRequestSerializer(req).data, status=201)
 
 
+    @action(detail=True, methods=["get"], url_path="patient-link")
+    def patient_link(self, request, external_id=None):
+        """The patient's page link and check-in code, to give the patient."""
+        course = self.get_object()
+        require(request, "can_operate_radsmart", course.facility)
+        if course.status == "draft":
+            raise ValidationError("The link is made when the course is approved.")
+        url = messages.page_url(course, request)
+        text = (f"{plugin_settings.RADSMART_DEPARTMENT}: your radiotherapy times, live, and messages from the "
+                f"department: {url}")
+        from care_radsmart.patient import _qr
+        return Response({"url": url, "code": course.checkin_code, "qr": _qr(course.checkin_code),
+                         "whatsapp": messages.whatsapp_url(course, text)})
+
+    @action(detail=True, methods=["post"])
+    def explain(self, request, external_id=None):
+        """RAD-SMART's reasons for a proposed time in plain words (Sarvam-105B), and
+        optionally in the patient's language. Falls back to the engine's reasons."""
+        course = self.get_object()
+        p = request.data.get("proposal") or course.proposal or {}
+        if not p.get("ok"):
+            raise ValidationError("Ask for a proposal first.")
+        first, standing = p.get("first") or {}, p.get("standing") or {}
+        chosen = request.data.get("chosen_time") or standing.get("time")
+        if not request.data.get("proposal") and course.status != "draft" and course.slots:
+            # An approved course: explain the slot in force, which a doctor may have
+            # chosen at approval or changed since on an approved request.
+            today = clock()[0].isoformat()
+            chosen = fmt(([s for s in course.slots if s["from"] <= today] or course.slots[:1])[-1]["start"])
+        lead = int(p.get("report_lead_min") or 20)
+        # Clear sentences, no names or numbers that identify the patient.
+        facts = {
+            "Treatment": f"{engine.TECHNIQUES[course.technique]['label']}, {course.fractions} fractions",
+            "Patient needs": ", ".join(engine.flags(course)) or "none recorded",
+            "First treatment (new start)": (f"{first.get('date')}, treatment at {first.get('time')}, come at "
+                                            f"{first.get('report')}. Department rule: every new start must "
+                                            "finish by 17:00") if first else "",
+            "Every later treatment": (f"at {chosen} on the {standing.get('machine_name', 'machine')}, come at "
+                                      f"{fmt(to_minutes(chosen) - lead)} ({lead} minutes early)") if chosen else "",
+            "Engine's reasons": "; ".join(r for r in (p.get("reasons") or []) if not r.startswith("report at")),
+        }
+        if chosen and standing.get("time") and chosen != standing.get("time"):
+            facts["Note"] = (f"the engine recommended {standing.get('time')}; a doctor or technologist chose "
+                             f"{chosen} instead")
+        text, why_not = sarvam.explain(facts)
+        source = sarvam.CHAT_MODEL if text else "engine"
+        if not text:
+            reasons = "; ".join(p.get("reasons") or [])
+            text = reasons[:1].upper() + reasons[1:] + "."
+        out = {"text": text, "source": source, "note": why_not, "language": "English", "local_text": None,
+               "local_note": ""}
+        lang = request.data.get("language")
+        if lang and lang != "English":
+            local, status, note = sarvam.translate(text, lang)
+            out.update(language=lang, local_text=local, local_note=note)
+        return Response(out)
+
+
 class SlotRequestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = None                  # one facility's list; the boards need all of it
     permission_classes = [IsAuthenticated]
@@ -291,9 +354,14 @@ class SlotRequestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             (req.proposal.get("standing") or {}).get("start")
         if start is None:
             raise ValidationError("No time to approve.")
-        engine.apply_change(req.course, req.from_date, start, request.user)
-        req.status, req.decided_by, req.decided_at = "approved", request.user, timezone.now()
-        req.save()
+        with transaction.atomic():
+            engine.apply_change(req.course, req.from_date, start, request.user)
+            req.status, req.decided_by, req.decided_at = "approved", request.user, timezone.now()
+            req.save()
+            messages.translate_later([messages.for_slot_change(req.course, req.from_date, start, request.user,
+                                                               clock()[0])])
+            PatientReply.objects.filter(slot_request=req, status="open").update(
+                status="done", handled_by=request.user, handled_at=timezone.now())
         return Response(SlotRequestSerializer(req).data)
 
     @action(detail=True, methods=["post"])
@@ -301,6 +369,8 @@ class SlotRequestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         req = self._get(request, external_id)
         req.status, req.decided_by, req.decided_at = "rejected", request.user, timezone.now()
         req.save()
+        PatientReply.objects.filter(slot_request=req, status="open").update(
+            status="done", handled_by=request.user, handled_at=timezone.now())
         return Response(SlotRequestSerializer(req).data)
 
 
@@ -456,10 +526,12 @@ class TriageViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         """Apply the proposal: today's new times, patients sent back (their
         fraction added at the end of the course), new starts moved."""
         t = self._get(request, external_id)
-        engine.apply_triage(t.proposal, request.user, t.date)
-        t.status, t.decided_by, t.decided_at = "approved", request.user, timezone.now()
-        t.note = str(request.data.get("note") or "")[:500]
-        t.save()
+        with transaction.atomic():
+            engine.apply_triage(t.proposal, request.user, t.date)
+            t.status, t.decided_by, t.decided_at = "approved", request.user, timezone.now()
+            t.note = str(request.data.get("note") or "")[:500]
+            t.save()
+            messages.translate_later(messages.for_triage(t.proposal, request.user, t.date))
         return Response(TriageSerializer(t).data)
 
     @action(detail=True, methods=["post"])
@@ -517,3 +589,143 @@ class DemoSeedView(APIView):
         out = seed(facility, request.user, census=int(request.data.get("census") or 60), today=day, now=minutes)
         out["now"] = fmt(minutes)
         return Response(out, status=201)
+
+
+class MessageViewSet(viewsets.GenericViewSet):
+    """Messages to patients, drafted after a person approved the change. Staff
+    send each one (WhatsApp click-to-chat) and mark it sent."""
+
+    permission_classes = [IsAuthenticated]
+    lookup_field = "external_id"
+    queryset = Message.objects.all()
+
+    def list(self, request):
+        facility = get_facility(request)
+        require(request, "can_view_radsmart", facility)
+        qs = (Message.objects.filter(facility=facility).select_related("course", "course__patient", "sent_by")
+              .order_by("-created_date"))
+        p = request.query_params
+        if p.get("course"):
+            qs = qs.filter(course__external_id=p["course"])
+        elif p.get("date") != "all":
+            qs = qs.filter(date=parse_date(p.get("date"), clock()[0]))
+        if p.get("status"):
+            qs = qs.filter(status=p["status"])
+        return Response([messages.row(m, request) for m in qs[:300]])
+
+    def _get(self, request, external_id) -> Message:
+        try:
+            m = Message.objects.select_related("course", "course__patient", "facility").get(external_id=external_id)
+        except (Message.DoesNotExist, ValueError, DjangoValidationError) as exc:
+            raise NotFound("Message not found.") from exc
+        require(request, "can_operate_radsmart", m.facility)
+        return m
+
+    @action(detail=True, methods=["post"])
+    def sent(self, request, external_id=None):
+        m = self._get(request, external_id)
+        m.status, m.sent_by, m.sent_at, m.updated_by = "sent", request.user, timezone.now(), request.user
+        m.save()
+        return Response(messages.row(m, request))
+
+    @action(detail=True, methods=["post"])
+    def cancel(self, request, external_id=None):
+        m = self._get(request, external_id)
+        if m.status == "sent":
+            raise ValidationError("This message was already sent.")
+        m.status, m.updated_by = "cancelled", request.user
+        m.save()
+        return Response(messages.row(m, request))
+
+    @action(detail=True, methods=["post"])
+    def translate(self, request, external_id=None):
+        """Translate again (e.g. Sarvam was unreachable)."""
+        m = self._get(request, external_id)
+        m.local_status = "pending"
+        m.save(update_fields=["local_status", "modified_date"])
+        messages.translate_now([m.id])
+        m.refresh_from_db()
+        return Response(messages.row(m, request))
+
+    @action(detail=True, methods=["get"])
+    def audio(self, request, external_id=None):
+        """The voice note (Bulbul), for staff to check before sending."""
+        m = self._get(request, external_id)
+        english = request.query_params.get("lang") == "en" or not m.local_text
+        audio = sarvam.speak(m.text if english else m.local_text, "English" if english else m.language)
+        if audio is None:
+            raise NotFound("No voice note for this language.")
+        return HttpResponse(audio, content_type="audio/mpeg")
+
+
+class ReplyViewSet(viewsets.GenericViewSet):
+    """What patients said on their page: on the way, late, cannot come, another time."""
+
+    permission_classes = [IsAuthenticated]
+    lookup_field = "external_id"
+    queryset = PatientReply.objects.all()
+
+    def list(self, request):
+        facility = get_facility(request)
+        require(request, "can_view_radsmart", facility)
+        day = parse_date(request.query_params.get("date"), clock()[0])
+        qs = (PatientReply.objects.filter(facility=facility, date=day)
+              .select_related("course", "course__patient", "session", "slot_request", "handled_by")
+              .order_by("-created_date"))
+        if request.query_params.get("status"):
+            qs = qs.filter(status=request.query_params["status"])
+        return Response([reply_row(r) for r in qs])
+
+    @action(detail=True, methods=["post"])
+    def done(self, request, external_id=None):
+        try:
+            r = PatientReply.objects.select_related("facility", "course", "course__patient", "session",
+                                                    "slot_request").get(external_id=external_id)
+        except (PatientReply.DoesNotExist, ValueError, DjangoValidationError) as exc:
+            raise NotFound("Reply not found.") from exc
+        require(request, "can_operate_radsmart", r.facility)
+        r.status, r.handled_by, r.handled_at, r.updated_by = "done", request.user, timezone.now(), request.user
+        r.save()
+        return Response(reply_row(r))
+
+
+def reply_row(r: PatientReply) -> dict:
+    return {"id": str(r.external_id), "course": str(r.course.external_id), "patient_name": r.course.patient.name,
+            "hospital_number": r.course.hospital_number,
+            "session": str(r.session.external_id) if r.session else None,
+            "time": fmt(r.session.start) if r.session else None, "kind": r.kind, "label": r.get_kind_display(),
+            "minutes": r.minutes, "wanted": fmt(r.wanted) if r.wanted is not None else None, "reason": r.reason,
+            "slot_request": str(r.slot_request.external_id) if r.slot_request else None,
+            "slot_request_status": r.slot_request.status if r.slot_request else None,
+            "status": r.status, "handled_by": r.handled_by.username if r.handled_by else None,
+            "created_date": r.created_date}
+
+
+class CheckInView(APIView):
+    """Reception scans the patient's QR code (or types its six letters): the
+    patient's session today is marked arrived."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        facility = get_facility(request)
+        require(request, "can_operate_radsmart", facility)
+        code = str(request.data.get("code") or "").strip().upper().removeprefix("RADSMART:")
+        if len(code) != 6:
+            raise ValidationError({"code": "The code has six letters."})
+        course = (Course.objects.select_related("patient")
+                  .filter(facility=facility, checkin_code=code, status="approved").first())
+        if course is None:
+            raise NotFound("No current course has this code.")
+        day, _ = clock()
+        s = (Session.objects.select_related("course", "course__patient")
+             .filter(course=course, date=day, status__in=engine.ACTIVE).first())
+        if s is None:
+            raise ValidationError(f"{course.patient.name} has no treatment today.")
+        already = s.status != "scheduled"
+        if not already:
+            s.status, s.arrived_at, s.updated_by = "arrived", timezone.now(), request.user
+            s.save()
+        PatientReply.objects.filter(course=course, date=day, kind__in=("on_way", "late"), status="open").update(
+            status="done", handled_by=request.user, handled_at=timezone.now())
+        return Response({**engine.session_row(s), "already": already})

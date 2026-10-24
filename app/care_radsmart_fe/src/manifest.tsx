@@ -8,6 +8,8 @@ const CourseNew = lazy(() => import("./pages/CourseNew"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Breakdown = lazy(() => import("./pages/Breakdown"));
 const Insights = lazy(() => import("./pages/Insights"));
+const Messages = lazy(() => import("./pages/Messages"));
+const CheckIn = lazy(() => import("./pages/CheckIn"));
 
 /**
  * Structural mirrors of the host's prop types (care_fe/src/pluginTypes.ts).
@@ -49,6 +51,8 @@ const manifest: Manifest = {
     "/facility/:facilityId/radsmart/courses/:courseId": ({ facilityId, courseId }) =>
       page(<CourseDetail facilityId={facilityId} courseId={courseId} />),
     "/facility/:facilityId/radsmart/breakdown": ({ facilityId }) => page(<Breakdown facilityId={facilityId} />),
+    "/facility/:facilityId/radsmart/messages": ({ facilityId }) => page(<Messages facilityId={facilityId} />),
+    "/facility/:facilityId/radsmart/checkin": ({ facilityId }) => page(<CheckIn facilityId={facilityId} />),
     "/facility/:facilityId/radsmart/insights": ({ facilityId }) => page(<Insights facilityId={facilityId} />),
   },
   extends: [],

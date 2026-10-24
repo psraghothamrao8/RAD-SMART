@@ -80,6 +80,8 @@ class Course(EMRBaseModel):
     dates = models.JSONField(default=list)             # treatment dates, ISO
     note = models.TextField(blank=True, default="")
     demo = models.BooleanField(default=False)          # synthetic demonstration course
+    patient_token = models.CharField(max_length=40, blank=True, default="", db_index=True)  # the patient's page link
+    checkin_code = models.CharField(max_length=8, blank=True, default="")  # shown as a QR code at reception
 
     class Meta:
         indexes = [models.Index(fields=["facility", "status"])]
@@ -169,3 +171,57 @@ class SlotRequest(EMRBaseModel):
     decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
                                    blank=True, related_name="+")
     decided_at = models.DateTimeField(null=True, blank=True)
+
+
+class Message(EMRBaseModel):
+    """A message to a patient: drafted by RAD-SMART after a person approved the
+    change, translated into the patient's language, and sent by staff."""
+
+    KIND = (("course", "Course approved"), ("slot", "Standing time changed"), ("breakdown", "Breakdown"))
+    STATUS = (("to_send", "To send"), ("sent", "Sent"), ("cancelled", "Cancelled"))
+    LOCAL = (("pending", "Translating"), ("ok", "Translated"), ("english", "English only"),
+             ("failed", "Translation failed"))
+
+    facility = models.ForeignKey("facility.Facility", on_delete=models.CASCADE,
+                                 related_name="radsmart_messages")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="messages")
+    session = models.ForeignKey(Session, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    date = models.DateField(db_index=True)
+    kind = models.CharField(max_length=16, choices=KIND)
+    action = models.CharField(max_length=32, blank=True, default="")   # the breakdown action, if any
+    text = models.TextField()                                          # English, as drafted
+    language = models.CharField(max_length=32)
+    local_text = models.TextField(blank=True, default="")
+    local_status = models.CharField(max_length=16, choices=LOCAL, default="pending")
+    local_note = models.CharField(max_length=255, blank=True, default="")
+    status = models.CharField(max_length=16, choices=STATUS, default="to_send")
+    sent_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                blank=True, related_name="+")
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["facility", "date"])]
+
+
+class PatientReply(EMRBaseModel):
+    """What a patient tells the department from their page."""
+
+    KIND = (("on_way", "On the way"), ("late", "Running late"), ("not_today", "Cannot come today"),
+            ("other_time", "Asks for another time"))
+    STATUS = (("open", "Open"), ("done", "Done"))
+
+    facility = models.ForeignKey("facility.Facility", on_delete=models.CASCADE,
+                                 related_name="radsmart_replies")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="replies")
+    session = models.ForeignKey(Session, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    date = models.DateField(db_index=True)
+    kind = models.CharField(max_length=16, choices=KIND)
+    minutes = models.PositiveIntegerField(null=True, blank=True)       # how late
+    wanted = models.IntegerField(null=True, blank=True)                # the time asked for
+    reason = models.CharField(max_length=300, blank=True, default="")
+    slot_request = models.ForeignKey(SlotRequest, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name="+")
+    status = models.CharField(max_length=16, choices=STATUS, default="open")
+    handled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                   blank=True, related_name="+")
+    handled_at = models.DateTimeField(null=True, blank=True)

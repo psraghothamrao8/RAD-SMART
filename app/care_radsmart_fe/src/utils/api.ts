@@ -63,6 +63,20 @@ export async function request<T>(
   return data as T;
 }
 
+/** A binary response (a voice note) as an object URL; the caller revokes it. */
+export async function requestBlobUrl(endpoint: string, queryParams?: Record<string, string>): Promise<string> {
+  const qs = queryParams ? `?${new URLSearchParams(queryParams)}` : "";
+  const token = localStorage.getItem(STAFF_TOKEN_KEY);
+  const response = await fetch(`${window.CARE_API_URL}${BASE_PATH}${endpoint}${qs}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new ApiError(response.status, data, readErrorMessage(response.status, data));
+  }
+  return URL.createObjectURL(await response.blob());
+}
+
 // ------------------------------------------------------------------ types
 export interface Option {
   code: string;
@@ -117,6 +131,8 @@ export interface Config {
     urgent_holds: { machine: string; start: number; minutes: number }[];
   };
   machines: MachineInfo[];
+  /** Sarvam AI is connected: translations, voice notes and plain-language explanations. */
+  sarvam?: boolean;
   permissions?: {
     can_view_radsmart: boolean;
     can_operate_radsmart: boolean;
@@ -323,6 +339,63 @@ export interface Insights {
   kpi: { name: string; baseline_min: number; target_min: number; baseline_source: string };
 }
 
+export interface Message {
+  id: string;
+  course: string;
+  patient_name: string;
+  hospital_number: string;
+  date: string;
+  kind: "course" | "slot" | "breakdown";
+  action: string;
+  language: string;
+  text: string;
+  local_text: string;
+  local_status: "pending" | "ok" | "english" | "failed";
+  local_note: string;
+  status: "to_send" | "sent" | "cancelled";
+  sent_by: string | null;
+  sent_at: string | null;
+  voice: boolean;
+  link: string;
+  whatsapp: string;
+  created_date: string;
+}
+
+export interface PatientReply {
+  id: string;
+  course: string;
+  patient_name: string;
+  hospital_number: string;
+  session: string | null;
+  time: string | null;
+  kind: "on_way" | "late" | "not_today" | "other_time";
+  label: string;
+  minutes: number | null;
+  wanted: string | null;
+  reason: string;
+  slot_request: string | null;
+  slot_request_status: SlotRequest["status"] | null;
+  status: "open" | "done";
+  handled_by: string | null;
+  created_date: string;
+}
+
+export interface PatientLink {
+  url: string;
+  code: string;
+  qr: string;
+  whatsapp: string;
+}
+
+export interface Explanation {
+  text: string;
+  source: string;
+  note: string;
+  language: string;
+  local_text: string | null;
+  local_note: string;
+}
+
 export interface PatientHit {
   id: string;
   name: string;
@@ -366,6 +439,18 @@ export const API = {
   insights: (facility: string, from?: string, to?: string) =>
     request<Insights>("/insights/", "GET", undefined, { facility, from, to }),
   patients: (facility: string, q: string, id?: string) => request<PatientHit[]>("/patients/", "GET", undefined, { facility, q, id }),
+  messages: (facility: string, params: { date?: string; course?: string; status?: string } = {}) =>
+    request<Message[]>("/messages/", "GET", undefined, { facility, ...params }),
+  messageStep: (id: string, step: "sent" | "cancel" | "translate") => request<Message>(`/messages/${id}/${step}/`, "POST", {}),
+  messageAudio: (id: string, english = false) => requestBlobUrl(`/messages/${id}/audio/`, english ? { lang: "en" } : undefined),
+  replies: (facility: string, date?: string, status?: string) =>
+    request<PatientReply[]>("/replies/", "GET", undefined, { facility, date, status }),
+  replyDone: (id: string) => request<PatientReply>(`/replies/${id}/done/`, "POST", {}),
+  checkIn: (facility: string, code: string) => request<SessionRow & { already: boolean }>("/checkin/", "POST", { facility, code }),
+  patientLink: (facility: string, id: string) =>
+    request<PatientLink>(`/courses/${id}/patient-link/`, "GET", undefined, { facility }),
+  explain: (facility: string, id: string, body: { proposal?: Proposal; chosen_time?: string; language?: string }) =>
+    request<Explanation>(`/courses/${id}/explain/`, "POST", body, { facility }),
   seedDemo: (facility: string, census: number, time?: string) =>
     request<Record<string, unknown>>("/demo/seed/", "POST", { facility, census, time }),
 };

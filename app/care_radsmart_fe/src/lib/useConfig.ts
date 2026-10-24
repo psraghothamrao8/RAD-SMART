@@ -17,5 +17,8 @@ export const keys = {
   sessions: (f: string, id: string) => ["care_radsmart", "course-sessions", f, id],
   triages: (f: string, date?: string) => ["care_radsmart", "triage", f, date ?? "today"],
   slotRequests: (f: string) => ["care_radsmart", "slot-requests", f],
+  messages: (f: string, params?: object) => ["care_radsmart", "messages", f, params ?? {}],
+  replies: (f: string, date?: string) => ["care_radsmart", "replies", f, date ?? "today"],
+  patientLink: (f: string, id: string) => ["care_radsmart", "patient-link", f, id],
   insights: (f: string, from?: string, to?: string) => ["care_radsmart", "insights", f, from ?? "", to ?? ""],
 };

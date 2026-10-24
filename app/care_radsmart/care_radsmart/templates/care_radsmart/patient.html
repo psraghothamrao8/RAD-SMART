@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="{{ html_lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="refresh" content="120">
+<title>{{ t.title }} · {{ dept }}</title>
+<style>
+  :root { --ink:#13202f; --muted:#5b6878; --line:#d9e0e8; --bg:#f3f6f9; --card:#fff; --brand:#0f6e6a; --brand-ink:#fff;
+          --warn-bg:#fff4e0; --warn:#8a4b00; --bad-bg:#fdecec; --bad:#9b1c1c; --ok-bg:#e7f6ee; --ok:#11643a; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink:#e8eef4; --muted:#a3b0bf; --line:#2c3a4a; --bg:#0e1621; --card:#152131; --brand:#3fb8ad; --brand-ink:#06201e;
+            --warn-bg:#3a2a10; --warn:#ffcf8a; --bad-bg:#3b1818; --bad:#ffb3b3; --ok-bg:#103022; --ok:#9fe3bd; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font: 18px/1.5 system-ui, -apple-system, "Noto Sans", "Noto Sans Kannada", "Noto Sans Malayalam", sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 14px; }
+  header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  header p { margin:0; color:var(--muted); font-size:15px; }
+  h1 { margin:2px 0 0; font-size:24px; line-height:1.25; }
+  h2 { margin:0 0 8px; font-size:17px; color:var(--muted); font-weight:600; }
+  .lang { display:flex; gap:6px; flex-shrink:0; }
+  .lang a { font-size:14px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; color:var(--ink); text-decoration:none; background:var(--card); }
+  .lang a.on { background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .big { font-size:44px; font-weight:700; letter-spacing:.5px; line-height:1.1; font-variant-numeric: tabular-nums; }
+  .sub { color:var(--muted); font-size:16px; }
+  .pill { display:inline-block; font-size:14px; font-weight:600; padding:3px 10px; border-radius:999px; }
+  .warn { background:var(--warn-bg); color:var(--warn); }
+  .bad { background:var(--bad-bg); color:var(--bad); }
+  .ok { background:var(--ok-bg); color:var(--ok); }
+  .note { border-radius:12px; padding:12px 14px; font-size:17px; }
+  ul.next { list-style:none; margin:0; padding:0; }
+  ul.next li { display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid var(--line); font-variant-numeric: tabular-nums; }
+  ul.next li:first-child { border-top:0; }
+  .msg { border-top:1px solid var(--line); padding-top:10px; margin-top:10px; }
+  .msg:first-of-type { border-top:0; margin-top:0; padding-top:0; }
+  .msg p { margin:0 0 6px; }
+  .msg .en { color:var(--muted); font-size:15px; }
+  audio { width:100%; height:40px; }
+  .qr { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .qr svg { width: 200px; height: 200px; background:#fff; border-radius:12px; }
+  .code { font: 700 30px/1 ui-monospace, "SFMono-Regular", Consolas, monospace; letter-spacing:6px; }
+  form { margin:0; }
+  .actions { display:grid; gap:10px; }
+  button, .btn { width:100%; font:inherit; font-weight:600; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
+  button.primary { background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
+  details { border:1px solid var(--line); border-radius:12px; padding:0 14px; }
+  details[open] { padding-bottom:14px; }
+  summary { cursor:pointer; padding:14px 0; font-weight:600; list-style:none; }
+  summary::-webkit-details-marker { display:none; }
+  label { display:block; font-size:15px; color:var(--muted); margin:8px 0 4px; }
+  input, select { width:100%; font:inherit; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); }
+  .row { display:flex; gap:8px; }
+  .foot { color:var(--muted); font-size:14px; text-align:center; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p>{{ dept }}{% if demo %} · demonstration{% endif %}</p>
+      <h1>{{ t.title }}{% if name %}, {{ name }}{% endif %}</h1>
+    </div>
+    {% if show_toggle %}
+    <nav class="lang" aria-label="Language">
+      <a href="?" class="{% if lang != 'English' %}on{% endif %}">{{ own_language }}</a>
+      <a href="?lang=en" class="{% if lang == 'English' %}on{% endif %}">English</a>
+    </nav>
+    {% endif %}
+  </header>
+
+  {% if done == "1" %}<div class="note ok" role="status">{{ t.thanks }}</div>{% endif %}
+  {% if done == "too_many" %}<div class="note warn" role="status">{{ t.too_many }}</div>{% endif %}
+
+  {% if finished %}
+    <div class="card">{{ t.course_over }}</div>
+  {% else %}
+    <section class="card" aria-labelledby="today">
+      <h2 id="today">{{ t.today }}</h2>
+      {% if not today %}
+        <div class="big" style="font-size:28px">{{ t.no_treatment }}</div>
+      {% elif today.fault %}
+        <div class="note warn">{{ t.fault }}</div>
+      {% elif today.status == "scheduled" %}
+        {% if today.moved %}<span class="pill warn">{{ t.new_time }}</span>{% endif %}
+        <div class="sub">{{ t.come_at }}</div>
+        <div class="big">{{ today.come }}</div>
+        <div class="sub">{{ t.treatment_about }} {{ today.treat }} · {{ t.fraction }} {{ today.fraction }} {{ t.of }} {{ today.fractions }}</div>
+      {% elif today.status == "arrived" %}
+        <div class="note ok">{{ t.waiting }}</div>
+      {% elif today.status == "in_room" %}
+        <div class="note ok">{{ t.in_room }}</div>
+      {% elif today.status == "done" %}
+        <div class="note ok">{{ t.treated }}</div>
+      {% else %}
+        <div class="note bad">{{ t.no_treatment }}</div>
+      {% endif %}
+    </section>
+
+    {% if messages %}
+    <section class="card" aria-labelledby="msgs">
+      <h2 id="msgs">{{ t.messages }}</h2>
+      {% for m in messages %}
+        <div class="msg">
+          <p>{{ m.text }}</p>
+          {% if m.english %}<p class="en">{{ m.english }}</p>{% endif %}
+          {% if m.voice %}<audio controls preload="none" aria-label="{{ t.listen }}" src="audio/{{ m.id }}/{{ query }}"></audio>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if today and today.status == "scheduled" and code %}
+    <section class="card qr" aria-labelledby="checkin">
+      <h2 id="checkin" style="text-align:center">{{ t.checkin }}</h2>
+      {{ qr|safe }}
+      <div class="code">{{ code }}</div>
+    </section>
+    {% endif %}
+
+    {% if upcoming %}
+    <section class="card" aria-labelledby="next">
+      <h2 id="next">{{ t.next }}</h2>
+      <ul class="next">
+        {% for u in upcoming %}<li><span>{{ u.date }}</span><strong>{{ u.time }}</strong></li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="card" aria-labelledby="tell">
+      <h2 id="tell">{{ t.tell_us }}</h2>
+      <div class="actions">
+        {% if today and today.status == "scheduled" %}
+        <form method="post"><input type="hidden" name="kind" value="on_way">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
+          <button class="primary" type="submit">{{ t.on_way }}</button></form>
+        <details><summary>{{ t.late }}</summary>
+          <form method="post"><input type="hidden" name="kind" value="late">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
+            <div class="row">
+              <select name="minutes" aria-label="{{ t.min }}">{% for n in late_choices %}<option value="{{ n }}">{{ n }} {{ t.min }}</option>{% endfor %}</select>
+              <button type="submit" style="width:auto">{{ t.send }}</button>
+            </div></form>
+        </details>
+        <details><summary>{{ t.not_today }}</summary>
+          <form method="post"><input type="hidden" name="kind" value="not_today">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
+            <label for="r1">{{ t.reason }}</label><input id="r1" name="reason" maxlength="300">
+            <p></p><button type="submit">{{ t.send }}</button></form>
+        </details>
+        {% endif %}
+        <details><summary>{{ t.other_time }}</summary>
+          <form method="post"><input type="hidden" name="kind" value="other_time">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
+            <label for="w">{{ t.time }}</label><input id="w" name="wanted" type="time" required>
+            <label for="r2">{{ t.reason }}</label><input id="r2" name="reason" maxlength="300">
+            <p></p><button type="submit">{{ t.send }}</button></form>
+        </details>
+      </div>
+      <p class="foot">{{ t.staff_decide }}</p>
+    </section>
+  {% endif %}
+  <p class="foot">RAD-SMART · {{ dept }}</p>
+</main>
+</body>
+</html>

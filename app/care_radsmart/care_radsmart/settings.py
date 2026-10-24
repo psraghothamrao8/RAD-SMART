@@ -101,6 +101,15 @@ DEFAULTS = {
     "RADSMART_MACHINES": "VERSA:Versa HD",
     # Public holidays (ISO dates, comma separated): no treatment is planned on them.
     "RADSMART_HOLIDAYS": "",
+    # Sarvam AI (translation, voice notes, plain-language explanations). Without a key,
+    # patients get the English message and staff see the engine's own reasons.
+    "SARVAM_API_KEY": "",
+    "RADSMART_SARVAM_TIMEOUT": 25,
+    # The name patients see on their messages and page.
+    "RADSMART_DEPARTMENT": "Radiotherapy department",
+    # Address patients' phones reach this server on (e.g. https://care.example.org). When
+    # empty, links use the address of the request that created them.
+    "RADSMART_PUBLIC_URL": "",
 }
 
 plugin_settings = PluginSettings(

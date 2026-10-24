@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck2, RefreshCw } from "lucide-react";
+import { CalendarCheck2, Copy, ExternalLink, MessageCircle, RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -9,9 +9,10 @@ import { Badge, Card, Empty, Field, Input, Notice, Spinner, Table } from "@/comp
 import { addDays, clockTime, hm, longDate, shortDate, workingDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { keys } from "@/lib/useConfig";
-import { API, type Config, type Course, type Proposal, type SlotRequest } from "@/utils/api";
+import { API, type Config, type Course, type Explanation, type Proposal, type SlotRequest } from "@/utils/api";
 
 import { COURSE_TONE, useCourseStatus } from "./Courses";
+import { MessageCard } from "./Messages";
 import { SlotChoice, slotOptions } from "./SlotChoice";
 import { RequestRow } from "./SlotRequests";
 import { STATUS_TONE, useStatusLabel } from "./Today";
@@ -97,6 +98,8 @@ function Detail({ facilityId, courseId, config }: { facilityId: string; courseId
 
       {c.status === "draft" && <ProposalPanel c={c} facilityId={facilityId} canApprove={canApprove} />}
       {c.status === "approved" && <Standing c={c} facilityId={facilityId} config={config} />}
+      {c.status === "approved" && config.permissions?.can_operate_radsmart && <PatientLinkCard c={c} facilityId={facilityId} />}
+      {c.status !== "draft" && <CourseMessages c={c} facilityId={facilityId} canOperate={!!config.permissions?.can_operate_radsmart} />}
       {c.status !== "draft" && <Sessions c={c} facilityId={facilityId} />}
     </div>
   );
@@ -125,11 +128,26 @@ function ProposalPanel({ c, facilityId, canApprove }: { c: Course; facilityId: s
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  // A new draft is planned once on opening. A query, not the mutation, so that React's double
+  // mount in development does not plan it twice (each plan takes seconds of solver time).
+  const first = useQuery({
+    queryKey: ["radsmart-first-proposal", c.id],
+    queryFn: () => API.propose(facilityId, c.id, c.start_date, true),
+    enabled: !proposal && canApprove,
+    staleTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
   useEffect(() => {
-    if (!proposal && canApprove) propose.mutate(c.start_date);
-    else if (proposal) setTime(slotOptions(proposal)[0]?.time ?? "");
+    const p = proposal ?? first.data;
+    if (p && !proposal) setProposal(p);
+    if (p) setTime(slotOptions(p)[0]?.time ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [first.data]);
+  useEffect(() => {
+    if (first.error) toast.error((first.error as Error).message);
+  }, [first.error]);
+  const planning = propose.isPending || first.isFetching;
   const approve = useMutation({
     mutationFn: () => {
       const standing = proposal?.standing?.time;
@@ -146,7 +164,7 @@ function ProposalPanel({ c, facilityId, canApprove }: { c: Course; facilityId: s
   });
 
   return (
-    <Card title={tr("proposal", "RAD-SMART's proposal")} action={propose.isPending ? <Spinner /> : null}>
+    <Card title={tr("proposal", "RAD-SMART's proposal")} action={planning ? <Spinner /> : null}>
       {!canApprove && <Notice kind="info">{tr("waiting_doctor", "Waiting for a doctor to approve the course and its slots.")}</Notice>}
       {proposal && !proposal.ok && (
         <Notice kind="warn" title={tr("no_room", "No slot fits from this date")}>
@@ -176,6 +194,7 @@ function ProposalPanel({ c, facilityId, canApprove }: { c: Course; facilityId: s
             <Notice kind="info">{tr("bid_second", "Second daily fraction at {{time}}", { time: proposal.standing2.time })}</Notice>
           )}
           <SlotChoice proposal={proposal} value={time} onChange={setTime} />
+          <ExplainBox c={c} facilityId={facilityId} proposal={proposal} chosenTime={time && time !== proposal.standing?.time ? time : undefined} />
         </div>
       )}
       {canApprove && (
@@ -184,12 +203,12 @@ function ProposalPanel({ c, facilityId, canApprove }: { c: Course; facilityId: s
             <Field label={tr("try_date", "Try another start date")}>
               <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-44" />
             </Field>
-            <Button variant="outline" onClick={() => propose.mutate(startDate)} disabled={propose.isPending}>
+            <Button variant="outline" onClick={() => propose.mutate(startDate)} disabled={planning}>
               <RefreshCw />
               {tr("repropose", "Propose again")}
             </Button>
           </div>
-          <Button onClick={() => approve.mutate()} disabled={!proposal?.ok || approve.isPending || propose.isPending}>
+          <Button onClick={() => approve.mutate()} disabled={!proposal?.ok || approve.isPending || planning}>
             <CalendarCheck2 />
             {tr("approve_course", "Approve course and slots")}
           </Button>
@@ -238,6 +257,11 @@ function Standing({ c, facilityId, config }: { c: Course; facilityId: string; co
           />
         ))}
       </div>
+      {"ok" in c.proposal && c.proposal.ok && (
+        <div className="mt-4">
+          <ExplainBox c={c} facilityId={facilityId} />
+        </div>
+      )}
       {canOperate && (
         <div className="mt-4 border-t border-gray-100 pt-4">
           <p className="text-sm font-semibold text-gray-900">{tr("change_title", "The patient asks for another time")}</p>
@@ -264,6 +288,119 @@ function Standing({ c, facilityId, config }: { c: Course; facilityId: string; co
         </div>
       )}
     </Card>
+  );
+}
+
+/** RAD-SMART's reasons in plain words (Sarvam-105B), in English and the patient's language. */
+function ExplainBox({ c, facilityId, proposal, chosenTime }: { c: Course; facilityId: string; proposal?: Proposal; chosenTime?: string }) {
+  const tr = useT();
+  const [out, setOut] = useState<Explanation | null>(null);
+  const explain = useMutation({
+    mutationFn: () => API.explain(facilityId, c.id, { proposal, chosen_time: chosenTime, language: c.language }),
+    onSuccess: setOut,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  useEffect(() => setOut(null), [proposal, chosenTime]);
+  return (
+    <div className="rounded-lg border border-gray-200 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-gray-900">{tr("why_title", "Why these times")}</p>
+        <Button size="sm" variant="outline" onClick={() => explain.mutate()} disabled={explain.isPending}>
+          <Sparkles />
+          {explain.isPending ? tr("explaining", "Explaining…") : out ? tr("explain_again", "Explain again") : tr("explain", "Explain in plain words")}
+        </Button>
+      </div>
+      {out && (
+        <div className="mt-2 flex flex-col gap-2 text-sm">
+          <p className="text-gray-800">{out.text}</p>
+          {out.local_text && (
+            <p className="rounded-md bg-gray-50 px-3 py-2 text-base text-gray-900">
+              <span className="mr-2 text-xs font-semibold text-gray-500">{out.language}</span>
+              {out.local_text}
+            </p>
+          )}
+          <p className="text-xs text-gray-500">
+            <Badge tone={out.source === "engine" ? "gray" : "blue"} className="mr-2">
+              {out.source === "engine" ? tr("src_engine", "Engine's reasons") : tr("src_sarvam", "Sarvam AI")}
+            </Badge>
+            {out.source === "engine"
+              ? out.note
+              : tr("explain_check", "Written from the engine's reasons only; any time not in the plan would have been rejected.")}
+            {out.local_note && ` ${out.local_note}`}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The patient's own page (live times, messages, replies) and the code reception scans. */
+function PatientLinkCard({ c, facilityId }: { c: Course; facilityId: string }) {
+  const tr = useT();
+  const link = useQuery({ queryKey: keys.patientLink(facilityId, c.id), queryFn: () => API.patientLink(facilityId, c.id) });
+  return (
+    <Card title={tr("patient_page", "The patient's phone page")}>
+      {link.isLoading ? (
+        <Spinner />
+      ) : !link.data ? (
+        <Notice kind="error">{String((link.error as Error)?.message)}</Notice>
+      ) : (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          {/* SVG drawn by the server (segno) from the six-letter code only. */}
+          <div className="w-40 shrink-0 rounded-lg border border-gray-200 bg-white p-1 [&_svg]:h-auto [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: link.data.qr }} />
+          <div className="flex min-w-0 flex-col gap-2 text-sm">
+            <p>
+              <span className="text-xs text-gray-500">{tr("checkin_code", "Check-in code")} </span>
+              <span className="font-mono text-xl font-semibold tracking-widest">{link.data.code}</span>
+            </p>
+            <p className="text-gray-600">
+              {tr(
+                "patient_page_text",
+                "Send this link once. The patient sees today's time, any change and the messages with voice notes in {{lang}}, and can say they are on the way, late, cannot come, or want another time. No login; first name only.",
+                { lang: c.language },
+              )}
+            </p>
+            <p className="truncate font-mono text-xs text-gray-500">{link.data.url}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm">
+                <a href={link.data.whatsapp} target="_blank" rel="noreferrer">
+                  <MessageCircle />
+                  {tr("send_whatsapp", "Send on WhatsApp")}
+                </a>
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(link.data.url).then(() => toast.success(tr("copied_link", "Link copied")))}>
+                <Copy />
+                {tr("copy_link", "Copy link")}
+              </Button>
+              <Button asChild size="sm" variant="ghost">
+                <a href={link.data.url} target="_blank" rel="noreferrer">
+                  <ExternalLink />
+                  {tr("open_page", "Open the page")}
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function CourseMessages({ c, facilityId, canOperate }: { c: Course; facilityId: string; canOperate: boolean }) {
+  const tr = useT();
+  const list = useQuery({
+    queryKey: keys.messages(facilityId, { course: c.id }),
+    queryFn: () => API.messages(facilityId, { course: c.id }),
+    refetchInterval: (q) => (q.state.data?.some((m) => m.local_status === "pending") ? 3_000 : false),
+  });
+  if (!list.data?.length) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      <h2 className="text-sm font-semibold text-gray-900">{tr("course_messages", "Messages to the patient")}</h2>
+      {list.data.slice(0, 5).map((m) => (
+        <MessageCard key={m.id} m={m} facilityId={facilityId} canOperate={canOperate} compact />
+      ))}
+    </div>
   );
 }
 

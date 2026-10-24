@@ -461,24 +461,10 @@ def _report_minutes(row) -> int:
 
 
 def _message(action, row, new, s, day) -> str | None:
-    """Draft text for the patient (sent only after approval; translated into the
-    patient's language by the Sarvam copilot when it is connected)."""
-    if action == "new_time":
-        later = new > row["start"]
-        return (f"Radiotherapy: today's timetable has changed after a machine fault. Please report at "
-                f"{fmt(new - _report_minutes(row))} today instead of {row['report']}."
-                + (" Please do not set out before then." if later else ""))
-    if action == "do_not_travel":
-        return ("Radiotherapy: the treatment machine is being repaired. Please do not travel today. "
-                f"Your next treatment is on the next working day at your usual time, {row['report']}. "
-                "Today's treatment is added at the end of your course.")
-    if action == "send_home":
-        return ("The machine is being repaired, so today's treatment cannot be given. Please come at your "
-                f"usual time, {row['report']}, on the next working day. Today's treatment is added at the end "
-                "of your course.")
-    if action == "start_next_day":
-        return "Radiotherapy: your first treatment moves to the next working day. We will confirm the time."
-    return None
+    """Draft text for the patient (drafted again and sent only after approval;
+    translated into the patient's language by Sarvam AI)."""
+    from care_radsmart.messages import breakdown_text
+    return breakdown_text(action, fmt(new - _report_minutes(row)) if new is not None else None, row["report"])
 
 
 @transaction.atomic

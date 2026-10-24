@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Power, RotateCcw, Wrench } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Power, RotateCcw, Smartphone, Wrench } from "lucide-react";
 import { useState } from "react";
 import { navigate } from "raviger";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { addDays, clockTime, longDate, nowMinutes, workingDay } from "@/lib/form
 import { useT } from "@/lib/i18n";
 import { keys } from "@/lib/useConfig";
 import { cn } from "@/lib/utils";
-import { API, type Config, type MachineInfo, type SessionRow } from "@/utils/api";
+import { API, type Config, type MachineInfo, type PatientReply, type SessionRow } from "@/utils/api";
 
 export const STATUS_TONE: Record<string, Tone> = {
   scheduled: "gray",
@@ -68,6 +68,12 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
     queryFn: () => API.triages(facilityId, date),
     enabled: isToday,
   });
+  const replies = useQuery({
+    queryKey: keys.replies(facilityId, date),
+    queryFn: () => API.replies(facilityId, date),
+    enabled: isToday,
+    refetchInterval: 30_000,
+  });
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["care_radsmart"] });
   };
@@ -107,6 +113,10 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
           ? s.status === "scheduled"
           : ["done", "sent_home", "postponed", "missed"].includes(s.status),
   );
+  const openReplies = (replies.data ?? []).filter((r) => r.status === "open");
+  // Newest open reply per course, shown beside the patient on the board.
+  const replyFor = new Map<string, PatientReply>();
+  for (const r of openReplies) if (!replyFor.has(r.course)) replyFor.set(r.course, r);
   const toTreat = d.sessions.filter((s) => ["scheduled", "arrived", "in_room"].includes(s.status)).length;
 
   return (
@@ -219,6 +229,8 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
         </Notice>
       )}
 
+      {openReplies.length > 0 && <Replies replies={openReplies} facilityId={facilityId} canOperate={canOperate} />}
+
       <Card title={tr("timeline", "The day on each machine")}>
         <Timeline sessions={d.sessions} machines={d.machines} day={config.day} now={isToday ? nowMinutes() : undefined} />
       </Card>
@@ -263,6 +275,7 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
                 s={s}
                 facilityId={facilityId}
                 statusLabel={statusLabel}
+                reply={replyFor.get(s.course)}
                 canOperate={canOperate && isToday}
                 busy={step.isPending && step.variables?.id === s.id}
                 onStep={(action) => step.mutate({ id: s.id, action })}
@@ -272,6 +285,68 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
         )}
       </Card>
     </div>
+  );
+}
+
+export function useReplyText() {
+  const tr = useT();
+  return (r: PatientReply) =>
+    ({
+      on_way: tr("r_on_way", "On the way"),
+      late: r.minutes ? tr("r_late_n", "Late, about {{n}} min", { n: r.minutes }) : tr("r_late", "Running late"),
+      not_today: tr("r_not_today", "Cannot come today"),
+      other_time: r.wanted ? tr("r_other_n", "Asks for {{time}}", { time: r.wanted }) : tr("r_other", "Asks for another time"),
+    })[r.kind];
+}
+
+const REPLY_TONE: Record<PatientReply["kind"], Tone> = { on_way: "blue", late: "amber", not_today: "red", other_time: "violet" };
+
+/** What patients said on their own page today; staff act and mark each one done. */
+function Replies({ replies, facilityId, canOperate }: { replies: PatientReply[]; facilityId: string; canOperate: boolean }) {
+  const tr = useT();
+  const qc = useQueryClient();
+  const text = useReplyText();
+  const done = useMutation({
+    mutationFn: (id: string) => API.replyDone(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["care_radsmart", "replies"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Card
+      title={
+        <span className="flex items-center gap-2">
+          <Smartphone className="size-4" />
+          {tr("replies_title", "From patients' phones ({{n}})", { n: replies.length })}
+        </span>
+      }
+    >
+      <ul className="divide-y divide-gray-100">
+        {replies.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm first:pt-0 last:pb-0">
+            <Badge tone={REPLY_TONE[r.kind]}>{text(r)}</Badge>
+            <PageLink href={`/facility/${facilityId}/radsmart/courses/${r.course}`}>{r.patient_name}</PageLink>
+            <span className="text-xs text-gray-500">
+              {r.hospital_number}
+              {r.time && ` · ${tr("treat_at", "treatment {{time}}", { time: r.time })}`} · {clockTime(r.created_date)}
+            </span>
+            {r.reason && <span className="text-xs text-gray-600">“{r.reason}”</span>}
+            <span className="ml-auto flex items-center gap-2">
+              {r.kind === "other_time" && r.slot_request_status === "proposed" && (
+                <PageLink href={`/facility/${facilityId}/radsmart/courses`} className="text-xs">
+                  {tr("decide_request", "Decide the request")}
+                </PageLink>
+              )}
+              {canOperate && (
+                <Button size="xs" variant="ghost" onClick={() => done.mutate(r.id)} disabled={done.isPending}>
+                  <Check />
+                  {tr("reply_done", "Done")}
+                </Button>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
@@ -288,6 +363,7 @@ function SessionLine({
   s,
   facilityId,
   statusLabel,
+  reply,
   canOperate,
   busy,
   onStep,
@@ -295,11 +371,13 @@ function SessionLine({
   s: SessionRow;
   facilityId: string;
   statusLabel: (s: string) => string;
+  reply?: PatientReply;
   canOperate: boolean;
   busy: boolean;
   onStep: (a: "arrive" | "room" | "done" | "undo" | "send-home") => void;
 }) {
   const tr = useT();
+  const replyText = useReplyText();
   const gone = ["sent_home", "postponed", "missed", "cancelled"].includes(s.status);
   return (
     <tr className={cn(gone && "bg-gray-50 text-gray-500")}>
@@ -316,6 +394,12 @@ function SessionLine({
         <div className="text-xs text-gray-500">
           {s.hospital_number} · {s.age} {tr("years", "y")} · {s.language}
         </div>
+        {reply && (
+          <Badge tone={REPLY_TONE[reply.kind]} className="mt-1" title={reply.reason || undefined}>
+            <Smartphone className="size-3" />
+            {replyText(reply)}
+          </Badge>
+        )}
       </td>
       <td className="px-3 py-2 align-top tabular-nums">
         {s.fraction}/{s.fractions}

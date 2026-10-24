@@ -13,6 +13,8 @@ requirements = [
     "djangorestframework",
     "django-environ",
     "django-filter",
+    "requests",
+    "segno",          # QR codes for reception check-in
     # The scheduling engine (poc/ in the RAD-SMART repository). In development it
     # is installed in editable mode from the mounted checkout; a deployment
     # installs it from the repository's poc/ subdirectory.

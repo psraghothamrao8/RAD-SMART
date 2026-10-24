@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, Info, Loader2, XCircle } from "lucide-react";
-import type { InputHTMLAttributes, PropsWithChildren, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { ComponentProps, PropsWithChildren, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ export function Field({ label, hint, children, className }: PropsWithChildren<{ 
 const control =
   "h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-xs focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20 disabled:bg-gray-50 disabled:text-gray-500";
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+export function Input(props: ComponentProps<"input">) {
   return <input {...props} className={cn(control, props.className)} />;
 }
 

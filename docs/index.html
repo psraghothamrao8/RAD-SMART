@@ -96,6 +96,13 @@
   .step .n { font: 600 13px/1.2 var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
   .decide { background: var(--warm-soft); border: 1px solid var(--warm-line); border-radius: 12px; padding: 18px 20px; color: var(--ink); }
 
+  .ways { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .way { background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
+  .way h3 { display: flex; justify-content: space-between; gap: 12px; }
+  .way h3 span { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .way.best { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .way p b { color: var(--ink); }
+
   .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   figure { margin: 0; display: grid; gap: 8px; align-content: start; }
   figure a { display: block; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff; }
@@ -125,7 +132,7 @@
   }
   @media (max-width: 640px) {
     .wrap { padding-top: 32px; }
-    .stats, .steps, .shots, .two, .docs { grid-template-columns: minmax(0, 1fr); }
+    .stats, .steps, .shots, .two, .docs, .ways { grid-template-columns: minmax(0, 1fr); }
     .row { grid-template-columns: minmax(0, 1fr); }
     .bar { width: calc((100% - 110px) * var(--f)); height: 24px; }
     .timeline { grid-template-columns: minmax(0, 1fr); }
@@ -172,6 +179,31 @@
       <p>Appointment times are given by hand, without knowing how long each session takes, so too many patients are told to come at once and the delay builds all day.</p>
     </div>
     <p class="muted">The department's records: 55 days, October–December 2024, 3,137 patient visits, used only as anonymised totals.</p>
+  </section>
+
+  <section id="why" aria-labelledby="h-why">
+    <div class="head">
+      <p class="eyebrow">Why this design</p>
+      <h2 id="h-why">We compared five ways; a hybrid scored best</h2>
+      <p>Each way is a different method of deciding who gets which time on the one machine. We scored each out of 5 for safety, how much it cuts waiting, speed when the day changes, ease of building, ease of explaining, local languages, and how easily the rules can be changed. The scores are our team's judgement, not measurements.</p>
+    </div>
+    <div class="card bars">
+      <div class="group">
+        <div class="row without"><span class="who">Fixed timetable</span><span class="track"><span class="bar" style="--f:0.62"></span><span class="val">3.1</span></span></div>
+        <div class="row without"><span class="who">Chatbot (AI) alone</span><span class="track"><span class="bar" style="--f:0.52"></span><span class="val">2.6</span></span></div>
+        <div class="row without"><span class="who">Optimisation alone</span><span class="track"><span class="bar" style="--f:0.72"></span><span class="val">3.6</span></span></div>
+        <div class="row without"><span class="who">Self-learning AI</span><span class="track"><span class="bar" style="--f:0.50"></span><span class="val">2.5</span></span></div>
+        <div class="row with"><span class="who">RAD-SMART hybrid</span><span class="track"><span class="bar" style="--f:0.98"></span><span class="val">4.9</span></span></div>
+      </div>
+    </div>
+    <div class="ways">
+      <div class="way"><h3>Fixed timetable <span>3.1</span></h3><p>The same slots every day, like a school timetable: for example, breast patients at 9:00 and new patients at 14:00.</p><p><b>Good:</b> simple and easy to understand.</p><p><b>Gap:</b> real days never match it. Long sessions, late patients and breakdowns pile up through the day, which is what happens today.</p></div>
+      <div class="way"><h3>Chatbot (AI) alone <span>2.6</span></h3><p>Ask a ChatGPT-style AI to write tomorrow's schedule.</p><p><b>Good:</b> talks in plain words and local languages.</p><p><b>Gap:</b> it cannot promise the rules. It may put a new patient after 17:00 or two patients in one slot, and it is weak at exact timing.</p></div>
+      <div class="way"><h3>Optimisation alone <span>3.6</span></h3><p>A maths program (a solver) that searches every arrangement for the best one that keeps all the rules, as airlines do for crews.</p><p><b>Good:</b> rules are always kept, and plans are efficient.</p><p><b>Gap:</b> it uses only the numbers it is given. It does not learn how long each patient takes, follow the day live, or explain itself.</p></div>
+      <div class="way"><h3>Self-learning AI <span>2.5</span></h3><p>Reinforcement learning: an AI that learns by trial and error over millions of practice days, like game-playing AIs.</p><p><b>Good:</b> could in theory find clever plans on its own.</p><p><b>Gap:</b> needs far more data than 55 days, cannot say why it moved a patient, and cannot guarantee the rules.</p></div>
+      <div class="way best"><h3>RAD-SMART hybrid <span>4.9</span></h3><p>Each part does what it is best at. <b>Prediction</b> learns session times from past records. The <b>solver</b> builds the plan and guarantees the rules. A <b>virtual copy</b> of the department tests the plan and re-plans after a breakdown. The <b>chatbot</b> only explains and messages patients. A <b>person</b> approves every change.</p></div>
+      <div class="way"><h3>In short</h3><p>Each method alone leaves a gap; together they cover each other. It can also be built in layers, so the solver with average session times works from the first week.</p></div>
+    </div>
   </section>
 
   <section id="how" aria-labelledby="h-how">

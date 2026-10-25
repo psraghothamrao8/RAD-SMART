@@ -19,8 +19,11 @@ With the CARE stack and the plugins running as in [`app/README.md`](../../app/RE
 # 2. voice the narration (only new or changed lines are sent to Sarvam)
 node scripts/narrate.mjs --env-file <scaffold>/.agent/.env
 
-# 3. record (CARE_PW is the CARE development fixture password; the ids are CARE ids)
-CARE_PW=... FACILITY=<facility id> PATIENT=<patient id> ENCOUNTER=<encounter id> node scripts/record.mjs public/rec
+# 3. free the recording patient (cancels the previous take's course), print the ids, then record
+./.agent/compose.sh exec -T backend python manage.py shell < scripts/prep_take.py
+./.agent/compose.sh exec -T backend python manage.py shell < scripts/ids.py     # FACILITY, PATIENT, ENCOUNTER
+# (CARE_PW is the CARE development fixture password; the ids are CARE ids)
+CARE_PW=... FACILITY=<facility id> PATIENT=<patient id> ENCOUNTER=<encounter id> PATIENT_NAME=<name> node scripts/record.mjs public/rec
 
 # 4. preview and render
 npm install

@@ -1,0 +1,44 @@
+# RAD-SMART plugin registration (external to core; see bootstrap Phase 6.1).
+services:
+  backend:
+    build:
+      args:
+        ADDITIONAL_PLUGS: ""
+    environment: &plugin_environment
+      ADDITIONAL_PLUGS: >-
+        [{"name":"care_radsmart","package_name":"/plugins/care_radsmart","version":"","configs":{"RADSMART_DEMO":true,"RADSMART_MACHINES":"VERSA:Versa HD"}}]
+      # Sarvam AI key, from .agent/.env (never committed); empty means English-only messages.
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+    volumes:
+      - &plugin_mount
+        type: bind
+        source: ${PLUGIN_BE:?Set PLUGIN_BE in .agent/paths.env}
+        target: /plugins/care_radsmart
+        bind:
+          create_host_path: false
+      - &engine_mount
+        type: bind
+        source: ${RADSMART_ENGINE:?Set RADSMART_ENGINE in .agent/paths.env}
+        target: /plugins/radsmart_engine
+        bind:
+          create_host_path: false
+      - &pip_cache
+        type: volume
+        source: radsmart-pip-cache
+        target: /root/.cache/pip
+    entrypoint:
+      - bash
+      - -c
+      - python -m pip install -q -e /plugins/radsmart_engine -e /plugins/care_radsmart && exec bash scripts/start-dev.sh
+  celery:
+    environment: *plugin_environment
+    volumes:
+      - *plugin_mount
+      - *engine_mount
+      - *pip_cache
+    entrypoint:
+      - bash
+      - -c
+      - python -m pip install -q -e /plugins/radsmart_engine -e /plugins/care_radsmart && exec bash scripts/celery-dev.sh
+volumes:
+  radsmart-pip-cache:

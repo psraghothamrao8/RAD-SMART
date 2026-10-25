@@ -19,6 +19,7 @@ const API = process.env.API || "http://localhost:19100";
 const F = process.env.FACILITY;
 const P = process.env.PATIENT;
 const E = process.env.ENCOUNTER;
+const NAME = process.env.PATIENT_NAME || "Darsh Mandal"; // the recording patient; scripts/ids.py prints it
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const W = 1600, H = 900, DSF = 1.2;
 const PHONE = { w: 390, h: 844, dsf: 2 };
@@ -331,7 +332,7 @@ try {
   await sleep(500);
   await say("newCourse");
   await click(`__byText("New course", "button", true)`);
-  await waitFor(`__byText("Darsh Mandal", "p", true)`);
+  await waitFor(`__byText(${JSON.stringify(NAME)}, "p", true)`);
   await sleep(600);
 
   await say("prescription");

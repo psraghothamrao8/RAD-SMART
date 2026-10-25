@@ -1,0 +1,5 @@
+# Shell scripts and the files they read must keep LF endings, or bash fails on a Windows checkout.
+*.sh text eol=lf
+workspace/**/*.env text eol=lf
+workspace/**/*.yaml text eol=lf
+workspace/pins.env text eol=lf

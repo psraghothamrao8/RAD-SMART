@@ -58,6 +58,8 @@ The checks run on the server; the pages only hide what a role cannot do.
 
 ## Run it locally (Windows, Docker Desktop)
 
+To set all of this up in one step, run `bash workspace/restore.sh` from the repository root (see [`../workspace/README.md`](../workspace/README.md)); the steps below explain what it does.
+
 The setup follows the [CARE plugin guide](https://docs.ohc.network/contributing/plugins/) and
 [care_scaffold](https://github.com/ohcnetwork/care_scaffold). Below, `WORKSPACE` is a care_scaffold
 checkout with `care` and `care_fe` cloned inside it, and `RADSMART` is this repository.

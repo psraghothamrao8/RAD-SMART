@@ -46,6 +46,7 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 | `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 9 slide sources in `src/` |
 | `tools/demo-video/` | How the demo video is made: a script drives the app in headless Chrome and records it, and a Remotion project adds titles, captions and the pointer (see its README) |
 | `tools/build_deck.py` | Rebuilds the web deck and its PDF from `docs/deck/src/` (needs Google Chrome): `python tools/build_deck.py` |
+| `workspace/` | Rebuilds the whole development environment from this repository: `bash workspace/restore.sh` fetches CARE at the pinned commits, wires in the plugins, starts Docker and loads the synthetic data (see `workspace/README.md`) |
 
 ## Key dates
 

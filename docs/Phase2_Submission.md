@@ -102,7 +102,7 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 |---|---|
 | 19 Sep | Round 1 entry: engine, digital twin, results page, deck |
 | 21–22 Sep | The department's written answers built in; the twin calibrated on their 55 days of records |
-| 24 Sep | Shortlisted for the build sprint |
+| 5 Oct | Shortlisted; the build sprint starts |
 | 21 Oct | Technical guide and mathematics notes |
 | 24 Oct | The department's second set of answers (roles, standing slots, breakdown rules, the screens they need) built into the engine and **into a working application inside CARE**; with/without impact analysis |
 | 25 Oct | User guide; demo video, narrated with Sarvam Bulbul; **Sarvam AI layer, patient messages, patient phone page, QR check-in and plain-language explanations built**; Sarvam evaluation; 20 automated safety tests |
@@ -277,6 +277,7 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 
 | Evidence | Where |
 |---|---|
+| **The submission in the official template (15 slides)** | `docs/RAD-SMART_Phase2_Submission.pptx` (built by `tools/build_submission.py`) |
 | Project website, with the demo video | [psraghothamrao8.github.io/RAD-SMART](https://psraghothamrao8.github.io/RAD-SMART/) |
 | Demo video (the real app, narrated, synthetic patients) | [Website, demo section](https://psraghothamrao8.github.io/RAD-SMART/#demo) · `docs/media/RAD-SMART_demo.mp4` |
 | Code: engine, CARE plugins, evaluation scripts | [github.com/psraghothamrao8/RAD-SMART](https://github.com/psraghothamrao8/RAD-SMART) |

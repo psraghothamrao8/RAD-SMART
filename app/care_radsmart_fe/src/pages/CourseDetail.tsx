@@ -71,7 +71,7 @@ function Detail({ facilityId, courseId, config }: { facilityId: string; courseId
           )
         }
       >
-        <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm lg:grid-cols-4">
           <Item label={tr("f_hospital_number", "Hospital number")} value={c.hospital_number} />
           <Item label={tr("f_diagnosis", "Diagnosis")} value={c.diagnosis} />
           <Item label={tr("prescription", "Prescription")} value={`${c.total_dose_gy} Gy in ${c.fractions} fractions`} />
@@ -84,7 +84,7 @@ function Detail({ facilityId, courseId, config }: { facilityId: string; courseId
           {(c.earliest_start || c.latest_end) && (
             <Item label={tr("window", "Time window")} value={`${c.earliest_start ?? "—"} – ${c.latest_end ?? "—"}`} />
           )}
-          {c.approved_by && <Item label={tr("approved_by_label", "Approved by")} value={`${c.approved_by}, ${c.approved_at ? new Date(c.approved_at).toLocaleString("en-IN") : ""}`} />}
+          {c.approved_by && <Item label={tr("approved_by_label", "Approved by")} value={`${c.approved_by}, ${c.approved_at ? new Date(c.approved_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : ""}`} />}
         </dl>
         {c.flags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">

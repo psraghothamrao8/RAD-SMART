@@ -40,19 +40,24 @@
   .msg .en { color:var(--muted); font-size:15px; }
   audio { width:100%; height:40px; }
   .qr { display:flex; flex-direction:column; align-items:center; gap:6px; }
-  .qr svg { width: 200px; height: 200px; background:#fff; border-radius:12px; }
+  .qr svg { display:block; width:min(220px, 70vw); height:auto; aspect-ratio:1; background:#fff; border-radius:12px; }
   .code { font: 700 30px/1 ui-monospace, "SFMono-Regular", Consolas, monospace; letter-spacing:6px; }
   form { margin:0; }
   .actions { display:grid; gap:10px; }
   button, .btn { width:100%; font:inherit; font-weight:600; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
   button.primary { background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
-  details { border:1px solid var(--line); border-radius:12px; padding:0 14px; }
+  details { border:1px solid var(--line); border-radius:12px; padding:0 14px; background:var(--card); }
   details[open] { padding-bottom:14px; }
-  summary { cursor:pointer; padding:14px 0; font-weight:600; list-style:none; }
+  summary { cursor:pointer; position:relative; padding:14px 22px; font-weight:600; list-style:none; text-align:center; }
   summary::-webkit-details-marker { display:none; }
+  summary::after { content:"▾"; position:absolute; right:0; top:50%; transform:translateY(-50%); color:var(--muted); transition:transform .15s; }
+  details[open] summary::after { transform:translateY(-50%) rotate(180deg); }
+  details form > button { margin-top:12px; }
   label { display:block; font-size:15px; color:var(--muted); margin:8px 0 4px; }
   input, select { width:100%; font:inherit; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); }
   .row { display:flex; gap:8px; }
+  .row select { flex:1; min-width:0; }
+  .row button { width:auto; flex-shrink:0; }
   .foot { color:var(--muted); font-size:14px; text-align:center; }
 </style>
 </head>
@@ -87,7 +92,8 @@
         {% if today.moved %}<span class="pill warn">{{ t.new_time }}</span>{% endif %}
         <div class="sub">{{ t.come_at }}</div>
         <div class="big">{{ today.come }}</div>
-        <div class="sub">{{ t.treatment_about }} {{ today.treat }} · {{ t.fraction }} {{ today.fraction }} {{ t.of }} {{ today.fractions }}</div>
+        <div class="sub">{{ t.treatment_about }} {{ today.treat }}</div>
+        <div class="sub">{{ t.fraction }} {{ today.fraction }}/{{ today.fractions }}</div>
       {% elif today.status == "arrived" %}
         <div class="note ok">{{ t.waiting }}</div>
       {% elif today.status == "in_room" %}
@@ -139,20 +145,20 @@
           <form method="post"><input type="hidden" name="kind" value="late">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
             <div class="row">
               <select name="minutes" aria-label="{{ t.min }}">{% for n in late_choices %}<option value="{{ n }}">{{ n }} {{ t.min }}</option>{% endfor %}</select>
-              <button type="submit" style="width:auto">{{ t.send }}</button>
+              <button type="submit">{{ t.send }}</button>
             </div></form>
         </details>
         <details><summary>{{ t.not_today }}</summary>
           <form method="post"><input type="hidden" name="kind" value="not_today">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
             <label for="r1">{{ t.reason }}</label><input id="r1" name="reason" maxlength="300">
-            <p></p><button type="submit">{{ t.send }}</button></form>
+            <button type="submit">{{ t.send }}</button></form>
         </details>
         {% endif %}
         <details><summary>{{ t.other_time }}</summary>
           <form method="post"><input type="hidden" name="kind" value="other_time">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
             <label for="w">{{ t.time }}</label><input id="w" name="wanted" type="time" required>
             <label for="r2">{{ t.reason }}</label><input id="r2" name="reason" maxlength="300">
-            <p></p><button type="submit">{{ t.send }}</button></form>
+            <button type="submit">{{ t.send }}</button></form>
         </details>
       </div>
       <p class="foot">{{ t.staff_decide }}</p>

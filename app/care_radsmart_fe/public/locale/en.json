@@ -45,7 +45,7 @@
   "radsmart__checkin_code": "Check-in code",
   "radsmart__checkin_title": "Reception check-in",
   "radsmart__code": "Check-in code",
-  "radsmart__code_ph": "Six letters, e.g. A9DH3Q",
+  "radsmart__code_ph": "Six-letter code",
   "radsmart__confirm_cancel": "Cancel this course? Its future sessions are released for other patients.",
   "radsmart__confirm_msg_cancel": "Do not send this message?",
   "radsmart__confirm_send_home": "Send {{name}} back today? The fraction is added at the end of the course.",

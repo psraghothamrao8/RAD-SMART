@@ -88,13 +88,14 @@ const NOTICE = {
 export function Notice({ kind = "info", title, children, action }: PropsWithChildren<{ kind?: keyof typeof NOTICE; title?: ReactNode; action?: ReactNode }>) {
   const { cls, icon: Icon } = NOTICE[kind];
   return (
-    <div className={cn("flex items-start gap-3 rounded-lg border px-4 py-3 text-sm", cls)} role={kind === "error" ? "alert" : "status"}>
+    <div className={cn("flex flex-wrap items-start gap-x-3 gap-y-2 rounded-lg border px-4 py-3 text-sm", cls)} role={kind === "error" ? "alert" : "status"}>
       <Icon className="mt-0.5 size-4 shrink-0" />
-      <div className="min-w-0 flex-1">
+      {/* On a phone the action drops below the text instead of squeezing it into a column. */}
+      <div className="min-w-0 flex-1 basis-[calc(100%-1.75rem)] sm:basis-0">
         {title && <p className="font-semibold">{title}</p>}
         {children && <div className={cn(title && "mt-0.5")}>{children}</div>}
       </div>
-      {action}
+      {action && <div className="ml-7 shrink-0 sm:ml-0">{action}</div>}
     </div>
   );
 }
@@ -113,11 +114,12 @@ export function Empty({ children }: PropsWithChildren) {
   return <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">{children}</p>;
 }
 
-export function Table({ head, children, className }: PropsWithChildren<{ head: ReactNode[]; className?: string }>) {
+/** `stack`: below md the rows become cards (the row lays out its own cells) instead of a table that scrolls sideways. */
+export function Table({ head, children, className, stack }: PropsWithChildren<{ head: ReactNode[]; className?: string; stack?: boolean }>) {
   return (
-    <div className={cn("overflow-x-auto rounded-lg border border-gray-200", className)}>
-      <table className="w-full min-w-max text-left text-sm">
-        <thead className="bg-gray-50 text-xs font-medium text-gray-600">
+    <div className={cn("overflow-x-auto rounded-lg border border-gray-200", stack && "max-md:overflow-visible max-md:border-0", className)}>
+      <table className={cn("w-full min-w-max text-left text-sm", stack && "max-md:block max-md:min-w-0")}>
+        <thead className={cn("bg-gray-50 text-xs font-medium text-gray-600", stack && "max-md:hidden")}>
           <tr>
             {head.map((h, i) => (
               <th key={i} className="px-3 py-2 font-medium">
@@ -126,7 +128,9 @@ export function Table({ head, children, className }: PropsWithChildren<{ head: R
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">{children}</tbody>
+        <tbody className={cn("divide-y divide-gray-100 bg-white", stack && "max-md:flex max-md:flex-col max-md:gap-2 max-md:divide-y-0 max-md:bg-transparent")}>
+          {children}
+        </tbody>
       </table>
     </div>
   );

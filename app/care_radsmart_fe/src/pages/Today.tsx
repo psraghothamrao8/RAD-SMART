@@ -258,6 +258,7 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
           <Empty>{tr("no_sessions", "No patients in this list")}</Empty>
         ) : (
           <Table
+            stack
             head={[
               tr("h_time", "Time"),
               tr("h_patient", "Patient"),
@@ -380,7 +381,13 @@ function SessionLine({
   const replyText = useReplyText();
   const gone = ["sent_home", "postponed", "missed", "cancelled"].includes(s.status);
   return (
-    <tr className={cn(gone && "bg-gray-50 text-gray-500")}>
+    // Below md each row is a card: time | patient, fraction | treatment, needs, in/out, status | actions.
+    <tr
+      className={cn(
+        "max-md:grid max-md:grid-cols-[6rem_1fr] max-md:rounded-lg max-md:border max-md:border-gray-200 max-md:bg-white max-md:py-1 max-md:[&>td]:px-2 max-md:[&>td]:py-1",
+        gone && "bg-gray-50 text-gray-500 max-md:bg-gray-50",
+      )}
+    >
       <td className="px-3 py-2 align-top">
         <div className="font-semibold tabular-nums">{s.time}</div>
         {s.moved_today ? (
@@ -420,14 +427,14 @@ function SessionLine({
           {s.diagnosis} · {Math.round(s.minutes)} min
         </div>
       </td>
-      <td className="max-w-56 px-3 py-2 align-top">
+      <td className={cn("max-w-56 px-3 py-2 align-top max-md:col-span-2 max-md:max-w-none", s.flags.length === 0 && "max-md:hidden")}>
         <div className="flex flex-wrap gap-1">
           {s.flags.slice(0, 3).map((f) => (
             <Badge key={f}>{f}</Badge>
           ))}
         </div>
       </td>
-      <td className="px-3 py-2 align-top text-xs tabular-nums text-gray-600">
+      <td className={cn("px-3 py-2 align-top text-xs tabular-nums text-gray-600 max-md:col-span-2 max-md:flex max-md:gap-3", !s.arrived_at && "max-md:hidden")}>
         <div>
           {tr("arr", "arr")} {clockTime(s.arrived_at)}
         </div>
@@ -441,7 +448,7 @@ function SessionLine({
       </td>
       <td className="px-3 py-2 align-top">
         {canOperate && (
-          <div className="flex justify-end gap-1">
+          <div className="flex flex-wrap justify-end gap-1">
             {s.status === "scheduled" && (
               <>
                 <Button size="xs" onClick={() => onStep("arrive")} disabled={busy}>

@@ -101,6 +101,7 @@ function CourseList({ facilityId, config }: { facilityId: string; config: Config
           </Empty>
         ) : (
           <Table
+            stack
             head={[
               tr("h_patient", "Patient"),
               tr("h_diagnosis", "Diagnosis"),
@@ -112,26 +113,34 @@ function CourseList({ facilityId, config }: { facilityId: string; config: Config
             ]}
           >
             {courses.data.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2">
+              // Below md each row is a card: patient | status, diagnosis, treatment | fractions, standing slot, dates.
+              <tr
+                key={c.id}
+                className="hover:bg-gray-50 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:rounded-lg max-md:border max-md:border-gray-200 max-md:bg-white max-md:py-1 max-md:[&>td]:px-3 max-md:[&>td]:py-0.5"
+              >
+                <td className="px-3 py-2 max-md:pt-1.5">
                   <PageLink href={`/facility/${facilityId}/radsmart/courses/${c.id}`}>{c.patient_name}</PageLink>
                   <div className="text-xs text-gray-500">{c.hospital_number}</div>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 max-md:col-span-2">
                   {c.diagnosis}
                   <div className="text-xs text-gray-500">
                     {c.total_dose_gy} Gy / {c.fractions}
                   </div>
                 </td>
                 <td className="px-3 py-2">{c.technique_label}</td>
-                <td className="px-3 py-2 tabular-nums">
+                <td className="px-3 py-2 tabular-nums max-md:text-right">
+                  <span className="text-xs text-gray-500 md:hidden">{tr("h_progress", "Fractions")} </span>
                   {c.sessions_done}/{c.fractions}
                 </td>
-                <td className="px-3 py-2 tabular-nums">{standingTime(c)}</td>
-                <td className="px-3 py-2 text-xs text-gray-600">
+                <td className="px-3 py-2 tabular-nums max-md:col-span-2">
+                  <span className="text-xs text-gray-500 md:hidden">{tr("h_slot", "Standing slot")} </span>
+                  {standingTime(c)}
+                </td>
+                <td className="px-3 py-2 text-xs text-gray-600 max-md:col-span-2 max-md:pb-1.5">
                   {c.dates.length ? `${shortDate(c.dates[0])} – ${shortDate(c.dates[c.dates.length - 1])}` : shortDate(c.start_date)}
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 max-md:col-start-2 max-md:row-start-1 max-md:pt-1.5 max-md:text-right">
                   <Badge tone={COURSE_TONE[c.status]}>{label(c.status)}</Badge>
                 </td>
               </tr>

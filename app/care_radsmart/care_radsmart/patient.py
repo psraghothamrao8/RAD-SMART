@@ -26,6 +26,8 @@ from care_radsmart.serializers import to_minutes
 from care_radsmart.settings import plugin_settings
 
 REPLIES_PER_DAY = 6
+# The language switch names the page's language in its own script (Tulu speakers read Kannada).
+NATIVE = {"Kannada": "ಕನ್ನಡ", "Tulu": "ಕನ್ನಡ", "Malayalam": "മലയാളം", "Hindi": "हिन्दी", "Konkani": "कोंकणी"}
 LABELS = {
     "title": "Your radiotherapy",
     "today": "Today",
@@ -39,7 +41,6 @@ LABELS = {
     "fault": "The treatment machine has a fault. We will send you a message with your time. Please do not leave home until then.",
     "next": "Your next treatments. Please come at these times.",
     "fraction": "Treatment",
-    "of": "of",
     "messages": "Messages from the department",
     "listen": "Listen",
     "checkin": "Show this code at reception when you arrive",
@@ -86,7 +87,8 @@ class PatientPage(View):
         day, now = _today()
         lang = c.language if request.GET.get("lang") != "en" else "English"
         labels = sarvam.translate_many(list(LABELS.values()), lang)
-        t = {k: labels.get(v, v) for k, v in LABELS.items()}
+        # a button or heading takes no full stop, even where the translation adds one
+        t = {k: _bare(labels.get(v, v)) if not v.endswith(".") else labels.get(v, v) for k, v in LABELS.items()}
         lead = _lead(c)
         sessions = list(c.sessions.filter(date__gte=day).exclude(status="cancelled").order_by("date", "fraction_no")[:7])
         today = next((s for s in sessions if s.date == day), None)
@@ -100,7 +102,7 @@ class PatientPage(View):
                          "when": m.created_date, "voice": bool(sarvam.enabled() and sarvam.voice_language(lang))})
         ctx = {
             "t": t, "token": token, "dept": plugin_settings.RADSMART_DEPARTMENT, "name": _first_name(c.patient.name),
-            "lang": lang, "html_lang": sarvam.LANGUAGES.get(lang, ("en-IN",))[0].split("-")[0], "own_language": c.language, "show_toggle": c.language != "English",
+            "lang": lang, "html_lang": sarvam.LANGUAGES.get(lang, ("en-IN",))[0].split("-")[0], "own_language": NATIVE.get(c.language, c.language), "show_toggle": c.language != "English",
             "today": None if today is None else {
                 "status": today.status, "come": fmt(today.start - lead), "treat": fmt(today.start),
                 "moved": today.today_start is not None, "was": fmt(today.planned_start - lead),
@@ -157,6 +159,10 @@ class PatientAudio(View):
         return HttpResponse(audio, content_type="audio/mpeg", headers={"Cache-Control": "private, max-age=86400"})
 
 
+def _bare(text: str) -> str:
+    return text.rstrip().rstrip(".।").rstrip()
+
+
 def _date(d: dt.date) -> str:
     return d.strftime("%a %d %b").replace(" 0", " ")
 
@@ -165,4 +171,4 @@ def _qr(code: str) -> str:
     if not code:
         return ""
     import segno
-    return segno.make(f"RADSMART:{code}", error="m").svg_inline(scale=7, border=2, dark="#0e1a2b")
+    return segno.make_qr(f"RADSMART:{code}", error="m").svg_inline(border=2, dark="#0e1a2b", omitsize=True)

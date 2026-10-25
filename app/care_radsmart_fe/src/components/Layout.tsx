@@ -1,5 +1,5 @@
 import { Activity, CalendarClock, ClipboardPlus, ListChecks, MessageCircle, ScanLine, Wrench } from "lucide-react";
-import type { PropsWithChildren, ReactNode } from "react";
+import { type PropsWithChildren, type ReactNode, useEffect, useRef } from "react";
 import { Link, usePath } from "raviger";
 
 import { Badge, Notice, Spinner } from "@/components/ui/primitives";
@@ -26,6 +26,12 @@ export default function Layout({
   const path = usePath() ?? "";
   const { data: config, isLoading, error } = useConfig(facilityId);
   const base = `/facility/${facilityId}/radsmart`;
+  const nav = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const n = nav.current;
+    const el = n?.querySelector<HTMLElement>("[aria-current=page]");
+    if (n && el) n.scrollLeft = el.offsetLeft - (n.clientWidth - el.offsetWidth) / 2;
+  }, [path]);
   const tabs = [
     { href: base, label: tr("tab_today", "Today"), icon: CalendarClock, active: path === base },
     { href: `${base}/courses`, label: tr("tab_courses", "Courses"), icon: ListChecks, active: path.startsWith(`${base}/courses`) && !path.endsWith("/new") },
@@ -57,11 +63,17 @@ export default function Layout({
             {actions}
           </div>
         </div>
-        <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-gray-200 px-1" aria-label="RAD-SMART">
+        {/* On a phone the tabs scroll sideways: no scrollbar, a fade at the edge, the open tab in view. */}
+        <nav
+          ref={nav}
+          className="relative -mx-1 flex gap-1 overflow-x-auto border-b border-gray-200 px-1 max-md:pr-10 [scrollbar-width:none] max-md:[mask-image:linear-gradient(to_right,#000_85%,transparent)] [&::-webkit-scrollbar]:hidden"
+          aria-label="RAD-SMART"
+        >
           {tabs.map(({ href, label, icon: Icon, active }) => (
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium",
                 active ? "border-primary-700 text-primary-800" : "border-transparent text-gray-600 hover:text-gray-900",

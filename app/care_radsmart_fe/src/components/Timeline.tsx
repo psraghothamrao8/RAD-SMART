@@ -55,7 +55,9 @@ export default function Timeline({
           {tr("legend_done", "Lighter: treated")}
         </span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={tr("timeline_label", "Today's sessions on each machine")}>
+      {/* Too small to read on a phone at full width: keep a readable size and scroll sideways. */}
+      <div className="-mx-1 overflow-x-auto px-1">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[760px]" role="img" aria-label={tr("timeline_label", "Today's sessions on each machine")}>
         <defs>
           <pattern id="radsmart-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="6" height="6" fill="#f3f4f6" />
@@ -121,6 +123,7 @@ export default function Timeline({
           </g>
         )}
       </svg>
+      </div>
     </div>
   );
 }

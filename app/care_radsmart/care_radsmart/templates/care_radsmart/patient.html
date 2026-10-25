@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="refresh" content="120">
+<noscript><meta http-equiv="refresh" content="120"></noscript>
 <title>{{ t.title }} · {{ dept }}</title>
 <style>
-  :root { --ink:#13202f; --muted:#5b6878; --line:#d9e0e8; --bg:#f3f6f9; --card:#fff; --brand:#0f6e6a; --brand-ink:#fff;
+  :root { --ink:#13202f; --muted:#5b6878; --line:#d9e0e8; --bg:#f3f6f9; --card:#fff; --brand:#0f6e6a; --brand-ink:#fff; --brand-soft:#dcefed;
           --warn-bg:#fff4e0; --warn:#8a4b00; --bad-bg:#fdecec; --bad:#9b1c1c; --ok-bg:#e7f6ee; --ok:#11643a; }
   @media (prefers-color-scheme: dark) {
-    :root { --ink:#e8eef4; --muted:#a3b0bf; --line:#2c3a4a; --bg:#0e1621; --card:#152131; --brand:#3fb8ad; --brand-ink:#06201e;
+    :root { --ink:#e8eef4; --muted:#a3b0bf; --line:#2c3a4a; --bg:#0e1621; --card:#152131; --brand:#3fb8ad; --brand-ink:#06201e; --brand-soft:#205653;
             --warn-bg:#3a2a10; --warn:#ffcf8a; --bad-bg:#3b1818; --bad:#ffb3b3; --ok-bg:#103022; --ok:#9fe3bd; }
   }
   * { box-sizing: border-box; }
@@ -39,6 +39,18 @@
   .msg p { margin:0 0 6px; }
   .msg .en { color:var(--muted); font-size:15px; }
   audio { width:100%; height:40px; }
+  .play { display:flex; align-items:center; gap:12px; margin-top:4px; padding:8px 14px 8px 8px; text-align:left; border-color:var(--brand);
+          background:linear-gradient(to right, var(--brand-soft) var(--p, 0%), var(--card) 0); }
+  .play[hidden] { display:none; }
+  .play .ic { width:40px; height:40px; border-radius:50%; background:var(--brand); color:var(--brand-ink); display:grid; place-items:center; flex-shrink:0; }
+  .play svg { width:20px; height:20px; fill:currentColor; }
+  .play .pause, .play.on .go { display:none; }
+  .play.on .pause { display:block; }
+  .play .time { margin-left:auto; color:var(--muted); font-size:15px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .play.wait .ic { animation:pulse 1s ease-in-out infinite; }
+  .play:disabled { opacity:.5; cursor:default; }
+  @keyframes pulse { 50% { opacity:.4; } }
+  @media (prefers-reduced-motion: reduce) { .play.wait .ic { animation:none; } }
   .qr { display:flex; flex-direction:column; align-items:center; gap:6px; }
   .qr svg { display:block; width:min(220px, 70vw); height:auto; aspect-ratio:1; background:#fff; border-radius:12px; }
   .code { font: 700 30px/1 ui-monospace, "SFMono-Regular", Consolas, monospace; letter-spacing:6px; }
@@ -112,7 +124,10 @@
         <div class="msg">
           <p>{{ m.text }}</p>
           {% if m.english %}<p class="en">{{ m.english }}</p>{% endif %}
-          {% if m.voice %}<audio controls preload="none" aria-label="{{ t.listen }}" src="audio/{{ m.id }}/{{ query }}"></audio>{% endif %}
+          {% if m.voice %}<div class="voice">
+            <audio controls preload="none" aria-label="{{ t.listen }}" src="audio/{{ m.id }}/{{ query }}"></audio>
+            <button type="button" class="play" aria-pressed="false" hidden><span class="ic" aria-hidden="true"><svg class="go" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg class="pause" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></span><span>{{ t.listen }}</span><span class="time" aria-hidden="true"></span></button>
+          </div>{% endif %}
         </div>
       {% endfor %}
     </section>
@@ -166,5 +181,41 @@
   {% endif %}
   <p class="foot">RAD-SMART · {{ dept }}</p>
 </main>
+<script>
+// A voice note gets one large Listen button that turns into Pause while it plays and fills as it goes.
+// Without JavaScript the browser's own player stays.
+document.querySelectorAll(".voice").forEach(function (box) {
+  var audio = box.querySelector("audio"), btn = box.querySelector(".play"), time = btn.querySelector(".time");
+  audio.controls = false; audio.hidden = true; btn.hidden = false;
+  function mmss(s) { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function show() {
+    var d = isFinite(audio.duration) ? audio.duration : 0;
+    btn.style.setProperty("--p", d ? (100 * audio.currentTime / d) + "%" : "0%");
+    time.textContent = d ? mmss(audio.currentTime) + " / " + mmss(d) : "";
+  }
+  btn.addEventListener("click", function () {
+    if (!audio.paused) return audio.pause();
+    document.querySelectorAll(".voice audio").forEach(function (a) { if (a !== audio) a.pause(); });
+    btn.classList.add("wait");
+    audio.play().catch(function () { btn.classList.remove("wait"); });
+  });
+  audio.addEventListener("play", function () { btn.classList.add("on"); btn.setAttribute("aria-pressed", "true"); });
+  audio.addEventListener("playing", function () { btn.classList.remove("wait"); });
+  audio.addEventListener("pause", function () { btn.classList.remove("on", "wait"); btn.setAttribute("aria-pressed", "false"); });
+  audio.addEventListener("ended", function () { audio.currentTime = 0; show(); });
+  audio.addEventListener("timeupdate", show);
+  audio.addEventListener("loadedmetadata", show);
+  audio.addEventListener("error", function () { btn.classList.remove("on", "wait"); btn.disabled = true; });
+});
+// The page reloads every two minutes to show changed times, but not while a voice note plays,
+// a form is open or something is being typed.
+(function reload() {
+  setTimeout(function () {
+    var busy = [].some.call(document.querySelectorAll("audio"), function (a) { return !a.paused; })
+      || document.querySelector("details[open]") || (document.activeElement && document.activeElement.matches("input, select"));
+    if (busy) reload(); else location.reload();
+  }, 120000);
+})();
+</script>
 </body>
 </html>

@@ -42,7 +42,7 @@ async function token(user) {
 
 // ---- Chrome and the DevTools protocol ----
 const profile = join(process.env.TEMP || "/tmp", `radsmart-rec-${Date.now()}`);
-const chrome = spawn(CHROME, ["--headless=new", "--remote-debugging-port=9334", `--user-data-dir=${profile}`, "--hide-scrollbars", `--window-size=${W},${H}`, "about:blank"], { stdio: "ignore" });
+const chrome = spawn(CHROME, ["--headless=new", "--remote-debugging-port=9334", `--user-data-dir=${profile}`, "--hide-scrollbars", "--autoplay-policy=no-user-gesture-required", `--window-size=${W},${H}`, "about:blank"], { stdio: "ignore" });
 let targets;
 for (let i = 0; i < 60; i++) {
   try {
@@ -398,12 +398,11 @@ try {
   await say("phone");
   await hover(`document.querySelector("ul.next") || document.querySelector("h1")`, 900);
   await sleep(1500);
-  const note = await evaluate(`document.querySelector("audio")?.src || ""`);
+  const note = await evaluate(`document.querySelector(".voice audio")?.src || ""`);
   if (note) {
     await say("voice");
-    const au = await reveal(`document.querySelector("audio")`);
-    await moveTo(Math.round(au.x + 22), Math.round(au.y + au.h / 2), 700);
-    log("click", { x: cursor.x, y: cursor.y });
+    // a real tap, so the page's Listen button turns to Pause and fills while the voice note plays
+    await click(`document.querySelector(".play .ic")`, { pause: 0 });
     await playAudio(note, {}, 6);
   }
   await say("treatDay");
@@ -418,7 +417,7 @@ try {
   await sleep(1500);
 
   // ======== 3 · Reception ========
-  const codeBox = `document.querySelector('.care-radsmart-container input[placeholder^="Six letters"]')`;
+  const codeBox = `document.querySelector('.care-radsmart-container input[placeholder^="Six"]')`;
   await chapter("Reception checks the patient in", "Reception", async () => {
     await phone(false);
     await signIn("care-staff");

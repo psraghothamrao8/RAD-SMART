@@ -30,3 +30,7 @@ app/care_radsmart_fe/dist/
 
 # Original problem statement (contains contact details): kept locally, not published
 /RAD-SMART.pdf
+
+# Azure deployment: build context and the last image tag
+deploy/azure/.build/
+deploy/azure/.tag

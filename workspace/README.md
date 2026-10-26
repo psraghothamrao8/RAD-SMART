@@ -47,6 +47,7 @@ After editing the backend plugin, run `bash ../care-workspace/scaffold/.agent/co
 | Website, deck, user guide, papers | already in `docs/`; `tools/build_docs.py`, `tools/build_deck.py` rebuild the PDFs. Python dependencies: `pip install -r poc/requirements.txt` |
 | Demo video | [`tools/demo-video/README.md`](../tools/demo-video/README.md). The narration audio is committed, so no Sarvam credit is needed. `tools/demo-video/scripts/ids.py` prints the three ids the recording needs, and `prep_take.py` frees the recording patient before another take |
 | Phase 2 submission slides | `python tools/build_submission.py` (needs the organisers' template, see below) |
+| Public demonstration server | `bash deploy/azure/deploy.sh all` with this stack running (see [`deploy/azure/README.md`](../deploy/azure/README.md)). Its secrets and logins stay in `.agent/azure.env` and `.agent/azure-logins.txt` |
 
 ## What is deliberately not in GitHub
 

@@ -4,22 +4,25 @@
 // Each caption waits for its narration (public/narration/index.json, from narrate.mjs) to
 // finish before the next one, and the voice notes the app plays are saved beside the frames.
 //
-// usage: CARE_PW=<fixture password> node record.mjs <outDir>
-// env:   FACILITY, PATIENT, ENCOUNTER (CARE ids), TZ_DEMO (browser time zone, so the demo
-//        clock reads a working afternoon), HOST (care_fe), API (care backend)
+// usage: node record.mjs <outDir>          the public demonstration (deploy/azure): each role
+//                                          signs in with its one click (/api/care_radsmart/try/)
+//        CARE_PW=<fixture password> HOST=http://localhost:19101 API=http://localhost:19100
+//          FACILITY=… PATIENT=… ENCOUNTER=… PATIENT_NAME=… node record.mjs <outDir>   a local CARE
+//          stack (scripts/ids.py prints the ids, scripts/prep_take.py clears an earlier take)
+// env:   FRESH=HH:MM   start a fresh demonstration day first, its clock at this time
+//        TELEGRAM=1    a later patient's message goes to this machine's Telegram app (Unigram),
+//                      and the video shows it arrive; Unigram links the patient itself (/start)
+//        TZ_DEMO       the browser's time zone (default Asia/Kolkata, the server's)
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { LINES } from "./script.mjs";
+import * as unigram from "./unigram.mjs";
 
 const outDir = process.argv[2];
-const HOST = process.env.HOST || "http://localhost:19101";
-const API = process.env.API || "http://localhost:19100";
-const F = process.env.FACILITY;
-const P = process.env.PATIENT;
-const E = process.env.ENCOUNTER;
-const NAME = process.env.PATIENT_NAME || "Darsh Mandal"; // the recording patient; scripts/ids.py prints it
+const HOST = process.env.HOST || "https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io";
+const API = process.env.API || HOST;
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const W = 1600, H = 900, DSF = 1.2;
 const PHONE = { w: 390, h: 844, dsf: 2 };
@@ -31,7 +34,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 rmSync(join(outDir, "frames"), { recursive: true, force: true });
 mkdirSync(join(outDir, "frames"), { recursive: true });
 
+// The public demonstration signs a role in with one click (tryout.py): its page carries the tokens.
+const ROLE = { "care-doctor": "doctor", "care-staff": "reception" };
 async function token(user) {
+  if (!process.env.CARE_PW) {
+    const page = await fetch(`${API}/api/care_radsmart/try/${ROLE[user]}/`).then((x) => x.text());
+    const value = (k) => page.match(new RegExp(`'${k}', ("[^"]+")`))?.[1];
+    if (!value("care_access_token")) throw new Error(`no one-click sign-in for ${user}: is RADSMART_OPEN_DEMO on?`);
+    return { access: JSON.parse(value("care_access_token")), refresh: JSON.parse(value("care_refresh_token")), facility: page.match(/"\/facility\/([^/"]+)\//)?.[1] };
+  }
   const r = await fetch(`${API}/api/v1/auth/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -248,27 +259,88 @@ async function signIn(user) {
 
 // ---- the demonstration's patients, chosen through the API ----
 const RS = `${API}/api/care_radsmart`;
+const doctor = await token("care-doctor");
+const F = process.env.FACILITY || doctor.facility;
 const staffToken = (await token("care-staff")).access;
-async function api(path) {
-  const r = await fetch(`${RS}${path}${path.includes("?") ? "&" : "?"}facility=${F}`, { headers: { Authorization: `Bearer ${staffToken}` } });
-  if (!r.ok) throw new Error(`${path}: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
+async function call(url, { tok = staffToken, body } = {}) {
+  const r = await fetch(url, { method: body ? "POST" : "GET", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" }, body: body && JSON.stringify(body) });
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status} ${(await r.text()).slice(0, 200)}`);
   return r.json();
 }
-const TZ = process.env.TZ_DEMO || "America/Denver";
-const hm = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
-const nowMin = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+const api = (path, opts) => call(`${RS}${path}${path.includes("?") ? "&" : "?"}facility=${F}`, opts);
+
+// A fresh demonstration day, its clock at a working hour: the server builds it in the background.
+if (process.env.FRESH) {
+  await fetch(`${RS}/try/restart/`, { method: "POST", body: new URLSearchParams({ time: process.env.FRESH }), redirect: "manual" });
+  process.stdout.write(`fresh day at ${process.env.FRESH}`);
+  do {
+    await sleep(10000);
+    process.stdout.write(".");
+  } while ((await fetch(`${RS}/try/`).then((x) => x.text())).includes("being prepared"));
+  console.log();
+}
+
+// The recording patient: the newest of CARE's own patients with a visit here who is 70 or
+// older, so the checklist ticks "older patient" by itself. An earlier take's course is cancelled.
+let P = process.env.PATIENT, E = process.env.ENCOUNTER, NAME = process.env.PATIENT_NAME;
+if (!E) {
+  const visits = (await call(`${API}/api/v1/encounter/?facility=${F}&ordering=-created_date&limit=100`, { tok: doctor.access })).results;
+  for (const v of visits.filter((x) => !x.patient.name.startsWith("Demo patient"))) {
+    const [p] = await api(`/patients/?id=${v.patient.id}`);
+    if (p?.age >= 70) {
+      [P, E, NAME] = [v.patient.id, v.id, v.patient.name];
+      break;
+    }
+  }
+  if (!E) throw new Error("no patient of 70 or older with a visit at this facility");
+  for (const c of await api(`/courses/?patient=${P}&status=draft,approved`)) {
+    for (const m of await api(`/messages/?course=${c.id}&status=to_send`)) await call(`${RS}/messages/${m.id}/cancel/`, { body: {} });
+    await call(`${RS}/courses/${c.id}/cancel/`, { tok: doctor.access, body: {} });
+  }
+}
+const TZ = process.env.TZ_DEMO || "Asia/Kolkata";
+const nowMin = (await api("/config/")).now;   // the department's clock, which a demonstration runs apart
 const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
-const soon = (await api("/day/")).sessions
-  .filter((s) => s.demo && s.status === "scheduled" && toMin(s.report) > nowMin + 10)
-  .sort((a, b) => a.start - b.start);
+const today = (await api("/day/")).sessions.filter((s) => s.demo && s.status === "scheduled");
+
+// Telegram: a patient due later today, whom the breakdown will move, is linked to this machine's
+// Telegram app; their new time is sent there, and the video shows it arrive.
+let tg = null, unigramWas = null;
+if (process.env.TELEGRAM) {
+  const later = today.filter((s) => s.start >= nowMin + 60 && s.start <= nowMin + 150)
+    .sort((x, y) => (y.language === "Kannada") - (x.language === "Kannada") || x.start - y.start);
+  if (!later.length) throw new Error("nobody due later today for Telegram: start a fresh day earlier (FRESH)");
+  const links = await Promise.all(later.slice(0, 12).map((s) => api(`/courses/${s.course}/patient-link/`)));
+  const i = Math.max(0, links.findIndex((l) => l.telegram_linked));   // one an earlier take linked, if any
+  unigramWas = unigram.phoneShape();
+  if (!links[i].telegram_linked) {
+    unigram.openLink(links[i].telegram);
+    // Unigram sends the /start itself when the bot's chat is already there; a new chat shows START
+    const linked = async () => (await api(`/courses/${later[i].course}/patient-link/`)).telegram_linked;
+    for (let n = 0; n < 8 && !(await linked()); n++) {
+      await sleep(2000);
+      unigram.pressStart();
+    }
+    if (!(await linked())) console.log(`Telegram: press START in the bot's chat in Unigram (for ${later[i].patient_name})`);
+    const until = Date.now() + 30 * 60000;
+    while (!(await linked())) {
+      if (Date.now() > until) throw new Error("Telegram was not linked");
+      await sleep(3000);
+    }
+  } else unigram.openLink(links[i].telegram, true);
+  tg = { course: later[i].course, name: later[i].patient_name, cap: unigram.capture(join(outDir, "unigram"), now) };
+  console.log(`Telegram: ${tg.name}`);
+}
+
+const soon = today.filter((s) => toMin(s.report) > nowMin + 10 && s.course !== tg?.course).sort((a, b) => a.start - b.start);
 // One patient comes in today (their phone, then reception); another has said they will be late.
 const arriving = soon.find((s) => s.language === "Kannada") || soon[0];
 const late = soon.find((s) => arriving && s.course !== arriving.course);
-if (!arriving || !late) throw new Error("no demonstration patients still to come today: reseed");
+if (!arriving || !late) throw new Error("no demonstration patients still to come today: start a fresh day (FRESH)");
 const arrivingLink = await api(`/courses/${arriving.course}/patient-link/`);
 const lateLink = await api(`/courses/${late.course}/patient-link/`);
 await fetch(lateLink.url, { method: "POST", body: new URLSearchParams({ kind: "late", minutes: "30" }), redirect: "manual" });
-console.log(`arriving: ${arriving.patient_name} (${arriving.report}), late: ${late.patient_name}`);
+console.log(`recording: ${NAME}; arriving: ${arriving.patient_name} (${arriving.report}), late: ${late.patient_name}`);
 
 // ---- set up ----
 await send("Page.enable");
@@ -378,7 +450,7 @@ try {
 
   await say("approve");
   await click(btn("Approve course and slots"), { pause: 200 });
-  await fast("Saving", () => waitFor(text("Approved by", "dt,span,p,div"), 30000));
+  await fast("Saving", () => waitFor(text("Approved by", "dt,span,p,div"), 120000));
   await sleep(1200);
   const courseId = await evaluate(`location.pathname.split("/").filter(Boolean).pop()`);
 
@@ -389,6 +461,15 @@ try {
   await hover(btn("Send on WhatsApp"), 900);
   await sleep(2500);
   zoom(null);
+  if (tg) {
+    await say("tgLink");
+    const tgBox = `__byText("Telegram (demonstration)", "p").parentElement.parentElement`;
+    const box = await reveal(tgBox);
+    zoom(box, fit(box));
+    await hover(`(${tgBox}).firstElementChild`, 900);
+    await voiceDone();
+    zoom(null);
+  }
 
   // ======== 2 · The patient's phone ========
   const own = await api(`/courses/${courseId}/patient-link/`);
@@ -493,26 +574,51 @@ try {
   await voiceDone();
   await say("approveFault");
   await click(btn("Approve and notify"), { pause: 600 });
-  await waitFor(btn("Open messages"), 30000);
+  await fast("Drafting the messages", () => waitFor(btn("Open messages"), 120000));
   await sleep(800);
   await click(btn("Open messages"), { pause: 300 });
   await fast("Sarvam AI is translating", () => waitFor(`${btn("Open WhatsApp")} && !${text("Translating into", "p,span,div")}`, 180000));
   await sleep(600);
   await say("messages");
-  const msgSel = `${btn("Open WhatsApp")}.closest("section")`;
+  // The Telegram patient's message when there is one (their time moved), else the first.
+  const tgCard = tg && `[...document.querySelectorAll("section")].filter(__vis).find((s) => s.innerText.includes(${JSON.stringify(tg.name)}) && s.innerText.includes("Send on Telegram"))`;
+  const toTelegram = tg && (await evaluate(`!!(${tgCard})`));
+  if (tg && !toTelegram) console.warn(`no message to send on Telegram for ${tg.name}`);
+  const msgSel = toTelegram ? tgCard : `${btn("Open WhatsApp")}.closest("section")`;
+  const inCard = (label) => `[...(${msgSel}).querySelectorAll("button")].find((b) => b.innerText.trim() === ${JSON.stringify(label)})`;
   const msg = await reveal(msgSel);
   zoom(msg, fit(msg));
   await hover(msgSel, 900);
   await voiceDone();
-  if (await evaluate(`!!__byText("Listen", "button", true)`)) {
+  if (await evaluate(`!!(${inCard("Listen")})`)) {
     await say("listen");
     audioUrl = null;
-    await click(`__byText("Listen", "button", true)`, { pause: 200 });
+    await click(inCard("Listen"), { pause: 200 });
     const until = Date.now() + 30000;
     while (!audioUrl && Date.now() < until) await sleep(100);
     if (audioUrl) await playAudio(audioUrl, { Authorization: `Bearer ${staffToken}` }, 5);
   }
-  await say("whatsapp");
+  if (toTelegram) {
+    // One press and the server sends it: the video turns to the patient's phone as it arrives.
+    await say("telegram");
+    await click(inCard("Send on Telegram"), { pause: 300 });
+    zoom(null);
+    tg.cap.start();
+    log("telegram", { on: true });
+    await voiceDone();
+    // the voice note is made first, then both go: the video speeds through the wait
+    await fast("Sending on Telegram", async () => {
+      await waitFor(`__byText("Sent on Telegram", "li,div,span,p")`, 60000).catch(() => console.warn("Telegram: no confirmation"));
+      await sleep(2500);   // until the app shows it
+    });
+    await say("tgPhone");
+    await voiceDone();
+    await sleep(1500);
+    log("telegram", { on: false });
+    await sleep(700);
+    tg.cap.stop();
+    await say("whatsappReal");
+  } else await say("whatsapp");
   await hover(btn("Open WhatsApp"), 800);
   await sleep(1400);
   await click(btn("Mark sent", true), { pause: 1200 });
@@ -545,7 +651,10 @@ try {
 } finally {
   await send("Page.stopScreencast");
   await sleep(300);
-  writeFileSync(join(outDir, "rec.json"), JSON.stringify({ width: W, height: H, scale: DSF, phone: PHONE, speed: SPEED, frames, events }, null, 1));
+  const tgRec = tg && { ...tg.cap.size(), frames: tg.cap.frames };
+  tg?.cap.close();
+  if (unigramWas) unigram.restore(unigramWas);
+  writeFileSync(join(outDir, "rec.json"), JSON.stringify({ width: W, height: H, scale: DSF, phone: PHONE, speed: SPEED, frames, events, unigram: tgRec || undefined }, null, 1));
   console.log(`frames ${frames.length}, events ${events.length}, ${(now() / 1000).toFixed(1)} s`);
   ws.close();
   chrome.kill();

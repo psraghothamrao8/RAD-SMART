@@ -2,7 +2,7 @@ import { loadFont as loadSans } from "@remotion/google-fonts/IBMPlexSans";
 import { loadFont as loadSerif } from "@remotion/google-fonts/SourceSerif4";
 import { AbsoluteFill, Audio, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 
-import { chapters, type Ev, events, FPS, frameFileAt, INTRO_VOICE, OUTRO_VOICE, PHONE, phoneAt, pieceAt, REC_H, REC_W, timeline, videoFrameOf } from "./timeline";
+import { chapters, type Ev, events, FPS, frameFileAt, INTRO_VOICE, OUTRO_VOICE, PHONE, phoneAt, pieceAt, REC_H, REC_W, telegramAt, timeline, UNIGRAM, unigramFileAt, videoFrameOf } from "./timeline";
 
 const { fontFamily: sans } = loadSans("normal", { weights: ["400", "500", "600"], subsets: ["latin"] });
 const { fontFamily: serif } = loadSerif("normal", { weights: ["600"], subsets: ["latin"] });
@@ -41,10 +41,12 @@ export const Demo: React.FC = () => {
   else if (p.kind === "card") view = <Card index={p.index} opacity={fade} local={local} />;
   else {
     const recT = p.recFrom + (local / p.dur) * (p.recTo - p.recFrom);
+    const tg = ease(telegramAt(recT));
     view = (
       <AbsoluteFill style={{ background: C.bg, fontFamily: sans }}>
         <TopBar chapter={p.chapter} />
-        {phoneAt(recT) ? <Phone recT={recT} skipped={p.skipped} /> : <Window recT={recT} skipped={p.skipped} />}
+        {phoneAt(recT) ? <Phone recT={recT} skipped={p.skipped} /> : <Window recT={recT} skipped={p.skipped} aside={tg} />}
+        {tg > 0 && <TelegramPhone recT={recT} k={tg} />}
         <Caption recT={recT} chapter={p.chapter} />
       </AbsoluteFill>
     );
@@ -111,7 +113,8 @@ function TopBar({ chapter }: { chapter: number }) {
   );
 }
 
-function Window({ recT, skipped }: { recT: number; skipped?: string }) {
+// `aside` (0 to 1): the window steps left and shrinks to make room for the Telegram phone.
+function Window({ recT, skipped, aside = 0 }: { recT: number; skipped?: string; aside?: number }) {
   const z = zoomAt(recT);
   const tx = Math.min(0, Math.max(REC_W - z.s * REC_W, REC_W / 2 - z.s * z.cx));
   const ty = Math.min(0, Math.max(REC_H - z.s * REC_H, REC_H / 2 - z.s * z.cy));
@@ -129,6 +132,9 @@ function Window({ recT, skipped }: { recT: number; skipped?: string }) {
         overflow: "hidden",
         background: "#fff",
         boxShadow: "0 24px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.08)",
+        transformOrigin: "0 50%",
+        scale: String(1 - 0.22 * aside),
+        translate: `${-190 * aside}px 0px`,
       }}
     >
       <div style={{ width: REC_W, height: REC_H, scale: String(K), transformOrigin: "0 0" }}>
@@ -190,6 +196,36 @@ function Phone({ recT, skipped }: { recT: number; skipped?: string }) {
           ⏩ Page loading, sped up
         </div>
       )}
+    </div>
+  );
+}
+
+// The patient's phone: the Telegram app on the recording machine, as the message arrived.
+function TelegramPhone({ recT, k }: { recT: number; k: number }) {
+  const u = UNIGRAM ?? { w: 414, h: 680 };
+  const BEZEL = 14;
+  const h = WIN_H - 2 * BEZEL;
+  const w = (h * u.w) / u.h;
+  const cx = (WIN_X + WIN_W * 0.78 - 190 + 1920) / 2; // centred in the room the window leaves
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: cx - w / 2 - BEZEL,
+        top: WIN_Y,
+        width: w + 2 * BEZEL,
+        height: WIN_H,
+        borderRadius: 52,
+        background: "#05080d",
+        padding: BEZEL,
+        boxShadow: "0 24px 60px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.12)",
+        opacity: k,
+        translate: `${(1 - k) * 700}px 0px`,
+      }}
+    >
+      <div style={{ width: w, height: h, borderRadius: 40, overflow: "hidden", background: "#000" }}>
+        <Img src={staticFile(`rec/unigram/${unigramFileAt(recT)}`)} style={{ width: w, height: h, display: "block", objectFit: "cover" }} />
+      </div>
     </div>
   );
 }

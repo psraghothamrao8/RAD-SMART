@@ -451,7 +451,7 @@ _, _, h4 = picture(mvp, fig / "app12_messages_crop.png", mx, y4, w=mw,
 box(mvp, mx, y4 + h4 + 0.04, mw, 0.3, [("cap", "**Messages:** Kannada and English, voice note, WhatsApp")])
 yv = y4 + h4 + 0.45
 box(mvp, mx, yv, mw, 6.85 - yv, [
-    ("label", "Demo video · 3½ min, narrated"),
+    ("label", "Demo video · 3¾ min, narrated"),
     ("p", "The real app, one day from course entry to a breakdown and the patient's phone"),
     ("link", "Watch it on the project website", VIDEO),
     ("link", "Code on GitHub", CODE),

@@ -10,13 +10,14 @@ export const LINES = {
   newCourse: { text: "The doctor starts a new radiotherapy course." },
   prescription: { text: "The prescription goes in as on the paper form." },
   ticks: { text: "Each tick in the checklist becomes a rule RAD-SMART must keep." },
-  older: { text: "Some ticks are automatic: this patient is 79, so 'older patient' is already ticked.", say: "Some ticks are automatic. This patient is seventy-nine, so older patient is already ticked." },
+  older: { text: "Some ticks are automatic: this patient is over 70, so 'older patient' is already ticked.", say: "Some ticks are automatic. This patient is over seventy, so older patient is already ticked." },
   save: { text: "Saving asks RAD-SMART to propose a time." },
   proposal: { text: "It proposes a first day before 17:00, and one standing time for the whole course.", say: "It proposes a first day before five in the evening, and one standing time for the whole course." },
   explain: { text: "Explain in plain words asks Sarvam AI to explain the time, in English and in Kannada, the patient's language." },
   guard: { text: "An explanation that mentions a time not in the plan is thrown away." },
   approve: { text: "The doctor approves. The patient keeps this time every day until the course ends." },
   link: { text: "The patient gets one private link on WhatsApp. No app, and no login." },
+  tgLink: { text: "For this demonstration, the patient can also scan this code and get the messages on Telegram." },
 
   phone: { text: "On the patient's phone, the page is in Kannada: the first day, the time to come, and the days after." },
   voice: { text: "The department's message comes with a voice note, for patients who read little." },
@@ -38,6 +39,10 @@ export const LINES = {
   messages: { text: "Sarvam AI translates each message. If a translation changes any time, it is not used." },
   listen: { text: "The technologist can listen to the voice note," },
   whatsapp: { text: "then opens WhatsApp with the message filled in, and presses send." },
+  // With Telegram (record.mjs TELEGRAM=1), in place of `whatsapp`:
+  telegram: { text: "and send it. Here it goes on Telegram, to a real phone." },
+  tgPhone: { text: "The patient gets it in their own language, with the voice note, and can answer with one tap." },
+  whatsappReal: { text: "In real use, the same message opens in WhatsApp, filled in and ready to send." },
   online: { text: "When the engineer fixes the machine, one tap brings it back online." },
 
   insights: { text: "Insights compares the measured waits with today's baseline of 109 minutes, and the target, 25% lower.", say: "Insights compares the measured waits with today's baseline of 109 minutes, and the target, 25 percent lower." },

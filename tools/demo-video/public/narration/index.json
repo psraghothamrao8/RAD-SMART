@@ -24,8 +24,8 @@
   "sec": 3.81
  },
  "older": {
-  "file": "beaceb191cf1.mp3",
-  "sec": 4.68
+  "file": "60a6fefa0cb4.mp3",
+  "sec": 5.28
  },
  "save": {
   "file": "a9fec30ea2e4.mp3",
@@ -50,6 +50,10 @@
  "link": {
   "file": "b9d1846f3bcd.mp3",
   "sec": 4.08
+ },
+ "tgLink": {
+  "file": "d0e4790e76eb.mp3",
+  "sec": 4.6
  },
  "phone": {
   "file": "2d8d713fcae0.mp3",
@@ -118,6 +122,18 @@
  "whatsapp": {
   "file": "d3cfc2ed8496.mp3",
   "sec": 3.81
+ },
+ "telegram": {
+  "file": "6ff8f863370d.mp3",
+  "sec": 2.98
+ },
+ "tgPhone": {
+  "file": "3dcf4883fd4c.mp3",
+  "sec": 4.34
+ },
+ "whatsappReal": {
+  "file": "1d8981b4520d.mp3",
+  "sec": 4.15
  },
  "online": {
   "file": "f5b97cbf989e.mp3",

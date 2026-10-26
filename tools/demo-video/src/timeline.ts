@@ -49,6 +49,8 @@ export const events = rec.events as Ev[];
 export const frames = rec.frames as Frame[];
 export const chapters = events.filter((e) => e.type === "chapter");
 export const PHONE = rec.phone as { w: number; h: number; dsf: number } | undefined;
+// The Telegram app's window on the recording machine, captured while a message went there.
+export const UNIGRAM = (rec as { unigram?: { w: number; h: number; frames: Frame[] } }).unigram;
 
 export type Piece =
   | { kind: "intro"; from: number; dur: number }
@@ -68,7 +70,7 @@ function compressed(): { a: number; b: number; label: string }[] {
       open = null;
     }
   }
-  const acts = events.filter((e) => ["move", "click", "caption", "chapter", "zoom", "end"].includes(e.type));
+  const acts = events.filter((e) => ["move", "click", "caption", "chapter", "zoom", "telegram", "end"].includes(e.type));
   for (let i = 1; i < acts.length; i++) {
     const a = acts[i - 1].t + 1500, b = acts[i].t - 600;
     if (b - a > IDLE_MAX - 2100 && !out.some((o) => o.a < b && o.b > a)) out.push({ a, b, label: "Page loading" });
@@ -144,12 +146,28 @@ export function phoneAt(t: number): boolean {
   return on;
 }
 
-export function frameFileAt(t: number): string {
-  let lo = 0, hi = frames.length - 1;
+function fileAt(list: Frame[], t: number): string {
+  let lo = 0, hi = list.length - 1;
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1;
-    if (frames[mid].t <= t) lo = mid;
+    if (list[mid].t <= t) lo = mid;
     else hi = mid - 1;
   }
-  return frames[lo].file;
+  return list[lo].file;
+}
+
+export const frameFileAt = (t: number) => fileAt(frames, t);
+export const unigramFileAt = (t: number) => fileAt(UNIGRAM?.frames ?? [], t);
+
+const TG_MS = 600; // the Telegram phone slides in, and out again
+/** How far the Telegram phone is in view at this moment of the recording, 0 to 1. */
+export function telegramAt(t: number): number {
+  let on: number | null = null, off: number | null = null;
+  for (const e of events) {
+    if (e.type !== "telegram" || e.t > t) continue;
+    if (e.on) [on, off] = [e.t, null];
+    else off = e.t;
+  }
+  if (on === null || !UNIGRAM?.frames.length) return 0;
+  return Math.max(0, Math.min(1, off === null ? (t - on) / TG_MS : 1 - (t - off) / TG_MS));
 }

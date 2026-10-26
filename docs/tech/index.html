@@ -149,18 +149,18 @@
       <path class="ln" d="M232 54H286" marker-end="url(#ah4)"/><path class="ln" d="M232 122H286" marker-end="url(#ah4)"/><path class="ln" d="M232 190H286" marker-end="url(#ah4)"/><path class="ln" d="M232 258H286" marker-end="url(#ah4)"/>
       <path class="ln" d="M712 122H756" marker-end="url(#ah4)"/><path class="ln" d="M712 190H756" marker-end="url(#ah4)"/><path class="ln" d="M712 54H756" marker-end="url(#ah4)"/><path class="ln" d="M712 258H756" marker-end="url(#ah4)"/>
       <rect class="box n" x="290" y="326" width="660" height="78" rx="12"/>
-      <text class="b" x="308" y="352">Language copilot · Sarvam-105B through LangGraph</text>
-      <text x="308" y="372">Explains plans from reason codes, turns sentences into rule proposals, writes patient messages from approved templates.</text>
-      <text class="s" x="308" y="391">Reads through an allow-list of tools. Cannot write a schedule, send a message on its own, or see names and phone numbers.</text>
+      <text class="b" x="308" y="352">Sarvam AI layer · Translate, Bulbul v3 voice, Sarvam-105B</text>
+      <text x="308" y="372">Translates and voices approved patient messages; explains a plan in plain words from the engine's reasons.</text>
+      <text class="s" x="308" y="391">Every output is checked for times. Cannot write a schedule, send a message on its own, or see names and phone numbers.</text>
       <path class="ln d" d="M390 288V324" marker-end="url(#ah4)"/><path class="ln d" d="M610 288V324" marker-end="url(#ah4)"/>
       <rect class="box" x="10" y="326" width="220" height="78" rx="12"/>
-      <text class="b" x="24" y="352">Runs on-premise</text><text class="s" x="24" y="372">Docker Compose on a hospital</text><text class="s" x="24" y="388">server or VM; works on the LAN</text>
+      <text class="b" x="24" y="352">One Docker image</text><text class="s" x="24" y="372">Live on Microsoft Azure; the</text><text class="s" x="24" y="388">same image on a hospital server</text>
     </svg>
   </div>
   <div class="grid3">
-    <div class="tile"><span class="k">Language and framework</span><span class="v" style="font-size:20px">Python · FastAPI</span><span class="d">One language end to end: ML, optimisation, simulation and the web API.</span></div>
-    <div class="tile"><span class="k">Storage</span><span class="v" style="font-size:20px">PostgreSQL</span><span class="d">Plans, rule versions, model versions and the append-only audit log.</span></div>
-    <div class="tile"><span class="k">Delivery</span><span class="v" style="font-size:20px">Docker Compose</span><span class="d">Same package runs on a laptop for the demo and on a hospital VM for the pilot.</span></div>
+    <div class="tile"><span class="k">Language and framework</span><span class="v" style="font-size:20px">Python · Django · React</span><span class="d">Python for the engine and the plugin's API inside CARE; React and TypeScript for the pages.</span></div>
+    <div class="tile"><span class="k">Storage</span><span class="v" style="font-size:20px">PostgreSQL</span><span class="d">CARE's own database: courses, plans, approvals, recorded times and messages. Managed on Azure, with daily backups.</span></div>
+    <div class="tile"><span class="k">Delivery</span><span class="v" style="font-size:20px">Docker · Microsoft Azure</span><span class="d">One image, live on Azure Container Apps today; the same image runs on a hospital server for the pilot.</span></div>
   </div>
 </section>
 
@@ -406,7 +406,7 @@
   </div>
   <div class="grid2">
     <div class="card"><h3>Human in control</h3><ul class="tight"><li>Every output is a <b>proposal</b>: plans, re-plans, deferrals, new-start advice, rule changes</li><li>The doctor approves each course, its machine and its slots; a technologist or doctor approves the day and every breakdown response</li><li>One-tap override with a reason; overrides are reviewed weekly</li><li>Independent checker before anything is published</li><li>Append-only audit log: who, when, which rule and model version, every message</li><li>Printed fallback list and a one-click return to manual mode</li></ul></div>
-    <div class="card"><h3>Data and privacy</h3><ul class="tight"><li>Operational data only: technique, fraction number, flags, times. <b>No diagnoses, doses, images or clinical notes</b></li><li>Pseudonymous patient tokens; names and phones stay on the hospital server</li><li>On-premise; role-based access; TLS; nightly encrypted backup</li><li>Consent before WhatsApp; SMS through registered templates</li><li>Designed for India's DPDP Rules 2025 (main obligations from May 2027)</li></ul></div>
+    <div class="card"><h3>Data and privacy</h3><ul class="tight"><li>Operational data only: technique, fraction number, flags, times. <b>No diagnoses, doses, images or clinical notes</b></li><li>Pseudonymous patient tokens; names and phones stay on the hospital server</li><li>Roles checked on the server at every step; HTTPS; daily database backups; hosted on the hospital's server or in an Indian cloud region for the pilot</li><li>Consent before WhatsApp; SMS through registered templates</li><li>Designed for India's DPDP Rules 2025 (main obligations from May 2027)</li></ul></div>
     <div class="card"><h3>Integration path</h3><ul class="tight"><li><b>Now:</b> runs inside CARE (Open Healthcare Network) as a backend and a frontend plugin, with a RADSMART button on the visit page; the same pattern fits the hospital EMR</li><li><b>Pilot start:</b> QR check-in and tablet taps for arrival, room entry and exit</li><li><b>Phase 2:</b> read-only HL7 v2 / FHIR R4 feed from the oncology information system (MOSAIQ / ARIA)</li><li>It never writes into the treatment record</li></ul></div>
     <div class="card"><h3>Performance targets</h3><ul class="tight"><li>Evening plan for 90 patients in under 60 s</li><li>Live re-plan in under 30 s</li><li>Console responses under 1 s</li><li>Keeps working on the hospital LAN without internet; messages queue and fall back to SMS or voice</li></ul></div>
   </div>
@@ -421,6 +421,8 @@
     <p class="take">Open a question to see a one-sentence answer first, then the detail behind it.</p>
   </div>
 
+  <details class="qa"><summary>Is it running anywhere, or only on a laptop?</summary><div class="ans"><p class="short">It is live on Microsoft Azure, and anyone can try it.</p><p>The whole application is one Docker image: CARE's own production build with both RAD-SMART plugins, nginx and gunicorn. It runs on Azure Container Apps over HTTPS, with Azure Database for PostgreSQL (daily backups), Azure Container Registry and a daily job. One script builds, migrates and deploys it. The public server uses synthetic patients and one-click roles.</p></div></details>
+  <details class="qa"><summary>Is it production-ready?</summary><div class="ans"><p class="short">The software and its deployment are; using it with real patients is the pilot, after the hospital's approvals.</p><p>The pilot runs the same image with demonstration mode off: staff sign in with their own CARE accounts, the data is kept, and it runs on the hospital's server or in an Indian Azure region so data stays in India. Before that: the head of department's approval, hospital IT and data-protection sign-off, the ethics committee, and patient consent for messaging. Then 2 weeks measuring, 3 weeks in shadow mode, and 8 weeks live.</p></div></details>
   <details class="qa"><summary>Where exactly is the AI in this?</summary><div class="ans"><p class="short">Three places, and each does a different job.</p><p>Machine learning predicts session minutes. Mathematical optimisation (classical operations research) builds the plan. A language model explains and communicates. The plan itself is not written by a language model.</p></div></details>
   <details class="qa"><summary>Why not just ask ChatGPT or another LLM to make the schedule?</summary><div class="ans"><p class="short">Because it cannot promise that a rule will hold.</p><p>Language models are weak at precise packing, give different answers to the same input and are hard to audit. A missed rule here could mean a complex case without senior staff. The solver guarantees the rules and a second program checks them.</p></div></details>
   <details class="qa"><summary>Why not reinforcement learning?</summary><div class="ans"><p class="short">It needs far more data than a single department has, it is a black box, and it offers no guarantee on hard rules.</p><p>It also cannot be re-configured by editing a rule. Our optimiser can be reconfigured by changing a number in a file.</p></div></details>
@@ -465,6 +467,8 @@
     <tr><td>Checker</td><td>8 rules (9 with standing slots) · 87 sessions · 0 violations</td></tr>
     <tr><td>Fault median wait (no re-plan → re-plan)</td><td>45 min fault: 53 → 37 · 150 min fault: 104 → 39</td></tr>
     <tr><td>Forecast (two machines, TBI week)</td><td>Peak load 154% → 98% · days over capacity 10 → 0</td></tr>
+    <tr><td>Sarvam AI evaluation</td><td>112 of 112 translations in 4 languages kept every time · 20 of 20 explanations accepted, 0 invented times</td></tr>
+    <tr><td>Live deployment</td><td>Microsoft Azure: Container Apps (one Docker image), PostgreSQL with daily backups, Container Registry, a daily job · 30 automated tests</td></tr>
     <tr><td>Pilot headline target</td><td>P90 at least 25% below 109 min within a 90-day pilot</td></tr>
     <tr><td>Team</td><td>Dr Akshay Dinesan (team leader, doctor partner) · Abhinand T M (technical lead) · P S Raghotham Rao (lead engineer) · Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners)</td></tr>
   </table></div>

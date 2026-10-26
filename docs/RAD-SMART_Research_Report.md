@@ -4,7 +4,7 @@
 
 Health-a-thon 2026 · Cancer track · Doctor / care-team facing use case 04: Clinic Operations & Patient Flow
 
-Team: Dr Akshay Dinesan, Manipal (team leader, doctor partner) · Abhinand T M (technical lead) · P S Raghotham Rao (lead engineer) · Dr Shirley Lewis Salins (doctor partner) · Dr Umesh Velu (doctor partner) · Version 1.4, 24 October 2026
+Team: Dr Akshay Dinesan, Manipal (team leader, doctor partner) · Abhinand T M (technical lead) · P S Raghotham Rao (lead engineer) · Dr Shirley Lewis Salins (doctor partner) · Dr Umesh Velu (doctor partner) · Version 1.5, 27 October 2026
 
 > **Assistive, not diagnostic.** RAD-SMART plans *when* and *on which machine* a session takes place. It never decides whether, how or how much a patient is treated. Urgency, technique and machine eligibility are always entered by clinicians and physicists, every plan is a proposal until a person approves it, and every action is logged. The prototype's patients are synthetic. Today's waiting times come from the department's anonymised records (October–December 2024) and are reported only as aggregates.
 
@@ -807,7 +807,7 @@ For these reasons the pilot target (at least 25% lower 90th-percentile wait than
 
 - **Performance.** Evening plan for 90 patients per machine in under 60 s; live re-plan in under 30 s; console responses under 1 s.
 - **Reliability.** Runs on the hospital LAN if the internet is down, with messages queued and an SMS or voice fallback. Nightly encrypted backup and a printable fallback list.
-- **Security and privacy.** On-premise deployment; role-based access; TLS; pseudonymised IDs in analytics; no personal identifiers sent to the language model; data minimisation and retention limits.
+- **Security and privacy.** On the hospital's server or in an Indian cloud region; role-based access checked on the server; TLS; pseudonymised IDs in analytics; no personal identifiers sent to the language model; data minimisation and retention limits.
 - **Usability.** Designed for tablets with large touch targets. Staff interface in English and Kannada, and patient channels in Kannada, Tulu (recorded voice), Malayalam, Hindi and English. Training takes under 30 minutes.
 - **Auditability.** Append-only log; every plan reproducible from its inputs, rule version and model version.
 - **Portability.** All department rules are configuration; open-source core components.
@@ -844,7 +844,7 @@ No diagnoses, doses, images or clinical notes are collected.
 | Language and voice AI | Sarvam-105B, Bulbul v3, Saaras v3, Sarvam Translate / Mayura, Sarvam Vision; staff-recorded Tulu voice clips |
 | Agent orchestration | LangGraph with an allow-listed tool set; template fallback |
 | Messaging | WhatsApp Business Platform (utility templates); SMS through a DLT-registered gateway; cloud telephony for voice calls |
-| Deployment | Docker Compose on an on-premise server or hospital VM |
+| Deployment | One Docker image (CARE's production build with both plugins, nginx, gunicorn). Live now on Microsoft Azure: Container Apps, Azure Database for PostgreSQL with daily backups, Container Registry, a daily job. For the pilot: the same image on the hospital's server (Docker Compose) or in an Indian Azure region |
 | Integration (phase 2) | Read-only HL7 v2 or FHIR R4 feed from the OIS (MOSAIQ / ARIA) |
 
 ### 10.5 Hardware and pilot budget (indicative, to be confirmed with quotes)

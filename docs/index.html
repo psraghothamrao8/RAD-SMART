@@ -129,6 +129,12 @@
   .phase.live b { color: #fff; }
   .big { font: 600 clamp(36px, 5vw, 52px)/1.05 var(--serif); color: var(--ink); }
 
+  .stack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .tile { background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
+  .tile h3 { font-size: 17px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: 500 13.5px/1 var(--sans); padding: 7px 11px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); }
+
   .docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .doc { display: grid; gap: 4px; text-decoration: none; background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; color: var(--ink-2); }
   .doc:hover { border-color: var(--accent); }
@@ -136,11 +142,11 @@
   footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14.5px; color: var(--muted); display: grid; gap: 6px; }
 
   @media (max-width: 820px) {
-    .steps, .shots { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .steps, .shots, .stack { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }
   @media (max-width: 640px) {
     .wrap { padding-top: 32px; }
-    .stats, .steps, .shots, .two, .docs, .ways { grid-template-columns: minmax(0, 1fr); }
+    .stats, .steps, .shots, .two, .docs, .ways, .stack { grid-template-columns: minmax(0, 1fr); }
     .row { grid-template-columns: minmax(0, 1fr); }
     .bar { width: calc((100% - 110px) * var(--f)); height: 24px; }
     .timeline { grid-template-columns: minmax(0, 1fr); }
@@ -164,6 +170,13 @@
       <a class="btn" href="RAD-SMART_Research_Paper.pdf">Research paper</a>
       <a class="btn" href="#results">Results</a>
       <a class="btn" href="https://github.com/psraghothamrao8/RAD-SMART">Code on GitHub</a>
+    </div>
+    <div class="chips" aria-label="How it is built">
+      <span class="chip">Live on Microsoft Azure</span>
+      <span class="chip">One Docker image</span>
+      <span class="chip">Inside CARE, the open-source hospital system</span>
+      <span class="chip">Sarvam AI in Indian languages</span>
+      <span class="chip">30 automated tests</span>
     </div>
   </header>
 
@@ -291,7 +304,24 @@
         <figcaption><b>Reception:</b> scans the code on the patient's phone.</figcaption>
       </figure>
     </div>
-    <p class="muted"><b>Tested:</b> 112 of 112 Sarvam translations in four languages kept every time; 20 of 20 plain-word explanations used only the plan's times. <b>Next phase:</b> reading the paper prescription by photo, importing the department's past records, and spoken replies from patients. Details in the <a href="Phase2_Submission.pdf">Phase 2 submission</a>.</p>
+    <p class="muted"><b>Tested:</b> 112 of 112 Sarvam translations in four languages kept every time; 20 of 20 plain-word explanations used only the plan's times; 30 automated tests pass. <b>Next phase:</b> reading the paper prescription by photo, importing the department's past records, and spoken replies from patients. Details in the <a href="Phase2_Submission.pdf">Phase 2 submission</a>.</p>
+  </section>
+
+  <section id="deployed" aria-labelledby="h-deployed">
+    <div class="head">
+      <p class="eyebrow">Deployed</p>
+      <h2 id="h-deployed">Live on Microsoft Azure, in one Docker image</h2>
+      <p>Not a laptop demonstration: the build a hospital would run, online now, with the parts a real service needs.</p>
+    </div>
+    <div class="stack">
+      <div class="tile"><h3>One Docker image</h3><p>CARE's own production build with both RAD-SMART plugins, nginx and gunicorn. Built the same way every time, with no secrets inside.</p></div>
+      <div class="tile"><h3>Azure Container Apps</h3><p>HTTPS and health checks. It sleeps when nobody is using it and wakes on the first visit.</p></div>
+      <div class="tile"><h3>Managed database</h3><p>Azure Database for PostgreSQL, with automatic daily backups.</p></div>
+      <div class="tile"><h3>One script to run it</h3><p>Creates, builds, migrates, deploys and checks everything. Every release is a tagged image and the last three are kept, so going back is one command.</p></div>
+      <div class="tile"><h3>Costs kept in check</h3><p>A daily limit on AI spending, and a guard that takes the server offline before its free hours run out.</p></div>
+      <div class="tile"><h3>Tested</h3><p>30 automated tests on the plugin, and the engine's tests run by GitHub on every change.</p></div>
+    </div>
+    <p class="decide"><b>From demonstration to pilot: settings, not new code.</b> The same image runs with demonstration mode off and staff signing in with their own accounts, on the hospital's own server beside its CARE, or in an Indian Azure region so patient data stays in India. <a href="https://github.com/psraghothamrao8/RAD-SMART/tree/main/deploy/azure#from-demonstration-to-pilot">How it is deployed</a>.</p>
   </section>
 
   <section id="results" aria-labelledby="h-results">
@@ -392,7 +422,7 @@
 
   <footer>
     <p><b>Assistive, not diagnostic.</b> RAD-SMART plans when and on which machine a session takes place. Clinicians decide everything else.</p>
-    <p>Prototype results use synthetic patients. The department's records are used only as anonymised totals.</p>
+    <p>Results use synthetic patients. The department's records are used only as anonymised totals. The live demonstration runs on Microsoft Azure with synthetic patients only.</p>
   </footer>
 </main>
 </body>

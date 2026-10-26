@@ -15,6 +15,12 @@ To rebuild the department profile from the spreadsheet, which is kept outside th
 python ../tools/analyse_department_data.py "Anonymised data_RADSMART.xlsx"
 ```
 
+The quick checks (a busy day keeps every hard rule, everyone gets a time, the learned model beats a table of averages) take under a minute, and GitHub runs them on every push:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 A full run takes about three minutes on a laptop. Seeds are fixed and ties are broken by patient ID, so runs reproduce, with one exception: a solve that stops at its time limit can return a slightly different best plan. Solver timings always vary. It writes to `results/`, and the figures to `../docs/figures/`:
 
 | File | Contents |

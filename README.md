@@ -1,30 +1,105 @@
-# RAD-SMART: Health-a-thon 2026 entry
+# RAD-SMART
 
-**Radiotherapy AI-assisted Dynamic Scheduling, Machine Allocation and Resource Tracking.** Cancer track, use case 04: Clinic Operations & Patient Flow. Team: Dr Akshay Dinesan, Manipal (team leader, doctor partner); Abhinand T M (technical lead); P S Raghotham Rao (lead engineer); Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners).
+**Radiotherapy AI-assisted Dynamic Scheduling, Machine Allocation and Resource Tracking**
 
-RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy departments. It predicts each session's machine-minutes, gives each course a new-start slot and a standing slot in which hard rules cannot be broken, repairs the day live when a machine breaks down, stress-tests plans in a digital twin, and explains decisions and messages patients in their own language through Sarvam AI. A person approves every change: the doctor each course, a technologist or doctor each breakdown response.
+[![Live on Microsoft Azure](https://img.shields.io/badge/live-Microsoft%20Azure-0078D4?logo=microsoftazure&logoColor=white)](https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/)
+[![Docker](https://img.shields.io/badge/packaged-Docker-2496ED?logo=docker&logoColor=white)](deploy/azure/Dockerfile)
+[![Runs inside CARE](https://img.shields.io/badge/runs%20inside-CARE%20(OHN)-1C5CAB)](https://github.com/ohcnetwork/care)
+[![Engine tests](https://github.com/psraghothamrao8/RAD-SMART/actions/workflows/engine-tests.yml/badge.svg)](https://github.com/psraghothamrao8/RAD-SMART/actions/workflows/engine-tests.yml)
+[![Sarvam AI](https://img.shields.io/badge/languages-Sarvam%20AI-F26B1D)](docs/evaluation/sarvam_evaluation.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**It runs inside CARE**, the Open Healthcare Network's open-source hospital information system, as a pair of plugins with a **RADSMART** button on the patient's visit page (`app/`, see [`app/README.md`](app/README.md)).
+Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient Flow. Team: Dr Akshay Dinesan, Manipal (team leader, doctor partner); Abhinand T M (technical lead); P S Raghotham Rao (lead engineer); Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners).
 
-**Patients and Sarvam AI.** After each approval RAD-SMART drafts the patient's message in Kannada, Malayalam, Hindi or Konkani (Tulu speakers read Kannada script) with Sarvam Translate, and a voice note with Bulbul v3; a technologist opens it in WhatsApp and presses send. Each patient has one private phone page, with no app and no login: today's time, changes after a breakdown, messages with voice notes, a QR code that reception scans to check them in, and four reply buttons (on my way, late, cannot come, want another time). Sarvam-105B explains a proposed time in plain words. A translation that changes a time, or an explanation that invents one, is thrown away; without Sarvam everything works in English. In our evaluation ([`docs/evaluation/`](docs/evaluation/sarvam_evaluation.md)), 140 of 140 translations across five languages kept every time, and 20 of 20 explanations were accepted.
+One radiotherapy machine treats 70–90 patients a day, and one patient in ten waits more than 109 minutes. RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy departments. It predicts each session's machine-minutes, gives each course a new-start slot and a standing slot in which hard rules cannot be broken, repairs the day live when a machine breaks down, stress-tests plans in a digital twin, and explains decisions and messages patients in their own language through Sarvam AI. A person approves every change: the doctor each course, a technologist or doctor each breakdown response.
 
-**Phase 2 final submission:** [PDF](docs/Phase2_Submission.pdf) ([DOCX](docs/Phase2_Submission.docx)): the eight template sections, what is built and what is not, and the evidence.
+On the department's own 55 recorded days, replayed, the long wait falls from **109 to 70 minutes (−35%)**, and patients treated more than an hour late from **22% to 6%**.
 
-**Demo video (3¾ min, narrated, with captions, recorded on the live demonstration):** https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4 file](docs/media/RAD-SMART_demo.mp4)
+| | |
+|---|---|
+| **Try it live** | **https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/**: one click as a doctor, reception, a technologist or a patient, with synthetic patients |
+| **Watch the demo** (3¾ min, narrated, recorded on the live server) | https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4](docs/media/RAD-SMART_demo.mp4) |
+| **Phase 2 submission** | [PDF](docs/Phase2_Submission.pdf) · [DOCX](docs/Phase2_Submission.docx) · [official template, PPTX](docs/RAD-SMART_Phase2_Submission.pptx) |
+| **Website** | https://psraghothamrao8.github.io/RAD-SMART/ |
+| **Pitch deck** | [web](https://psraghothamrao8.github.io/RAD-SMART/deck/) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf) |
+| **User guide and demo script** | [PDF](docs/RAD-SMART_User_Guide.pdf) |
+| **Research paper** (8 pages) | [PDF](docs/RAD-SMART_Research_Paper.pdf) |
+| **Technical guide** | [web](https://psraghothamrao8.github.io/RAD-SMART/tech/) · [the maths, worked through](https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html) |
 
 [![The RAD-SMART demo: a recording of the app in CARE](docs/media/demo_poster.jpg)](https://psraghothamrao8.github.io/RAD-SMART/#demo)
 
-**Try it live:** https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ (synthetic patients only). In the demonstration, go straight in as a doctor, reception, a technologist or a patient with one click and no password, and a patient's messages can go to your own Telegram. In real use, staff sign in to CARE with their own accounts. The demonstration starts again every morning at 05:30 IST; how it is hosted, free, is in [`deploy/azure/`](deploy/azure/README.md).
+## What it does
 
-**How to use the app, and how to demo it:** [User guide (PDF)](docs/RAD-SMART_User_Guide.pdf): the five everyday tasks with screenshots, and a 5-minute demo script
+**It runs inside CARE**, the Open Healthcare Network's open-source hospital information system, as a pair of plugins with a **RADSMART** button on the patient's visit page (`app/`, see [`app/README.md`](app/README.md)). CARE's own code is unchanged.
 
-**Website:** https://psraghothamrao8.github.io/RAD-SMART/ (a one-page summary with simple charts; GitHub Pages, served from `docs/`)
+| Who | What they do in RAD-SMART |
+|---|---|
+| Doctor | Enters a course; approves its first day (before 17:00) and one standing daily time; asks for a plain-words explanation |
+| Technologist | Runs the day board (arrived, in room, out); reports a breakdown and approves the re-plan; sends patients' messages |
+| Reception | Checks patients in by scanning the QR code on their phone |
+| Patient and family | One private phone page, no app and no login: today's time, changes, messages with voice notes, the check-in code, four reply buttons |
+| Head of department | Insights: are long waits falling? |
 
-**Pitch deck:** https://psraghothamrao8.github.io/RAD-SMART/deck/ (web) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf)
+**Patients and Sarvam AI.** After each approval RAD-SMART drafts the patient's message in Kannada, Malayalam, Hindi or Konkani (Tulu speakers read Kannada script) with Sarvam Translate, and a voice note with Bulbul v3; a technologist opens it in WhatsApp and presses send. Sarvam-105B explains a proposed time in plain words. A translation that changes a time, or an explanation that invents one, is thrown away; without Sarvam everything works in English. In our evaluation ([`docs/evaluation/`](docs/evaluation/sarvam_evaluation.md)), 112 of 112 translations in four languages kept every time, and 20 of 20 explanations were accepted.
 
-**Research paper:** [PDF](docs/RAD-SMART_Research_Paper.pdf) (8 pages)
+## Architecture and deployment
 
-**Technical guide (meeting prep):** https://psraghothamrao8.github.io/RAD-SMART/tech/ · **The maths, worked through:** https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html
+```mermaid
+flowchart LR
+  subgraph Users["Staff and patients, in any browser or phone"]
+    S["CARE + RADSMART pages"]
+    P["Patient's phone page"]
+  end
+  subgraph Azure["Microsoft Azure"]
+    subgraph ACA["Container Apps: one Docker image"]
+      N["nginx"] --> G["gunicorn: CARE (Django)<br/>+ care_radsmart plugin"]
+      G --> E["Scheduling engine<br/>prediction · optimiser · twin"]
+    end
+    DB[("Azure Database<br/>for PostgreSQL")]
+    J["Daily job:<br/>migrations, fresh demo day"]
+    R["Container Registry"]
+  end
+  Sv["Sarvam AI<br/>Translate · Bulbul · 105B"]
+  W["WhatsApp in real use<br/>Telegram in the demo"]
+  S --> N
+  P --> N
+  G --> DB
+  J --> DB
+  R -. image .-> ACA
+  G -- "message text only,<br/>no names or numbers" --> Sv
+  G --> W
+```
+
+| Layer | Technology |
+|---|---|
+| Hospital system | [CARE](https://github.com/ohcnetwork/care) (Django, PostgreSQL) and [care_fe](https://github.com/ohcnetwork/care_fe) (React), at pinned versions |
+| RAD-SMART backend | Django plugin `care_radsmart`: models, a role-checked REST API, the Sarvam layer, the patient page, the Telegram demo channel |
+| RAD-SMART frontend | React and TypeScript plugin `care_radsmart_fe`, loaded by CARE through Module Federation |
+| Engine | Python: gradient boosting (scikit-learn) for session minutes; mixed-integer optimisation (SciPy with HiGHS); a Monte Carlo digital twin; an independent rule checker |
+| Language AI | Sarvam Translate, Bulbul v3 (voice) and Sarvam-105B (explanations), each output checked |
+| Packaging | One Docker image built on CARE's production image, with nginx and gunicorn |
+| Hosting | Azure Container Apps (HTTPS, scale to zero), Azure Database for PostgreSQL with daily backups, Azure Container Registry, a daily Container Apps job |
+| Operations | [`deploy/azure/deploy.sh`](deploy/azure/deploy.sh): one script creates, builds, migrates, deploys and checks everything |
+
+**The live server** runs in demonstration mode: synthetic patients, one-click roles with no password, and a fresh day every morning at 05:30 IST. In real use, staff sign in to CARE with their own accounts and RAD-SMART checks the role at every step. Moving to the pilot is configuration, not new code: the same image runs with demonstration mode off, on the hospital's own server (Docker Compose, beside its CARE) or in an Indian Azure region. How it is hosted, and what each piece costs, is in [`deploy/azure/`](deploy/azure/README.md).
+
+## Run it yourself
+
+```bash
+# the whole development environment: CARE at pinned versions, both plugins, synthetic data
+bash workspace/restore.sh
+
+# deploy to Azure (after az login, with the development environment running)
+bash deploy/azure/deploy.sh all
+
+# the plugin's 30 automated tests, inside the running CARE backend
+docker exec care_radsmart_dev-backend-1 python manage.py test care_radsmart.tests
+
+# the engine's quick checks, also run by GitHub on every push
+cd poc && pip install -r requirements.txt && python -m unittest discover -s tests -v
+```
+
+Details: [`workspace/README.md`](workspace/README.md) (development), [`app/README.md`](app/README.md) (the plugins, roles and API), [`poc/README.md`](poc/README.md) (the engine and its experiments).
 
 ## What is in this folder
 
@@ -41,15 +116,16 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 | `docs/Round1_Submission_Kit.pdf` (`.docx`, `.md`) | Ready-to-paste answers for the five Round 1 sections, deck outline, video script, likely jury questions, checklist, and links to the published deck and website |
 | `docs/figures/` | All figures (architecture, daily loop, PoC charts, screenshots of the CARE application with synthetic patients) |
 | `docs/figures-src/` | HTML sources of the architecture and daily-loop diagrams |
-| `poc/` | Working proof of concept in Python on synthetic patients, with its digital twin calibrated on aggregates of the department's records (see `poc/README.md`) |
+| `poc/` | The scheduling engine in Python, its experiments on synthetic patients and its tests, with the digital twin calibrated on aggregates of the department's records (see `poc/README.md`) |
 | `tools/analyse_department_data.py` | Summarises the department's anonymised spreadsheet into the aggregates the twin uses: `python tools/analyse_department_data.py "<file>.xlsx"`. The spreadsheet is never committed |
 | `tools/build_docs.py` | Rebuilds the DOCX and PDF from the Markdown: `python tools/build_docs.py docs/<file>.md` |
 | `docs/index.html` | The project website (the prototype link), served by GitHub Pages. Plain HTML: edit it directly |
-| `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 9 slide sources in `src/` |
+| `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 12 slide sources in `src/` |
 | `tools/demo-video/` | How the demo video is made: a script drives the app in headless Chrome and records it, and a Remotion project adds titles, captions and the pointer (see its README) |
 | `tools/build_deck.py` | Rebuilds the web deck and its PDF from `docs/deck/src/` (needs Google Chrome): `python tools/build_deck.py` |
 | `workspace/` | Rebuilds the whole development environment from this repository: `bash workspace/restore.sh` fetches CARE at the pinned commits, wires in the plugins, starts Docker and loads the synthetic data (see `workspace/README.md`) |
-| `deploy/azure/` | Hosts the demonstration server on Azure using only an Azure for Students subscription's free services, with a guard that takes it offline before the free hours run out (see `deploy/azure/README.md`) |
+| `deploy/azure/` | The deployment: the Dockerfile, nginx and settings, and `deploy.sh`, which builds the image and runs RAD-SMART on Microsoft Azure (Container Apps, PostgreSQL, Container Registry, a daily job), with cost guards (see `deploy/azure/README.md`) |
+| `.github/workflows/` | GitHub Actions: the engine's tests on every push |
 
 ## Key dates
 
@@ -90,3 +166,7 @@ The pilot's primary KPI is a 90th-percentile wait at least 25% lower than the re
 ## Data
 
 The prototype's patients are synthetic. `tools/analyse_department_data.py` summarises the department's anonymised spreadsheet into aggregates only (`poc/data/department_profile.json`). The spreadsheet itself is excluded by `.gitignore` and never committed.
+
+## Licence
+
+MIT, the same licence as CARE: see [`LICENSE`](LICENSE). RAD-SMART is assistive, not diagnostic: it plans when and on which machine a session takes place, and clinicians decide everything else.

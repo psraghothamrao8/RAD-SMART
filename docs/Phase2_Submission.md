@@ -1,10 +1,10 @@
 # RAD-SMART: Phase 2 Final Submission
 
-Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient Flow · 25 October 2026
+Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient Flow · 27 October 2026
 
 > **Deadline: Sunday 8 November 2026.** Top 30 announced by 14 November; finale on 28 November at IIT Bombay. The eight sections below follow the Phase 2 template. Each has a **full version** and a **short version** in case the form limits length. Replace every [square bracket] before submitting: they mark evidence only the department can give (the technologist trial and the native-speaker ratings).
 
-> **Everything described as built in this document runs today** in the CARE plugin in `app/`, and is shown in the demo video. Section 4.3 lists what is not built yet. Every patient in the app, the video and the evaluation is synthetic; the department's records are used only as anonymised totals.
+> **Everything described as built in this document runs today** in the CARE plugin in `app/`, is shown in the demo video, and is **live on Microsoft Azure** for anyone to try: https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ Section 4.3 lists what is not built yet. Every patient in the app, the video and the evaluation is synthetic; the department's records are used only as anonymised totals.
 
 ---
 
@@ -65,7 +65,7 @@ RAD-SMART is an assistive scheduler built **inside CARE**, the open-source hospi
 
 ### 3.1 What runs today
 
-The MVP is a working application, not a mock-up: a Django backend plugin and a React frontend plugin loaded into CARE (about 3,700 lines of Python and 3,200 lines of TypeScript), on top of the scheduling engine (about 3,700 lines of Python).
+The MVP is a working application, not a mock-up: a Django backend plugin and a React frontend plugin loaded into CARE (about 3,600 lines of Python and 3,800 lines of TypeScript), on top of the scheduling engine (about 3,700 lines of Python). It is packaged as a Docker container and **deployed live on Microsoft Azure** (Section 7), so the judges can use the same build the department would pilot.
 
 | Page | What it does |
 |---|---|
@@ -74,7 +74,7 @@ The MVP is a working application, not a mock-up: a Django backend plugin and a R
 | **Course** | Approve, explain in plain words (English and the patient's language), the patient's link and QR code, the messages sent to this patient |
 | **Today** | The machine card, the live rule check, the timeline, the patient list with arrival / in room / out, requests for another time, and patients' replies |
 | **Breakdown** | Declare a fault and its estimate; RAD-SMART proposes what happens to each remaining patient under the department's rules; a person approves; messages are drafted automatically |
-| **Messages** | Every message drafted after an approval, translated, with a voice note; *Open WhatsApp* opens the chat with the text filled in; *Mark sent* |
+| **Messages** | Every message drafted after an approval, translated, with a voice note; *Open WhatsApp* opens the chat with the text filled in; *Mark sent*. In the online demonstration a message can also be sent to the visitor's own Telegram, to show it arriving on a phone |
 | **Check-in** | Reception scans the patient's QR code (USB scanner or camera) or types the six-letter code |
 | **Insights** | Waiting times and punctuality from the times the board records |
 | **Patient page** (no app, no login) | Today's time, any change after a breakdown, the next five treatment days, messages in the patient's language with a voice note, the check-in QR code, and four buttons: *on my way*, *I will be late*, *I cannot come today*, *I want a different daily time* |
@@ -105,7 +105,9 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | 5 Oct | Shortlisted; the build sprint starts |
 | 21 Oct | Technical guide and mathematics notes |
 | 24 Oct | The department's second set of answers (roles, standing slots, breakdown rules, the screens they need) built into the engine and **into a working application inside CARE**; with/without impact analysis |
-| 25 Oct | User guide; demo video, narrated with Sarvam Bulbul; **Sarvam AI layer, patient messages, patient phone page, QR check-in and plain-language explanations built**; Sarvam evaluation; 20 automated safety tests |
+| 25 Oct | User guide; demo video, narrated with Sarvam Bulbul; **Sarvam AI layer, patient messages, patient phone page, QR check-in and plain-language explanations built**; Sarvam evaluation; automated safety tests |
+| 26 Oct | **Deployed live on Microsoft Azure** in a Docker container (CARE's production build, managed PostgreSQL, HTTPS), with one-click demonstration roles and messages to Telegram; demo video re-recorded on the live server |
+| 27 Oct | 30 automated tests on the plugin and engine tests run by GitHub on every change |
 | [by 7 Nov] | [Technologist trial on the demo; native-speaker rating of translations] |
 
 ### 4.2 What changed because of the department's feedback
@@ -129,6 +131,8 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | Messages in Kannada, Malayalam, Hindi and Konkani (Tulu speakers get Kannada), with voice notes, opened in WhatsApp | **Built**; a technologist presses send |
 | Patient phone page with replies and QR check-in | **Built** |
 | Plain-language explanation with a time check | **Built** |
+| Production-grade deployment: one Docker image (CARE's production build, nginx, gunicorn), live on Microsoft Azure with managed PostgreSQL and HTTPS, deployed by one script | **Built and running** |
+| Hands-on online demonstration: one-click roles, a fresh synthetic day on demand, messages to Telegram | **Built and running** |
 | Sending and receiving automatically through the WhatsApp Business API | Not yet: needs the hospital's Meta business verification and approved templates |
 | Spoken replies from patients (speech to text) | Not yet |
 | A Tulu voice | Not possible with Sarvam today; staff can record one. Konkani has text but no Sarvam voice |
@@ -138,7 +142,7 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | Retraining the session-minute model on real minutes | Waits for pilot data; the board records them from day one |
 | Two machines | Capacity forecast only; live planning is for one machine |
 
-> **Short version.** Since Round 1 (19 Sep) we built the department's two sets of answers into the engine (standing slots, the 17:00 new-start rule, the 60-minute breakdown rule, roles) and, on 24–25 Oct, a working CARE application with Sarvam messages in four Indian languages (Tulu speakers get Kannada), a patient phone page, QR check-in, plain-language explanations and 20 safety tests. Testing found and fixed four translation and wording problems. Not yet built: automatic WhatsApp sending, spoken replies, a Tulu voice, Excel and prescription import, plain-language rule editing, OIS integration.
+> **Short version.** Since Round 1 (19 Sep) we built the department's two sets of answers into the engine (standing slots, the 17:00 new-start rule, the 60-minute breakdown rule, roles) and, on 24–25 Oct, a working CARE application with Sarvam messages in four Indian languages (Tulu speakers get Kannada), a patient phone page, QR check-in, plain-language explanations and automated safety tests. On 26 Oct it went live on Microsoft Azure in Docker, open for anyone to try. Testing found and fixed four translation and wording problems. Not yet built: automatic WhatsApp sending, spoken replies, a Tulu voice, Excel and prescription import, plain-language rule editing, OIS integration.
 
 ## 5. Evaluation & User Validation
 
@@ -173,7 +177,7 @@ An independent checker found **no broken hard rule** on any evaluation day.
 | Optimiser | 87-patient day, about 4,800 variables | **Proven optimum in 7.1 s** on a laptop |
 | Sarvam Translate | 7 message templates × 4 sets of times in each of Kannada, Malayalam, Hindi and Konkani (Tulu speakers get the Kannada text), each translated back to English | **112 of 112 kept every time** (100%); back-translation chrF median 76–80 (lowest 67); median 1.3–2.0 s per message |
 | Sarvam-105B explanations | 20 synthetic plans | **20 of 20 accepted**, **0 invented times**, 16 state both come-at times; median 1.5 s per answer |
-| Safety guards | 20 automated tests (no Sarvam calls) | **All pass**: times read in every script, changed times rejected, invented times rejected, English fallback, rate limits retried, no phone number for demo patients |
+| Safety guards | 30 automated tests on the plugin (no Sarvam calls), plus engine tests run by GitHub on every change | **All pass**: times read in every script, changed times rejected, invented times rejected, English fallback, rate limits retried, no phone number for demo patients |
 
 Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluation/sarvam_evaluation.md` (regenerated by `tools/evaluate_sarvam.py`).
 
@@ -192,7 +196,7 @@ Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluat
 - **Costs of standing slots.** The evening runs about two hours later (still inside the department's hours), one new patient in five starts later by under half a day on average, and requested times are kept less often.
 - **Translation.** Back-translation is a rough meaning check, not a substitute for native speakers. Sarvam has no Tulu model.
 
-> **Short version.** On the department's 55 recorded days, re-planned in a calibrated twin, the 90th-percentile wait fell from 108.6 to 70.4 min (−35%) and over-an-hour lateness from 22.2% to 5.7%. Over 12 synthetic weeks: 82 → 49 min (−40%). After a 150-min breakdown, live re-planning cut the median wait from 104 to 39 min, with a new plan in 14 s. No hard rule was broken. Prediction error 2.15 min; optimum in 7.1 s. Sarvam translations kept every time in 112 of 112 messages across four languages; 20 of 20 explanations accepted with no invented time; 20 safety tests pass. [Technologist trial and native-speaker ratings.] Limits: replay not trial, synthetic session lengths.
+> **Short version.** On the department's 55 recorded days, re-planned in a calibrated twin, the 90th-percentile wait fell from 108.6 to 70.4 min (−35%) and over-an-hour lateness from 22.2% to 5.7%. Over 12 synthetic weeks: 82 → 49 min (−40%). After a 150-min breakdown, live re-planning cut the median wait from 104 to 39 min, with a new plan in 14 s. No hard rule was broken. Prediction error 2.15 min; optimum in 7.1 s. Sarvam translations kept every time in 112 of 112 messages across four languages; 20 of 20 explanations accepted with no invented time; 30 automated tests pass. [Technologist trial and native-speaker ratings.] Limits: replay not trial, synthetic session lengths.
 
 ## 6. Safety & Responsible AI
 
@@ -212,7 +216,7 @@ Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluat
 
 - **No names, hospital numbers or phone numbers are sent to Sarvam**, only the message text with times and dates.
 - The patient page shows the first name only and needs a long random link; it allows at most six replies a day, and the check-in QR code holds only a six-letter code.
-- Messages are sent from the department's own WhatsApp by a person; no third-party gateway sees patient data in this phase.
+- Messages are sent from the department's own WhatsApp by a person; no third-party gateway sees patient data in this phase. Telegram is used only in the online demonstration, with synthetic patients.
 - All demo and evaluation data are synthetic. The department's records were anonymised before sharing and are used only as aggregates; no row-level data is published.
 - The pilot follows the DPDP Act 2023 and Rules 2025 (a patient notice and consent for messaging), and goes to the Institutional Ethics Committee as a quality-improvement study.
 
@@ -224,9 +228,28 @@ Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluat
 
 ## 7. Deployment & Sustainability
 
+### Running today: live on Microsoft Azure
+
+RAD-SMART is deployed, not just demonstrated on a laptop. The whole application ships as **one Docker image** and runs on **Microsoft Azure** at https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/.
+
+| Layer | What runs |
+|---|---|
+| Container | One Docker image: CARE's own production build at a pinned version, the RAD-SMART backend and frontend plugins, nginx and gunicorn; built reproducibly from a clean source export, with no secrets inside |
+| Hosting | Azure Container Apps: HTTPS, health checks, scales to zero when idle and back up on the first visit |
+| Database | Azure Database for PostgreSQL (Flexible Server), with automatic daily backups kept for 7 days |
+| Images | Azure Container Registry; every release is a tagged image and the last three are kept, so a rollback is one command |
+| Secrets | Container Apps secrets; the Sarvam key and database password are never in the code or the image |
+| Scheduled job | A daily Container Apps job runs database migrations and renews the synthetic demonstration day |
+| Cost and safety guards | Limits on Sarvam spending per day; a guard that takes the server offline before its free hours run out |
+| Operations | One script (`deploy/azure/deploy.sh`) creates, builds, migrates, deploys and checks the whole system |
+
+The online server runs in **demonstration mode**: synthetic patients, one-click roles without a password, and a fresh day every morning. Switching to the pilot is configuration, not new code: demonstration mode off, staff sign in with their own CARE accounts, and the database is kept.
+
+**For the pilot**, the same image runs either on the hospital's own server (Docker Compose, beside its CARE) or in an Indian Azure region such as Central India, so patient data stays in India under the DPDP Act. The hospital's IT team chooses; nothing in RAD-SMART changes.
+
 ### Requirements
 
-- A CARE instance (the department's, or a hospital VM running CARE with Docker Compose). RAD-SMART installs as a backend and a frontend plugin, with no change to CARE's code.
+- A CARE instance: the department's own, a hospital VM running CARE with Docker Compose, or our ready-made Docker image on Azure. RAD-SMART installs as a backend and a frontend plugin, with no change to CARE's code.
 - A laptop or tablet at the machine console and one at reception (a USB barcode scanner or the camera reads the QR code).
 - The department's WhatsApp on a staff phone or WhatsApp Web.
 - Internet access for Sarvam, and a Sarvam API key. Everything except translation, voice and explanation works offline.
@@ -236,6 +259,7 @@ Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluat
 | Item | Estimate (₹) |
 |---|---|
 | Server with UPS (or an existing hospital VM at no cost) | 0 – 1,50,000 |
+| Or cloud hosting instead of a server: Azure Central India, one always-on container (0.5 vCPU) and a small managed database | about 4,000 – 6,000 a month |
 | Tablets for reception and the console (or existing PCs) | 0 – 60,000 |
 | QR scanner, labels | 5,000 – 15,000 |
 | Sarvam API, per course (about 3 messages of 190 characters, translated at ₹20 and voiced at ₹30 per 10,000 characters, plus explanations at under ₹0.10) | **about ₹3–5** |
@@ -256,7 +280,7 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 
 **Sustainability.** Running costs are a few thousand rupees a year. The plugin is maintained in the open with the Open Healthcare Network community, and the department's own staff can run it after the pilot.
 
-> **Short version.** Needs a CARE instance (installed as a plugin, no change to CARE), a console and reception device, the department's WhatsApp, and internet for Sarvam (everything else works offline). Costs: hardware ₹0–2.2 lakh (existing PCs or VM cost nothing); Sarvam about ₹3–5 per course, about ₹5,000–10,000 a year; open source, no licence fee. Next integration: a read-only OIS feed. Adoption: a 90-day pilot (baseline, shadow, live, target −25%), then the second machine in 2027 and other CARE hospitals.
+> **Short version.** Running today on Microsoft Azure as one Docker image (CARE's production build with both plugins, managed PostgreSQL with daily backups, HTTPS, one-script deployment), in demonstration mode; the pilot is the same image with demonstration mode off, on a hospital server or in an Indian Azure region. Needs a CARE instance (installed as a plugin, no change to CARE), a console and reception device, the department's WhatsApp, and internet for Sarvam (everything else works offline). Costs: hardware ₹0–2.2 lakh (existing PCs or VM cost nothing); Sarvam about ₹3–5 per course, about ₹5,000–10,000 a year; open source, no licence fee. Next integration: a read-only OIS feed. Adoption: a 90-day pilot (baseline, shadow, live, target −25%), then the second machine in 2027 and other CARE hospitals.
 
 ## 8. Next Steps
 
@@ -278,6 +302,8 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 | Evidence | Where |
 |---|---|
 | **The submission in the official template (15 slides)** | `docs/RAD-SMART_Phase2_Submission.pptx` (built by `tools/build_submission.py`) |
+| **The app, live on Microsoft Azure** (synthetic patients, one click per role) | [radsmart…azurecontainerapps.io/try/](https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/) |
+| How it is deployed (Docker, Azure, one script) | `deploy/azure/README.md` |
 | Project website, with the demo video | [psraghothamrao8.github.io/RAD-SMART](https://psraghothamrao8.github.io/RAD-SMART/) |
 | Demo video (the real app, narrated, synthetic patients) | [Website, demo section](https://psraghothamrao8.github.io/RAD-SMART/#demo) · `docs/media/RAD-SMART_demo.mp4` |
 | Code: engine, CARE plugins, evaluation scripts | [github.com/psraghothamrao8/RAD-SMART](https://github.com/psraghothamrao8/RAD-SMART) |
@@ -287,4 +313,4 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 | Sarvam AI evaluation | `docs/evaluation/sarvam_evaluation.md` |
 | User guide and demo script | `docs/RAD-SMART_User_Guide.pdf` |
 | Full research report | `docs/RAD-SMART_Research_Report.pdf` |
-| Safety tests | `app/care_radsmart/care_radsmart/tests/test_sarvam.py` |
+| Automated tests | `app/care_radsmart/care_radsmart/tests/` (30 tests) · `poc/tests/` (run by GitHub on every change) |

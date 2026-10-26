@@ -195,6 +195,7 @@ The refresh command, run in the CARE workspace:
 - **"What if the AI is wrong?"** The plan comes from an optimiser that cannot break a hard rule. A rule checker re-checks every plan, and a person approves every change.
 - **"Does it work without internet?"** Planning, the rule check, the board and check-in run on the hospital's own server. Translation, voice notes and Explain need Sarvam AI over the internet; without it, messages go in English and staff see RAD-SMART's own reasons. Messages are sent from the department's WhatsApp.
 - **"What if the translation is wrong?"** A translation that drops or changes a time is never used. In our test, 112 of 112 translations in four languages kept every time. (Sarvam has no Tulu model: Tulu speakers get Kannada, and staff can record a Tulu voice note.) Native speakers at the department rate every translation before the pilot.
+- **"Where does it run? Is it production-ready?"** It is live on Microsoft Azure now, as one Docker image built on CARE's production image, with a managed PostgreSQL database and HTTPS, deployed by one script. The pilot runs the same image with demonstration mode off, on the hospital's own server or in an Indian Azure region, after the hospital's IT, data-protection and ethics approvals.
 - **"What does staff have to do extra?"** Three taps per patient. The doctor fills in one form per course, which replaces the paper booking.
 
 ---

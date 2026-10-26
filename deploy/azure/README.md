@@ -1,6 +1,8 @@
-# Hosting the demonstration on Azure, free
+# RAD-SMART on Microsoft Azure
 
-The public demonstration server runs on an **Azure for Students** subscription using only services that subscription gets free, so it spends none of the $100 credit. It is for showing RAD-SMART to judges and the department. It is not a production deployment: the patients are synthetic and the data is renewed every morning.
+RAD-SMART runs live on Microsoft Azure, packaged as **one Docker image**: CARE's own production build with both RAD-SMART plugins, nginx and gunicorn. It is served by Azure Container Apps over HTTPS, with Azure Database for PostgreSQL, Azure Container Registry and a daily Container Apps job. One script builds, migrates, deploys and checks the whole system.
+
+The public server is in **demonstration mode**, for judges and the department: the patients are synthetic and the data is renewed every morning. It runs on an **Azure for Students** subscription using only services that subscription gets free, so it spends none of the credit. The same image runs a real department; [From demonstration to pilot](#from-demonstration-to-pilot) lists what changes.
 
 ```bash
 bash deploy/azure/deploy.sh all       # create, build, init, push, webhook, job
@@ -83,6 +85,22 @@ The public server limits Sarvam spending to 6,000 characters a day and 40,000 in
 ## Telegram
 
 For the demonstration, messages to patients can go out on Telegram, because WhatsApp's Business API needs a verified business. Real use sends them on WhatsApp. `webhook` points the bot at `https://<app>/api/care_radsmart/telegram/`, and Telegram proves each call with the secret token. While the webhook is set, local `radsmart_telegram --poll` does not work. Run `radsmart_telegram --no-webhook` before polling locally.
+
+## From demonstration to pilot
+
+The pilot uses the same image and the same script. Only configuration changes:
+
+| | Demonstration (this server) | Pilot |
+|---|---|---|
+| Sign-in | One-click roles, no password (`RADSMART_OPEN_DEMO`) | Each person's own CARE account, with CARE's two-factor sign-in; open demonstration off |
+| Data | Synthetic patients, renewed every morning (`RADSMART_DEMO`, the daily job) | Real courses, kept; the daily job runs migrations only |
+| Where | UAE North, free services | The hospital's own server (Docker Compose, beside its CARE), or an Indian Azure region such as Central India so data stays in India |
+| Size | 0.5 vCPU, 1 GiB, scales to zero | Always at least one replica during the department's hours (08:30–01:00); a larger database tier |
+| Patient messages | WhatsApp, or Telegram for visitors | The department's WhatsApp |
+| Sarvam | 6,000 characters a day | Sized for the department: about ₹5,000–10,000 a year |
+| Backups | 7-day automatic database backups | The same, plus the hospital's own retention policy |
+
+Before go-live: the head of department's approval, hospital IT and data-protection sign-off (DPDP Act 2023), ethics committee review, and the patient notice and consent for messaging. The pilot plan is in Section 7 of the [Phase 2 submission](../../docs/Phase2_Submission.pdf).
 
 ## Taking it down
 

@@ -101,7 +101,7 @@ checkout with `care` and `care_fe` cloned inside it, and `RADSMART` is this repo
 8. Sign in with a care_fe fixture account (e.g. `care-doctor` or `care-staff`). Open a facility; **RAD-SMART** appears in the facility menu.
 9. **Telegram, for demonstrations (optional).** WhatsApp's Business API needs a verified business, so for showing the app the server can send messages on Telegram; real use sends them on WhatsApp. Make a bot with @BotFather and put `RADSMART_TELEGRAM_TOKEN=...` and a random `RADSMART_TELEGRAM_SECRET=...` in `WORKSPACE/.agent/.env`. The course page then shows a Telegram QR code: the patient scans it and presses Start, and their chat is linked to the course. Messages get a **Send on Telegram** button, with the voice note, and the patient answers with buttons (on my way, late, cannot come, another time). A local server is not reachable from Telegram, so run `python manage.py radsmart_telegram --poll` in the backend container. A public server uses `--webhook https://<address>`.
 
-To host the demonstration on the internet within an Azure for Students subscription's free services, see [`../deploy/azure/README.md`](../deploy/azure/README.md).
+To deploy it to Microsoft Azure as one Docker image (as the live demonstration is), see [`../deploy/azure/README.md`](../deploy/azure/README.md).
 
 Windows notes:
 - Bind-mounted file changes do not reach the container's auto-reloader. After editing the backend, run `./.agent/compose.sh restart backend`.

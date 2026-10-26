@@ -35,6 +35,7 @@ CONTACT = "Dr Akshay Dinesan (team leader), Manipal, akshay.dinesan@manipal.edu"
 SITE = "https://psraghothamrao8.github.io/RAD-SMART/"
 VIDEO = SITE + "#demo"
 CODE = "https://github.com/psraghothamrao8/RAD-SMART"
+LIVE = "https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/"
 
 # the template's colours, plus light tints of them for cards
 BLUE, GREEN, DARK, GRAY = "1F3DA9", "0D8743", "232F3E", "5D6A79"
@@ -433,7 +434,7 @@ box(sol2, L, 6.2, W, 0.6, [("cap", "Replayed in a digital twin calibrated on the
 # ---------------------------------------------------------------- 7 MVP
 
 frame(mvp, "Solution Working MVP / Demo",
-      "A working application inside CARE today, shown here with synthetic patients")
+      "A working application inside CARE, live on Microsoft Azure, shown here with synthetic patients")
 _, _, h1 = picture(mvp, fig / "app1_today.png", L, TOP, w=6.0, crop=(140, 60, 1720, 900),
                    alt="Today page: the machine card, the live check of 9 hard rules and the day's timeline")
 box(mvp, L, TOP + h1 + 0.04, 6.0, 0.3, [("cap", "**Today:** the machine card, the live check of 9 hard rules, the day's timeline")])
@@ -454,6 +455,7 @@ box(mvp, mx, yv, mw, 6.85 - yv, [
     ("label", "Demo video · 3¾ min, narrated"),
     ("p", "The real app, one day from course entry to a breakdown and the patient's phone"),
     ("link", "Watch it on the project website", VIDEO),
+    ("link", "Try the live app on Microsoft Azure", LIVE),
     ("link", "Code on GitHub", CODE),
 ], fill=BLUE_T, inset=0.14, size=12, gap=3, name="Demo video")
 _, pw, ph = picture(mvp, fig / "app10_patient_phone.png", 10.42, TOP, h=4.7,
@@ -493,7 +495,7 @@ cards = [
     ("Stack", [("b", "Python, Django REST framework, PostgreSQL (CARE)"),
                ("b", "React and TypeScript (CARE frontend plugin)"),
                ("b", "scikit-learn, SciPy with HiGHS, NumPy"),
-               ("b", "Docker Compose · about 10,600 lines of code")]),
+               ("b", "Docker, live on Microsoft Azure · about 11,000 lines of code")]),
 ]
 for i, (h, items) in enumerate(cards):
     box(tech, L + i * (sw + 0.2), 3.85, sw, 3.0, [("h", h)] + items, fill=GRAY_T, inset=0.14, size=12, gap=3,
@@ -502,13 +504,13 @@ for i, (h, items) in enumerate(cards):
 # ---------------------------------------------------------------- 9 build sprint
 
 frame(sprint, "Build Sprint Journey and Progress",
-      "From a Round 1 engine to a working CARE application with a patient side (sprint: 5 Oct – 8 Nov)")
+      "From a Round 1 engine to a CARE application with a patient side, live on Azure (sprint: 5 Oct – 8 Nov)")
 miles = [("19 Sep", "Round 1 entry: engine, digital twin, results page", True),
          ("22 Sep", "Department's first answers built in; twin calibrated on its 55 days", True),
          ("5 Oct", "Shortlisted; build sprint starts", True),
-         ("21 Oct", "Technical guide and maths notes for the department", True),
          ("24 Oct", "Department's second answers built in; a working app inside CARE", True),
          ("25 Oct", "Sarvam AI layer, patient page, QR check-in, evaluation, narrated video", True),
+         ("26 Oct", "Live on Microsoft Azure in Docker, open to anyone; video recorded on it", True),
          ("By 8 Nov", "Technologist trial, native-speaker ratings, final submission", False)]
 mw7 = W / 7
 line_y = TOP + 0.55
@@ -538,7 +540,8 @@ box(sprint, L, ytop, cw3, 6.85 - ytop, [
     ("b", "Messages in 4 Indian languages with voice notes, opened in WhatsApp"),
     ("b", "Patient phone page, replies and QR check-in"),
     ("b", "Plain-words explanations, with a time check"),
-    ("b", "Insights · 20 automated safety tests"),
+    ("b", "Insights · 30 automated tests"),
+    ("b", "Live on Microsoft Azure in one Docker image; anyone can try it"),
 ], fill=GREEN_T, accent=GREEN, inset=0.16, size=12, gap=2, name="Functional now")
 box(sprint, L + cw3 + 0.2, ytop, cw3, 6.85 - ytop, [
     ("label", "How it changed"),
@@ -636,7 +639,7 @@ box(ev2, L + cw3 + 0.2, yb, cw3, 6.85 - yb, [
     ("b", "Messages name the date: Konkani turned \"the next working day\" into \"next week\""),
     ("b", "Explanations use the time in force, not the proposed one"),
     ("b", "An unclear patient button was reworded"),
-    ("b", "20 automated safety tests now guard all of this"),
+    ("b", "30 automated tests now guard all of this"),
 ], fill=GREEN_T, accent=GREEN, inset=0.16, size=13, gap=3, name="Improvements")
 box(ev2, L + 2 * (cw3 + 0.2), yb, cw3, 6.85 - yb, [
     ("label", "Limitations"),
@@ -686,12 +689,14 @@ for i, (h, fill, acc, items) in enumerate(quads):
 # ---------------------------------------------------------------- 13 deployment
 
 frame(deploy, "Deployment, Cost and Sustainability Plan",
-      "Installs as a CARE plugin on the hospital's own server; about ₹1 a message to run")
+      "Live on Microsoft Azure today; the pilot runs the same Docker image; about ₹1 a message to run")
 lw = 5.75
 box(deploy, L, TOP, lw, 2.75, [
-    ("label", "What a pilot needs"),
-    ("b", "A CARE instance (the hospital's, or a VM running CARE with Docker Compose); RAD-SMART installs as a "
-          "backend and a frontend plugin"),
+    ("label", "Running today, and what a pilot needs"),
+    ("b", "**Live now:** one Docker image (CARE's production build with both plugins) on Azure Container Apps, "
+          "with PostgreSQL, daily backups and HTTPS; one script deploys it"),
+    ("b", "**Pilot:** the same image with demonstration mode off, on the hospital's server beside its CARE, or in "
+          "Azure Central India so data stays in India"),
     ("b", "A laptop or tablet at the machine console and at reception; a USB QR scanner or the camera"),
     ("b", "The department's WhatsApp on a staff phone or WhatsApp Web"),
     ("b", "Internet and an API key for Sarvam; everything else works offline"),
@@ -714,7 +719,8 @@ rows = [("One-time", None),
         ("Per message, about 190 characters: translation ₹0.38 + voice ₹0.57", "about 1"),
         ("Per course: about 3 messages, plus explanations under ₹0.10", "about 3 – 5"),
         ("Per facility per month: about 85 new courses, plus breakdown messages", "about 400 – 850"),
-        ("Hosting on the hospital's own server or VM", "0")]
+        ("Hosting on the hospital's own server or VM", "0"),
+        ("Or Azure in India instead of a server, per month", "about 4,000 – 6,000")]
 tbl = deploy.shapes.add_table(len(rows) + 1, 2, Inches(tx), Inches(TOP), Inches(tw), Inches(3.8))
 tbl.name = "Cost table"
 t = tbl.table

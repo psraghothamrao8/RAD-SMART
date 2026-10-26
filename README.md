@@ -99,6 +99,8 @@ docker exec care_radsmart_dev-backend-1 python manage.py test care_radsmart.test
 cd poc && pip install -r requirements.txt && python -m unittest discover -s tests -v
 ```
 
+New to Docker or Azure? [`deploy/HOSTING_GUIDE.md`](deploy/HOSTING_GUIDE.md) explains every command, from an empty PC to the live server.
+
 Details: [`workspace/README.md`](workspace/README.md) (development), [`app/README.md`](app/README.md) (the plugins, roles and API), [`poc/README.md`](poc/README.md) (the engine and its experiments).
 
 ## What is in this folder

@@ -5,11 +5,11 @@ RAD-SMART runs live on Microsoft Azure, packaged as **one Docker image**: CARE's
 The public server is in **demonstration mode**, for judges and the department: the patients are synthetic and the data is renewed every morning. It runs on an **Azure for Students** subscription using only services that subscription gets free, so it spends none of the credit. The same image runs a real department; [From demonstration to pilot](#from-demonstration-to-pilot) lists what changes.
 
 ```bash
-bash deploy/azure/deploy.sh all       # create, build, init, push, webhook, job
+bash deploy/azure/deploy.sh all       # setup, create, build, init, push, webhook, job
 bash deploy/azure/deploy.sh status
 ```
 
-Run it in Git Bash after `az login`, with the development stack running (`workspace/restore.sh`). The `init` and `webhook` steps use the stack's containers.
+Run it in Git Bash after `az login`, with the development stack running (`workspace/restore.sh`). The `init` and `webhook` steps use the stack's containers. On a new subscription, `setup` installs the Container Apps CLI extension and registers the resource providers. Every command the script runs is explained in [`../HOSTING_GUIDE.md`](../HOSTING_GUIDE.md).
 
 After a change to the plugin, update the server in this order. The job migrates the database before the app's new code needs it:
 

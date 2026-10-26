@@ -12,10 +12,12 @@ cd RAD-SMART
 SARVAM_API_KEY=your-key bash workspace/restore.sh      # the key is optional
 ```
 
+For the Telegram demonstration, also pass `RADSMART_TELEGRAM_TOKEN=...` and `RADSMART_TELEGRAM_SECRET=...`. Each key given replaces only its own line in `.agent/.env`, so running it again with one key keeps the others.
+
 `restore.sh` does this, in order:
 
 1. Fetches CARE's backend, CARE's frontend and care_scaffold at the exact commits in [`pins.env`](pins.env), next to the repository in `../care-workspace/scaffold`. Line-ending conversion is switched off for them, because CRLF breaks the shell scripts that run inside the containers.
-2. Writes `care-scaffold.env` (ports 19100-19107, project `care_radsmart_dev`) and `.agent/paths.env`, and copies in the four files in [`agent/`](agent/): the compose wrapper, its port overrides, the plugin registration and the care_fe launcher. A Sarvam key, if you pass one, goes to `.agent/.env`, which is git-ignored and never printed.
+2. Writes `care-scaffold.env` (ports 19100-19107, project `care_radsmart_dev`) and `.agent/paths.env`, and copies in the four files in [`agent/`](agent/): the compose wrapper, its port overrides, the plugin registration and the care_fe launcher. A Sarvam key or Telegram keys, if you pass them, go to `.agent/.env`, which is git-ignored and never printed.
 3. Builds and starts the stack (`backend`, `celery`, Postgres, Redis, MinIO). Celery's start-up runs the migrations, including the plugin's.
 4. Loads CARE's fixture users and facilities, then fills the facility *FACILITY WITH PATIENTS* with the synthetic RAD-SMART demonstration data (`radsmart_demo`, 60 patients).
 5. Runs `npm install` for care_fe and for the frontend plugin.

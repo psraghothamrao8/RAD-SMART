@@ -4,6 +4,7 @@
 #
 #   bash deploy/azure/deploy.sh <step> ...
 #
+#   setup     a new subscription: the Container Apps CLI extension and the resource providers (once)
 #   create    resource group, container registry, PostgreSQL, Container Apps environment (once)
 #   build     both frontends and the image, with local Docker
 #   init      fill a copy of the database in the local development stack and upload it
@@ -16,7 +17,7 @@
 #   reseed    run the daily job now and wait for it (after a plugin update: it migrates)
 #   status    address, whether it is public, replicas, awake hours, recent job runs
 #   pause / resume   take the app off the internet by hand, or put it back
-#   all       create build init push webhook job
+#   all       setup create build init push webhook job
 #   down      delete everything in the resource group (asks first)
 #
 # Run it in Git Bash from a clone of this repository, signed in with `az login`, with the
@@ -110,6 +111,18 @@ open_db() {
 }
 close_db() {
   az postgres flexible-server firewall-rule delete -g "$RG" -s "$PG" -n deploy-local --yes -o none || true
+}
+
+# -------------------------------------------------------------------- setup
+# A new subscription has to allow each kind of Azure resource before it can be created.
+setup() {
+  log "Azure CLI extension for Container Apps"
+  az extension show -n containerapp -o none 2>/dev/null || az extension add -n containerapp -o none
+  local ns
+  for ns in Microsoft.App Microsoft.ContainerRegistry Microsoft.DBforPostgreSQL; do
+    log "Resource provider $ns"
+    az provider register -n "$ns" --wait -o none
+  done
 }
 
 # ------------------------------------------------------------------- create
@@ -372,8 +385,8 @@ down() {
 [[ $# -gt 0 ]] || { sed -n '2,30p' "$0"; exit 2; }
 for step in "$@"; do
   case "$step" in
-    create|build|init|upload|push|webhook|job|reseed|status|pause|resume|down) "$step" ;;
-    all) create; build; init; push; webhook; job ;;
+    setup|create|build|init|upload|push|webhook|job|reseed|status|pause|resume|down) "$step" ;;
+    all) setup; create; build; init; push; webhook; job ;;
     *) echo "unknown step: $step" >&2; exit 2 ;;
   esac
 done

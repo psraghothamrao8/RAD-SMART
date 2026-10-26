@@ -11,6 +11,7 @@
 #   PORT_BASE=19100      first of eight consecutive ports (API, care_fe, plugin, Postgres, Redis, MinIO x2, debugger)
 #   PROJECT=...          Docker Compose project name (default care_radsmart_dev)
 #   SARVAM_API_KEY=...   optional; written to <workspace>/.agent/.env (git-ignored), never printed
+#   RADSMART_TELEGRAM_TOKEN=..., RADSMART_TELEGRAM_SECRET=...   optional, for Telegram in the demonstration; kept the same way
 #
 # --files-only   clone and write the configuration, but do not start Docker
 # --no-seed      start the stack but skip fixtures and demonstration data
@@ -93,10 +94,15 @@ PLUGIN_BE='$RS/app/care_radsmart'
 RADSMART_ENGINE='$RS/poc'
 PLUGIN_FE='$RS/app/care_radsmart_fe'
 EOF
-if [[ -n "${SARVAM_API_KEY:-}" ]]; then
-  ( umask 077; printf 'SARVAM_API_KEY=%s\n' "$SARVAM_API_KEY" > "$WORKSPACE/.agent/.env" )
-  echo "   Sarvam key written to .agent/.env"
-elif [[ ! -f "$WORKSPACE/.agent/.env" ]]; then
+# Secrets given on the command line replace their own line in .agent/.env and keep the others.
+for key in SARVAM_API_KEY RADSMART_TELEGRAM_TOKEN RADSMART_TELEGRAM_SECRET; do
+  [[ -n "${!key:-}" ]] || continue
+  ( umask 077; touch "$WORKSPACE/.agent/.env"
+    { grep -v "^$key=" "$WORKSPACE/.agent/.env" || true; printf '%s=%s\n' "$key" "${!key}"; } > "$WORKSPACE/.agent/.env.new"
+    mv "$WORKSPACE/.agent/.env.new" "$WORKSPACE/.agent/.env" )
+  echo "   $key written to .agent/.env"
+done
+if ! grep -q '^SARVAM_API_KEY=' "$WORKSPACE/.agent/.env" 2>/dev/null; then
   echo "   no SARVAM_API_KEY: messages will be English-only until you put one in $WORKSPACE/.agent/.env"
 fi
 

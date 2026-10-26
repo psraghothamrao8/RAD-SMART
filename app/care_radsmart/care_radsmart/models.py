@@ -82,6 +82,7 @@ class Course(EMRBaseModel):
     demo = models.BooleanField(default=False)          # synthetic demonstration course
     patient_token = models.CharField(max_length=40, blank=True, default="", db_index=True)  # the patient's page link
     checkin_code = models.CharField(max_length=8, blank=True, default="")  # shown as a QR code at reception
+    telegram_chat = models.BigIntegerField(null=True, blank=True)        # set when the patient opens the bot link
 
     class Meta:
         indexes = [models.Index(fields=["facility", "status"])]
@@ -198,6 +199,7 @@ class Message(EMRBaseModel):
     sent_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
                                 blank=True, related_name="+")
     sent_at = models.DateTimeField(null=True, blank=True)
+    channel = models.CharField(max_length=16, blank=True, default="")   # "telegram" when the server sent it
 
     class Meta:
         indexes = [models.Index(fields=["facility", "date"])]
@@ -225,3 +227,22 @@ class PatientReply(EMRBaseModel):
     handled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
                                    blank=True, related_name="+")
     handled_at = models.DateTimeField(null=True, blank=True)
+    channel = models.CharField(max_length=16, default="page")          # "page" or "telegram"
+
+
+class SarvamResult(models.Model):
+    """A Sarvam answer, kept so the same text is never paid for twice (the
+    cache in Redis is lost when the server restarts)."""
+
+    key = models.CharField(max_length=96, primary_key=True)
+    text = models.TextField(blank=True, default="")
+    audio = models.BinaryField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+
+class SarvamUsage(models.Model):
+    """Characters sent to Sarvam each day, for the spending limits."""
+
+    day = models.DateField(primary_key=True)
+    chars = models.PositiveIntegerField(default=0)
+    calls = models.PositiveIntegerField(default=0)

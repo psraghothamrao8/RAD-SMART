@@ -7,8 +7,10 @@ a translation or explanation that changes, drops or invents a time is thrown
 away and the English text is used instead. Nothing sent to Sarvam carries a
 patient's name, hospital number or phone number.
 
-Without a key (or when Sarvam cannot be reached) every function falls back:
-patients get the English message and staff see the engine's own reasons.
+Without a key (or when Sarvam cannot be reached, or a spending limit is
+reached) every function falls back: patients get the English message and staff
+see the engine's own reasons. Every answer is kept in the database, so the same
+text is paid for once.
 """
 
 from __future__ import annotations
@@ -22,7 +24,11 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 from django.core.cache import cache
+from django.db import transaction
+from django.db.models import Sum
+from django.utils import timezone
 
+from care_radsmart.models import SarvamResult, SarvamUsage
 from care_radsmart.settings import plugin_settings
 
 log = logging.getLogger(__name__)
@@ -31,7 +37,8 @@ API = "https://api.sarvam.ai"
 TRANSLATE_MODEL = "sarvam-translate:v1"
 VOICE_MODEL = "bulbul:v3"
 CHAT_MODEL = "sarvam-105b"
-WEEK = 7 * 24 * 3600
+LIMIT = "Today's Sarvam AI limit is used up: sent in English."
+UNREACHABLE = "Sarvam AI could not be reached: sent in English."
 
 # Patient language -> (text language, voice language, note for staff).
 # Tulu has no Sarvam model: Tulu speakers read Kannada script, and staff can
@@ -76,6 +83,45 @@ def _key(*parts) -> str:
     return "radsmart:sarvam:" + hashlib.sha256("|".join(map(str, parts)).encode()).hexdigest()
 
 
+# ------------------------------------------------------------ kept answers
+def _load(keys) -> dict:
+    """Kept answers for these keys: text, or MP3 bytes for a voice note. Answers
+    still in the older Redis cache move to the database when first read."""
+    keys = list(keys)
+    out = {r.key: bytes(r.audio) if r.audio is not None else r.text
+           for r in SarvamResult.objects.filter(key__in=keys)}
+    if len(out) < len(keys):
+        old = {k: v for k, v in cache.get_many([k for k in keys if k not in out]).items() if v}
+        if old:
+            _save(old)
+            out.update(old)
+    return out
+
+
+def _save(answers: dict) -> None:
+    SarvamResult.objects.bulk_create(
+        [SarvamResult(key=k, audio=v) if isinstance(v, bytes) else SarvamResult(key=k, text=v)
+         for k, v in answers.items()], ignore_conflicts=True)
+
+
+def _allow(chars: int) -> bool:
+    """Count the characters about to be sent; False, counting nothing, when that
+    would pass the day's or the overall limit."""
+    daily = int(plugin_settings.RADSMART_SARVAM_DAILY_CHARS or 0)
+    total = int(plugin_settings.RADSMART_SARVAM_TOTAL_CHARS or 0)
+    day = timezone.localdate()
+    SarvamUsage.objects.get_or_create(day=day)
+    with transaction.atomic():
+        used = SarvamUsage.objects.select_for_update().get(day=day)
+        if daily and used.chars + chars > daily:
+            return False
+        if total and (SarvamUsage.objects.aggregate(n=Sum("chars"))["n"] or 0) + chars > total:
+            return False
+        used.chars, used.calls = used.chars + chars, used.calls + 1
+        used.save()
+    return True
+
+
 def times(text: str) -> list[str]:
     """Every clock time in a text, as HH:MM, in order."""
     out = []
@@ -91,26 +137,51 @@ def same_times(source: str, result: str) -> bool:
 
 
 # ---------------------------------------------------------------- translate
+def _translations(texts: list[str], code: str) -> tuple[dict[str, str], str]:
+    """English -> Sarvam's translation, for every text that could be had, and
+    why the others could not ("" when none is missing)."""
+    keys = {t: _key("tr", TRANSLATE_MODEL, code, t) for t in dict.fromkeys(texts)}
+    kept = _load(keys.values())
+    out = {t: kept[k] for t, k in keys.items() if k in kept}
+    missing = [t for t in keys if t not in out]
+    if not missing:
+        return out, ""
+    if not _allow(sum(map(len, missing))):
+        return out, LIMIT
+
+    def fetch(text):
+        try:
+            return _post("/translate", {"input": text, "source_language_code": "en-IN", "target_language_code": code,
+                                        "model": TRANSLATE_MODEL, "mode": "formal",
+                                        "numerals_format": "international"})["translated_text"]
+        except (requests.RequestException, KeyError, ValueError) as exc:
+            log.warning("Sarvam translate failed: %s", exc)
+            return None
+
+    if len(missing) == 1:
+        got = [fetch(missing[0])]
+    else:
+        with ThreadPoolExecutor(max_workers=4) as pool:      # no database use inside these threads
+            got = list(pool.map(fetch, missing))
+    new = {t: g for t, g in zip(missing, got) if g}
+    _save({keys[t]: g for t, g in new.items()})
+    out.update(new)
+    return out, "" if len(new) == len(missing) else UNREACHABLE
+
+
 def translate(text: str, language: str) -> tuple[str | None, str, str]:
     """(translated text or None, status, note). Status is "ok", "english"
-    (English patient, or no key) or "failed" (Sarvam erred, or the result
-    changed a time: the English text is used)."""
+    (English patient, or no key) or "failed" (Sarvam erred or the limit is
+    reached, or the result changed a time: the English text is used)."""
     code, _, note = LANGUAGES.get(language, ("en-IN", None, ""))
     if code == "en-IN":
         return None, "english", ""
     if not enabled():
         return None, "english", "Sarvam AI is not connected: sent in English."
-    k = _key("tr", TRANSLATE_MODEL, code, text)
-    out = cache.get(k)
+    got, why = _translations([text], code)
+    out = got.get(text)
     if out is None:
-        try:
-            out = _post("/translate", {"input": text, "source_language_code": "en-IN", "target_language_code": code,
-                                       "model": TRANSLATE_MODEL, "mode": "formal",
-                                       "numerals_format": "international"})["translated_text"]
-        except (requests.RequestException, KeyError, ValueError) as exc:
-            log.warning("Sarvam translate failed: %s", exc)
-            return None, "failed", "Sarvam AI could not be reached: sent in English."
-        cache.set(k, out, WEEK)
+        return None, "failed", why
     if not same_times(text, out):
         return None, "failed", "The translation changed a time, so it was not used: sent in English."
     return out, "ok", note
@@ -118,12 +189,12 @@ def translate(text: str, language: str) -> tuple[str | None, str, str]:
 
 def translate_many(texts: list[str], language: str) -> dict[str, str]:
     """English -> translated text for a page's labels (English where a
-    translation is not available). Requests run in parallel and are cached."""
-    if LANGUAGES.get(language, ("en-IN",))[0] == "en-IN" or not enabled():
+    translation is not available). Missing ones are fetched in parallel."""
+    code = LANGUAGES.get(language, ("en-IN",))[0]
+    if code == "en-IN" or not enabled():
         return {t: t for t in texts}
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(lambda t: translate(t, language)[0], texts))
-    return {t: (r or t) for t, r in zip(texts, results)}
+    got, _ = _translations(texts, code)
+    return {t: got[t] if t in got and same_times(t, got[t]) else t for t in texts}
 
 
 # -------------------------------------------------------------------- voice
@@ -137,8 +208,10 @@ def speak(text: str, language: str, speaker: str = "kavya") -> bytes | None:
     if not enabled() or not code or not text:
         return None
     k = _key("tts", VOICE_MODEL, speaker, code, text)
-    audio = cache.get(k)
+    audio = _load([k]).get(k)
     if audio is None:
+        if not _allow(len(text[:2400])):
+            return None
         try:
             data = _post("/text-to-speech", {"text": text[:2400], "language_code": code, "model": VOICE_MODEL,
                                              "speaker": speaker, "pace": 0.9, "output_audio_codec": "mp3"})
@@ -146,7 +219,7 @@ def speak(text: str, language: str, speaker: str = "kavya") -> bytes | None:
         except (requests.RequestException, KeyError, ValueError, IndexError) as exc:
             log.warning("Sarvam voice failed: %s", exc)
             return None
-        cache.set(k, audio, WEEK)
+        _save({k: audio})
     return audio
 
 
@@ -167,8 +240,10 @@ def explain(facts: dict, audience: str = "the technologist and the patient", sen
         return None, "Sarvam AI is not connected."
     lines = "\n".join(f"- {k}: {v}" for k, v in facts.items() if v not in (None, "", []))
     k = _key("explain", CHAT_MODEL, audience, sentences, lines)
-    text = cache.get(k)
+    text = _load([k]).get(k)
     if text is None:
+        if not _allow(len(SYSTEM) + len(lines)):
+            return None, "Today's Sarvam AI limit is used up."
         try:
             data = _post("/v1/chat/completions", {
                 # Reasoning off: with it on, the model spends every token thinking. With clear
@@ -184,7 +259,7 @@ def explain(facts: dict, audience: str = "the technologist and the patient", sen
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).replace("**", "").strip()
         if not text:
             return None, "Sarvam AI gave no answer."
-        cache.set(k, text, WEEK)
+        _save({k: text})
     if not set(times(text)) <= set(times(lines)):
         return None, "The explanation mentioned a time that is not in the plan, so it was not used."
     return text, ""

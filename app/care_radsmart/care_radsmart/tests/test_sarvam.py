@@ -16,6 +16,13 @@ def course(phone="9876543210", demo=False):
     return SimpleNamespace(demo=demo, patient=SimpleNamespace(phone_number=phone))
 
 
+def nothing_kept(cls):
+    """No kept answers, nothing saved, no spending limit: the database is not used."""
+    cls = mock.patch.object(sarvam, "_allow", return_value=True)(cls)
+    cls = mock.patch.object(sarvam, "_save")(cls)
+    return mock.patch.object(sarvam, "_load", return_value={})(cls)
+
+
 class TimesTest(SimpleTestCase):
     def test_reads_times_in_any_script(self):
         # Indian scripts join a suffix straight onto the time.
@@ -36,8 +43,7 @@ class TimesTest(SimpleTestCase):
         self.assertFalse(sarvam.same_times(src, "ದಯವಿಟ್ಟು 19:45ಕ್ಕೆ ಬನ್ನಿ, 17:02ಕ್ಕೆ ಅಲ್ಲ."))  # a time changed
 
 
-@mock.patch.object(sarvam.cache, "set")
-@mock.patch.object(sarvam.cache, "get", return_value=None)
+@nothing_kept
 class TranslateTest(SimpleTestCase):
     SRC = "Radiotherapy department: please come at 19:44 today, not at 17:02."
 
@@ -74,6 +80,30 @@ class TranslateTest(SimpleTestCase):
         self.assertEqual(post.call_args[0][1]["target_language_code"], "kn-IN")
         self.assertIn("Tulu voice note", note)
 
+    @mock.patch.object(sarvam, "enabled", return_value=True)
+    @mock.patch.object(sarvam, "_post")
+    def test_past_the_spending_limit_nothing_is_sent_to_sarvam(self, post, _enabled, allow, _save, _load):
+        allow.return_value = False
+        local, status, note = sarvam.translate(self.SRC, "Kannada")
+        self.assertEqual((local, status), (None, "failed"))
+        self.assertIn("limit", note)
+        post.assert_not_called()
+
+    @mock.patch.object(sarvam, "enabled", return_value=True)
+    @mock.patch.object(sarvam, "_post")
+    def test_a_kept_answer_is_not_paid_for_again(self, post, _enabled, allow, _save, load):
+        load.side_effect = lambda keys: {k: "ಇಂದು 19:44ಕ್ಕೆ ಬನ್ನಿ, 17:02ಕ್ಕೆ ಅಲ್ಲ." for k in keys}
+        self.assertEqual(sarvam.translate(self.SRC, "Kannada")[1], "ok")
+        post.assert_not_called()
+        allow.assert_not_called()
+
+    @mock.patch.object(sarvam, "enabled", return_value=True)
+    @mock.patch.object(sarvam, "_post", return_value={"translated_text": "ಇಂದು 19:44ಕ್ಕೆ ಬನ್ನಿ, 17:02ಕ್ಕೆ ಅಲ್ಲ."})
+    def test_a_new_answer_is_kept_and_counted(self, _post, _enabled, allow, save, _load):
+        sarvam.translate(self.SRC, "Kannada")
+        allow.assert_called_once_with(len(self.SRC))
+        self.assertEqual(list(save.call_args[0][0].values()), ["ಇಂದು 19:44ಕ್ಕೆ ಬನ್ನಿ, 17:02ಕ್ಕೆ ಅಲ್ಲ."])
+
 
 class RateLimitTest(SimpleTestCase):
     @mock.patch.object(sarvam.time, "sleep")
@@ -88,8 +118,7 @@ class RateLimitTest(SimpleTestCase):
         sleep.assert_called_once_with(2.0)
 
 
-@mock.patch.object(sarvam.cache, "set")
-@mock.patch.object(sarvam.cache, "get", return_value=None)
+@nothing_kept
 @mock.patch.object(sarvam, "enabled", return_value=True)
 class ExplainTest(SimpleTestCase):
     FACTS = {"Every later treatment": "at 15:20, come at 14:35", "Engine's reasons": "public transport"}

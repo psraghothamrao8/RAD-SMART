@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from radsmart.config import fmt
 
-from care_radsmart import engine, sarvam
+from care_radsmart import engine, sarvam, telegram
 from care_radsmart.messages import _lead
 from care_radsmart.models import Course, Machine, Message, PatientReply, SlotRequest
 from care_radsmart.serializers import to_minutes
@@ -58,6 +58,7 @@ LABELS = {
     "course_over": "Your course is finished. This page is no longer in use.",
     "english": "English",
     "staff_decide": "Staff decide every change. Nothing changes until they approve it.",
+    "telegram": "Get the department's messages in Telegram",
 }
 
 
@@ -113,37 +114,51 @@ class PatientPage(View):
             "code": c.checkin_code, "qr": _qr(c.checkin_code), "done": request.GET.get("done"),
             "finished": c.status in ("completed", "cancelled"), "late_choices": (15, 30, 45, 60),
             "demo": c.demo, "query": "?lang=en" if lang == "English" and c.language != "English" else "",
+            "telegram": telegram.deep_link(c) if c.status == "approved" else "",
         }
         return render(request, "care_radsmart/patient.html", ctx)
 
     def post(self, request, token):
         c = _course(token)
-        day, _ = _today()
         back = request.path + ("?lang=en&" if request.POST.get("lang") == "en" else "?")
-        kind = request.POST.get("kind")
-        if c.status != "approved" or kind not in dict(PatientReply.KIND):
-            return HttpResponseRedirect(back)
-        if PatientReply.objects.filter(course=c, date=day).count() >= REPLIES_PER_DAY:
-            return HttpResponseRedirect(back + "done=too_many")
-        session = c.sessions.filter(date=day, status__in=engine.ACTIVE).first()
-        reply = PatientReply(facility=c.facility, course=c, session=session, date=day, kind=kind,
-                             reason=str(request.POST.get("reason") or "")[:300])
-        if kind == "late":
-            reply.minutes = max(5, min(240, int(request.POST.get("minutes") or 30)))
-        if kind == "other_time":
-            try:
-                reply.wanted = to_minutes(request.POST.get("wanted"))
-            except Exception:
-                reply.wanted = None
-            if reply.wanted is None:
-                return HttpResponseRedirect(back)
-            from_date = engine.next_treatment_date(day, c.pattern, c.start_date.weekday(), engine.holidays())
-            proposal = engine.propose_change(c, from_date, reply.wanted)
-            reply.slot_request = SlotRequest.objects.create(
-                course=c, from_date=from_date, wanted=reply.wanted, proposal=proposal,
-                reason=("Asked by the patient on their page. " + reply.reason)[:500])
-        reply.save()
-        return HttpResponseRedirect(back + "done=1")
+        try:
+            wanted = to_minutes(request.POST.get("wanted"))
+        except Exception:
+            wanted = None
+        try:
+            minutes = int(request.POST.get("minutes") or 30)
+        except ValueError:
+            minutes = 30
+        result = record_reply(c, request.POST.get("kind"), minutes=minutes, wanted=wanted,
+                              reason=request.POST.get("reason"))
+        return HttpResponseRedirect(back + {"done": "done=1", "too_many": "done=too_many"}.get(result, ""))
+
+
+def record_reply(c: Course, kind: str, minutes: int = 30, wanted: int | None = None, reason: str | None = "",
+                 channel: str = "page") -> str:
+    """Put what the patient said on the department's board: "done", "too_many"
+    (the day's replies are used up) or "invalid". Asking for another time also
+    makes the engine's proposal, for staff to approve."""
+    day, _ = _today()
+    if c.status != "approved" or kind not in dict(PatientReply.KIND) or (kind == "other_time" and wanted is None):
+        return "invalid"
+    if PatientReply.objects.filter(course=c, date=day).count() >= REPLIES_PER_DAY:
+        return "too_many"
+    session = c.sessions.filter(date=day, status__in=engine.ACTIVE).first()
+    reply = PatientReply(facility=c.facility, course=c, session=session, date=day, kind=kind,
+                         reason=str(reason or "")[:300], channel=channel)
+    if kind == "late":
+        reply.minutes = max(5, min(240, minutes))
+    if kind == "other_time":
+        reply.wanted = wanted
+        from_date = engine.next_treatment_date(day, c.pattern, c.start_date.weekday(), engine.holidays())
+        proposal = engine.propose_change(c, from_date, wanted)
+        where = "in Telegram" if channel == "telegram" else "on their page"
+        reply.slot_request = SlotRequest.objects.create(
+            course=c, from_date=from_date, wanted=wanted, proposal=proposal,
+            reason=(f"Asked by the patient {where}. " + reply.reason)[:500])
+    reply.save()
+    return "done"
 
 
 class PatientAudio(View):
@@ -168,7 +183,9 @@ def _date(d: dt.date) -> str:
 
 
 def _qr(code: str) -> str:
-    if not code:
-        return ""
+    return qr_svg(f"RADSMART:{code}") if code else ""
+
+
+def qr_svg(data: str) -> str:
     import segno
-    return segno.make_qr(f"RADSMART:{code}", error="m").svg_inline(border=2, dark="#0e1a2b", omitsize=True)
+    return segno.make_qr(data, error="m").svg_inline(border=2, dark="#0e1a2b", omitsize=True)

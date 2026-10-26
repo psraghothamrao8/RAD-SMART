@@ -5,6 +5,10 @@ allocated and approved through the same engine calls as a real course. Past
 days and today up to `now` are then played out in the digital twin, so the
 boards show arrivals, room-in and room-out times, and Insights shows measured
 waits. Every patient is flagged as demonstration data.
+
+Today's twin is kept on the sessions, and `catch_up` fills in whatever it says
+has happened by now, so a demonstration server's board keeps moving through
+the day (and draws the next day's twin when it comes).
 """
 
 from __future__ import annotations
@@ -116,37 +120,99 @@ def seed(facility, user, census=60, today=None, now=None, seed=7, weeks=7) -> di
 
 
 def _play_out(facility, days, today, now, rng, user) -> int:
-    """Fill in what happened on past days, and today up to `now`, from the twin."""
-    pred = engine.predictor()
+    """Fill in what happened on past days, and today up to `now`, from the
+    twin. Today's twin is kept on each session for `catch_up`."""
     for day in days:
         sessions = list(Session.objects.filter(facility=facility, date=day, status="scheduled")
                         .select_related("course", "course__patient"))
-        if not sessions:
-            continue
-        patients, sched, _ = engine._engine_day(sessions)
-        appt = {pid: (a.machine, a.start) for pid, a in sched.assignments.items()}
-        est = planning_minutes(patients, pred)
-        draw = draw_day(patients, rng)
-        _, rec = simulate(patients, appt, "appointment", est, draw, arrivals="reliable")
-        by_id = {str(s.external_id): s for s in sessions}
-        for pid, s in by_id.items():
-            r = rec.get(pid)
-            cutoff = now if day == today else 10 ** 6
-            if r is None:
-                if pid in draw.noshow and (day < today or appt[pid][1] < now - 60):
-                    engine.miss(s, user, "missed", "did not come")
+        twins = _draw(sessions, rng)
+        cutoff = now if day == today else 10 ** 6
+        for s in sessions:
+            twin = twins.get(str(s.external_id))
+            if twin is None:
                 continue
-            if r["arrival"] > cutoff:
-                continue
-            s.arrived_at = _local(day, r["arrival"])
-            s.status = "arrived"
-            if r["start"] <= cutoff:
-                s.in_room_at, s.status = _local(day, r["start"]), "in_room"
-            if r["end"] <= cutoff:
-                s.out_at, s.status = _local(day, r["end"]), "done"
-            s.save()
+            if day == today:
+                s.meta = {**s.meta, "twin": twin}
+            _apply(s, twin, day, cutoff, user)
+            if day == today and s.status == "scheduled":
+                s.save(update_fields=["meta"])
+    _complete(facility)
+    return len(days)
+
+
+def catch_up(facility, today, now) -> int:
+    """Fill in today's demonstration sessions up to `now` from the kept twin,
+    drawing it first if today has none (the same draw for every caller).
+    Sessions staff moved for today are left to staff. Returns how many changed."""
+    with transaction.atomic():         # two boards opened at once must not both fill in a session
+        sessions = list(Session.objects.select_for_update(of=("self",))
+                        .filter(facility=facility, date=today, course__demo=True)
+                        .select_related("course", "course__patient", "course__approved_by"))
+        return _catch_up(facility, sessions, today, now)
+
+
+def _catch_up(facility, sessions, today, now) -> int:
+    if not sessions:
+        return 0
+    if not any("twin" in s.meta for s in sessions):
+        todo = [s for s in sessions if s.status == "scheduled"]
+        twins = _draw(todo, np.random.default_rng(today.toordinal()))
+        for s in todo:
+            if str(s.external_id) in twins:
+                s.meta = {**s.meta, "twin": twins[str(s.external_id)]}
+                s.save(update_fields=["meta"])
+    changed = 0
+    for s in sessions:
+        twin = s.meta.get("twin")
+        if twin and s.today_start is None and s.status in ("scheduled", "arrived", "in_room"):
+            changed += _apply(s, twin, today, now, s.course.approved_by)
+    if changed:
+        _complete(facility)
+    return changed
+
+
+def _draw(sessions, rng) -> dict:
+    """One day in the twin: {session id: {"arrival", "start", "end"}} in minutes,
+    or {"noshow": True, "appt": minutes} for a patient who does not come."""
+    if not sessions:
+        return {}
+    patients, sched, _ = engine._engine_day(sessions)
+    appt = {pid: (a.machine, a.start) for pid, a in sched.assignments.items()}
+    est = planning_minutes(patients, engine.predictor())
+    draw = draw_day(patients, rng)
+    _, rec = simulate(patients, appt, "appointment", est, draw, arrivals="reliable")
+    out = {}
+    for pid in appt:
+        r = rec.get(pid)
+        if r is not None:
+            out[pid] = {"arrival": float(r["arrival"]), "start": float(r["start"]), "end": float(r["end"])}
+        elif pid in draw.noshow:
+            out[pid] = {"noshow": True, "appt": float(appt[pid][1])}
+    return out
+
+
+def _apply(s, twin, day, cutoff, user) -> bool:
+    """Move one session on to what the twin says has happened by `cutoff`."""
+    if twin.get("noshow"):
+        if s.status == "scheduled" and twin["appt"] < cutoff - 60:
+            engine.miss(s, user, "missed", "did not come")
+            return True
+        return False
+    before = s.status
+    if s.status == "scheduled" and twin["arrival"] <= cutoff:
+        s.arrived_at, s.status = _local(day, twin["arrival"]), "arrived"
+    if s.status == "arrived" and twin["start"] <= cutoff:
+        s.in_room_at, s.status = _local(day, twin["start"]), "in_room"
+    if s.status == "in_room" and twin["end"] <= cutoff:
+        s.out_at, s.status = _local(day, twin["end"]), "done"
+    if s.status == before:
+        return False
+    s.save()
+    return True
+
+
+def _complete(facility):
     for c in Course.objects.filter(facility=facility, demo=True, status="approved"):
         if not c.sessions.filter(status__in=("scheduled", "arrived", "in_room")).exists():
             c.status = "completed"
             c.save(update_fields=["status"])
-    return len(days)

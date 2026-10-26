@@ -133,6 +133,8 @@ export interface Config {
   machines: MachineInfo[];
   /** Sarvam AI is connected: translations, voice notes and plain-language explanations. */
   sarvam?: boolean;
+  /** A Telegram bot is set up (demonstrations): messages can be sent from the server. */
+  telegram?: boolean;
   permissions?: {
     can_view_radsmart: boolean;
     can_operate_radsmart: boolean;
@@ -358,6 +360,10 @@ export interface Message {
   voice: boolean;
   link: string;
   whatsapp: string;
+  /** "telegram" when the server sent it there. */
+  channel: string;
+  /** The patient linked Telegram: the server can send this message there. */
+  telegram: boolean;
   created_date: string;
 }
 
@@ -377,14 +383,21 @@ export interface PatientReply {
   slot_request_status: SlotRequest["status"] | null;
   status: "open" | "done";
   handled_by: string | null;
+  channel: "page" | "telegram";
   created_date: string;
 }
+
+export type MessageStep = "sent" | "cancel" | "translate" | "send-telegram";
 
 export interface PatientLink {
   url: string;
   code: string;
   qr: string;
   whatsapp: string;
+  /** The bot link (empty without Telegram), its QR code, and whether the patient opened it. */
+  telegram: string;
+  telegram_qr: string;
+  telegram_linked: boolean;
 }
 
 export interface Explanation {
@@ -441,7 +454,7 @@ export const API = {
   patients: (facility: string, q: string, id?: string) => request<PatientHit[]>("/patients/", "GET", undefined, { facility, q, id }),
   messages: (facility: string, params: { date?: string; course?: string; status?: string } = {}) =>
     request<Message[]>("/messages/", "GET", undefined, { facility, ...params }),
-  messageStep: (id: string, step: "sent" | "cancel" | "translate") => request<Message>(`/messages/${id}/${step}/`, "POST", {}),
+  messageStep: (id: string, step: MessageStep) => request<Message>(`/messages/${id}/${step}/`, "POST", {}),
   messageAudio: (id: string, english = false) => requestBlobUrl(`/messages/${id}/audio/`, english ? { lang: "en" } : undefined),
   replies: (facility: string, date?: string, status?: string) =>
     request<PatientReply[]>("/replies/", "GET", undefined, { facility, date, status }),

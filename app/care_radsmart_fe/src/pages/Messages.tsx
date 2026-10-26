@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Copy, Languages, MessageCircle, Square, Volume2, X } from "lucide-react";
+import { Check, Copy, Languages, MessageCircle, Send, Square, Volume2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -10,7 +10,7 @@ import { clockTime, longDate } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { keys } from "@/lib/useConfig";
 import { cn } from "@/lib/utils";
-import { API, type Config, type Message } from "@/utils/api";
+import { API, type Config, type Message, type MessageStep } from "@/utils/api";
 
 export default function Messages({ facilityId }: { facilityId: string }) {
   const tr = useT();
@@ -93,9 +93,10 @@ export function MessageCard({ m, facilityId, canOperate, compact }: { m: Message
   const tr = useT();
   const qc = useQueryClient();
   const step = useMutation({
-    mutationFn: (s: "sent" | "cancel" | "translate") => API.messageStep(m.id, s),
+    mutationFn: (s: MessageStep) => API.messageStep(m.id, s),
     onSuccess: (_, s) => {
       if (s === "sent") toast.success(tr("msg_marked", "Marked sent"));
+      if (s === "send-telegram") toast.success(tr("msg_telegram_sent", "Sent on Telegram"));
       qc.invalidateQueries({ queryKey: ["care_radsmart", "messages"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -113,7 +114,11 @@ export function MessageCard({ m, facilityId, canOperate, compact }: { m: Message
           {!compact && <Badge tone={KIND_TONE[m.kind]}>{kindLabel}</Badge>}
           <Badge tone="gray">{m.language}</Badge>
           {m.status === "sent" && (
-            <Badge tone="green">{tr("msg_sent_by", "Sent by {{who}} at {{time}}", { who: m.sent_by ?? "—", time: clockTime(m.sent_at) })}</Badge>
+            <Badge tone="green">
+              {m.channel === "telegram"
+                ? tr("msg_sent_telegram_by", "Sent on Telegram by {{who}} at {{time}}", { who: m.sent_by ?? "—", time: clockTime(m.sent_at) })
+                : tr("msg_sent_by", "Sent by {{who}} at {{time}}", { who: m.sent_by ?? "—", time: clockTime(m.sent_at) })}
+            </Badge>
           )}
           {m.status === "cancelled" && <Badge tone="gray">{tr("msg_cancelled", "Not sent")}</Badge>}
         </span>
@@ -139,8 +144,14 @@ export function MessageCard({ m, facilityId, canOperate, compact }: { m: Message
       </div>
       {canOperate && m.status !== "cancelled" && (
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3">
+          {m.status === "to_send" && m.telegram && (
+            <Button size="sm" onClick={() => step.mutate("send-telegram")} disabled={step.isPending || m.local_status === "pending"}>
+              <Send />
+              {tr("send_telegram", "Send on Telegram")}
+            </Button>
+          )}
           {m.status === "to_send" && (
-            <Button asChild size="sm">
+            <Button asChild size="sm" variant={m.telegram ? "outline" : "primary"}>
               <a href={m.whatsapp} target="_blank" rel="noreferrer">
                 <MessageCircle />
                 {tr("open_whatsapp", "Open WhatsApp")}

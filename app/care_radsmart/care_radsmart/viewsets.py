@@ -25,7 +25,7 @@ from care.emr.models import Patient
 from care.facility.models import Facility
 from care.security.authorization import AuthorizationController
 
-from care_radsmart import engine, messages, sarvam
+from care_radsmart import engine, messages, sarvam, telegram
 from care_radsmart.models import (Course, DayPlan, Machine, MachineEvent, Message, PatientReply, Session, SlotRequest,
                                   Triage)
 from care_radsmart.serializers import (CourseSerializer, MachineSerializer, SlotRequestSerializer,
@@ -90,6 +90,7 @@ class ConfigView(APIView):
         out = engine.options(facility)
         out["enabled"] = bool(plugin_settings.RADSMART_ENABLED)
         out["sarvam"] = sarvam.enabled()
+        out["telegram"] = telegram.enabled()
         if facility:
             out["permissions"] = {k: can(request, k, facility) for k in DENIED}
         day, minutes = clock()
@@ -274,9 +275,12 @@ class CourseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
         url = messages.page_url(course, request)
         text = (f"{plugin_settings.RADSMART_DEPARTMENT}: your radiotherapy times, live, and messages from the "
                 f"department: {url}")
-        from care_radsmart.patient import _qr
+        from care_radsmart.patient import _qr, qr_svg
+        tg = telegram.deep_link(course)
         return Response({"url": url, "code": course.checkin_code, "qr": _qr(course.checkin_code),
-                         "whatsapp": messages.whatsapp_url(course, text)})
+                         "whatsapp": messages.whatsapp_url(course, text),
+                         "telegram": tg, "telegram_qr": qr_svg(tg) if tg else "",
+                         "telegram_linked": bool(course.telegram_chat)})
 
     @action(detail=True, methods=["post"])
     def explain(self, request, external_id=None):
@@ -382,7 +386,11 @@ class DayView(APIView):
     def get(self, request):
         facility = get_facility(request)
         require(request, "can_view_radsmart", facility)
-        day = parse_date(request.query_params.get("date"), clock()[0])
+        today, now = clock()
+        day = parse_date(request.query_params.get("date"), today)
+        if plugin_settings.RADSMART_DEMO and day == today:
+            from care_radsmart.demo import catch_up
+            catch_up(facility, today, now)      # the demonstration patients' day moves on
         out = engine.day_view(facility, day)
         plan = DayPlan.objects.filter(facility=facility, date=day).order_by("-modified_date").first()
         out["approval"] = None if plan is None else {
@@ -593,7 +601,8 @@ class DemoSeedView(APIView):
 
 class MessageViewSet(viewsets.GenericViewSet):
     """Messages to patients, drafted after a person approved the change. Staff
-    send each one (WhatsApp click-to-chat) and mark it sent."""
+    send each one (WhatsApp click-to-chat) and mark it sent, or, where the
+    patient linked Telegram, the server sends it there."""
 
     permission_classes = [IsAuthenticated]
     lookup_field = "external_id"
@@ -625,6 +634,23 @@ class MessageViewSet(viewsets.GenericViewSet):
     def sent(self, request, external_id=None):
         m = self._get(request, external_id)
         m.status, m.sent_by, m.sent_at, m.updated_by = "sent", request.user, timezone.now(), request.user
+        m.save()
+        return Response(messages.row(m, request))
+
+    @action(detail=True, methods=["post"], url_path="send-telegram")
+    def send_telegram(self, request, external_id=None):
+        """Send to the patient's Telegram chat, with the voice note; the message is then sent."""
+        m = self._get(request, external_id)
+        if m.status == "cancelled":
+            raise ValidationError("This message was cancelled.")
+        if not telegram.enabled():
+            raise ValidationError("Telegram is not set up on this server.")
+        try:
+            telegram.send(m, messages.page_url(m.course, request))
+        except telegram.TelegramError as exc:
+            raise ValidationError(str(exc)) from exc
+        m.status, m.sent_by, m.sent_at, m.channel, m.updated_by = (
+            "sent", request.user, timezone.now(), "telegram", request.user)
         m.save()
         return Response(messages.row(m, request))
 
@@ -698,7 +724,7 @@ def reply_row(r: PatientReply) -> dict:
             "slot_request": str(r.slot_request.external_id) if r.slot_request else None,
             "slot_request_status": r.slot_request.status if r.slot_request else None,
             "status": r.status, "handled_by": r.handled_by.username if r.handled_by else None,
-            "created_date": r.created_date}
+            "channel": r.channel, "created_date": r.created_date}
 
 
 class CheckInView(APIView):

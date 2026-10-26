@@ -57,6 +57,7 @@
   form { margin:0; }
   .actions { display:grid; gap:10px; }
   button, .btn { width:100%; font:inherit; font-weight:600; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
+  a.btn { display:block; box-sizing:border-box; text-align:center; text-decoration:none; }
   button.primary { background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
   details { border:1px solid var(--line); border-radius:12px; padding:0 14px; background:var(--card); }
   details[open] { padding-bottom:14px; }
@@ -178,6 +179,13 @@
       </div>
       <p class="foot">{{ t.staff_decide }}</p>
     </section>
+
+    {% if telegram %}
+    <section class="card" aria-labelledby="tg">
+      <h2 id="tg">{{ t.telegram }}</h2>
+      <a class="btn" href="{{ telegram }}" rel="noopener">Telegram</a>
+    </section>
+    {% endif %}
   {% endif %}
   <p class="foot">RAD-SMART · {{ dept }}</p>
 </main>

@@ -331,6 +331,7 @@ function Replies({ replies, facilityId, canOperate }: { replies: PatientReply[];
               {r.time && ` · ${tr("treat_at", "treatment {{time}}", { time: r.time })}`} · {clockTime(r.created_date)}
             </span>
             {r.reason && <span className="text-xs text-gray-600">“{r.reason}”</span>}
+            {r.channel === "telegram" && <Badge tone="gray">{tr("via_telegram", "Telegram")}</Badge>}
             <span className="ml-auto flex items-center gap-2">
               {r.kind === "other_time" && r.slot_request_status === "proposed" && (
                 <PageLink href={`/facility/${facilityId}/radsmart/courses`} className="text-xs">

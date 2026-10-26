@@ -105,6 +105,15 @@ DEFAULTS = {
     # patients get the English message and staff see the engine's own reasons.
     "SARVAM_API_KEY": "",
     "RADSMART_SARVAM_TIMEOUT": 25,
+    # Most characters sent to Sarvam in a day, and in all (0 = no limit). Past either,
+    # messages go in English. Results are kept, so a text is paid for once.
+    "RADSMART_SARVAM_DAILY_CHARS": 0,
+    "RADSMART_SARVAM_TOTAL_CHARS": 0,
+    # Telegram bot, for demonstrations (real use sends on WhatsApp). The token is BotFather's;
+    # the secret is any random string, also given to Telegram with the webhook. Without a
+    # token the Telegram buttons are hidden.
+    "RADSMART_TELEGRAM_TOKEN": "",
+    "RADSMART_TELEGRAM_SECRET": "",
     # The name patients see on their messages and page.
     "RADSMART_DEPARTMENT": "Radiotherapy department",
     # Address patients' phones reach this server on (e.g. https://care.example.org). When

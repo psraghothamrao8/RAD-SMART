@@ -9,6 +9,10 @@ services:
         [{"name":"care_radsmart","package_name":"/plugins/care_radsmart","version":"","configs":{"RADSMART_DEMO":true,"RADSMART_MACHINES":"VERSA:Versa HD"}}]
       # Sarvam AI key, from .agent/.env (never committed); empty means English-only messages.
       SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      # Telegram bot for demonstrations, also from .agent/.env; empty hides the Telegram buttons.
+      # Locally: python manage.py radsmart_telegram --poll
+      RADSMART_TELEGRAM_TOKEN: ${RADSMART_TELEGRAM_TOKEN:-}
+      RADSMART_TELEGRAM_SECRET: ${RADSMART_TELEGRAM_SECRET:-}
     volumes:
       - &plugin_mount
         type: bind

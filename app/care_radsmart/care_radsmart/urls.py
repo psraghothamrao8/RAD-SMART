@@ -4,6 +4,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from care_radsmart.patient import PatientAudio, PatientPage
+from care_radsmart.telegram import Webhook as TelegramWebhook
 from care_radsmart.viewsets import (CheckInView, ConfigView, CourseViewSet, DayView, DemoSeedView, InsightsView,
                                     MachineViewSet, MessageViewSet, PatientSearchView, ReplyViewSet, SessionViewSet,
                                     SlotRequestViewSet, TriageViewSet)
@@ -28,4 +29,6 @@ urlpatterns = [
     # The patient's own page: a private link, no login.
     path("p/<str:token>/", PatientPage.as_view(), name="care_radsmart-patient"),
     path("p/<str:token>/audio/<uuid:message>/", PatientAudio.as_view(), name="care_radsmart-patient-audio"),
+    # Telegram's webhook (demonstrations only); it carries its own secret.
+    path("telegram/", TelegramWebhook.as_view(), name="care_radsmart-telegram"),
 ]

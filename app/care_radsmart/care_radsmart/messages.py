@@ -4,7 +4,8 @@ A message is drafted only after a person approved the change (a course, a new
 standing time, a breakdown response). It is translated into the patient's
 language by Sarvam AI, and a technologist sends it with WhatsApp's
 click-to-chat link (no paid gateway is needed for the pilot), then marks it
-sent. Each message carries the link to the patient's page, which shows their
+sent. For demonstrations the server can send it on Telegram instead
+(telegram.py). Each message carries the link to the patient's page, which shows their
 times live, plays the message aloud, and lets them say they are late, cannot
 come, or need another time.
 """
@@ -205,6 +206,7 @@ def full_text(m: Message, link: str) -> str:
 
 
 def row(m: Message, request=None) -> dict:
+    from care_radsmart import telegram      # telegram uses this module
     link = page_url(m.course, request)
     return {
         "id": str(m.external_id), "course": str(m.course.external_id), "patient_name": m.course.patient.name,
@@ -214,4 +216,5 @@ def row(m: Message, request=None) -> dict:
         "sent_by": m.sent_by.username if m.sent_by else None, "sent_at": m.sent_at,
         "voice": bool(sarvam.enabled() and sarvam.voice_language(m.language)),
         "link": link, "whatsapp": whatsapp_url(m.course, full_text(m, link)), "created_date": m.created_date,
+        "channel": m.channel, "telegram": bool(m.course.telegram_chat) and telegram.enabled(),
     }

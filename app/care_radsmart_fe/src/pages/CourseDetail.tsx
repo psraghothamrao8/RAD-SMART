@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck2, Copy, ExternalLink, MessageCircle, RefreshCw, Sparkles } from "lucide-react";
+import { CalendarCheck2, Copy, ExternalLink, MessageCircle, RefreshCw, Send, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -337,7 +337,17 @@ function ExplainBox({ c, facilityId, proposal, chosenTime }: { c: Course; facili
 /** The patient's own page (live times, messages, replies) and the code reception scans. */
 function PatientLinkCard({ c, facilityId }: { c: Course; facilityId: string }) {
   const tr = useT();
-  const link = useQuery({ queryKey: keys.patientLink(facilityId, c.id), queryFn: () => API.patientLink(facilityId, c.id) });
+  const qc = useQueryClient();
+  const link = useQuery({
+    queryKey: keys.patientLink(facilityId, c.id),
+    queryFn: () => API.patientLink(facilityId, c.id),
+    // Until the patient presses Start in Telegram, look again every few seconds.
+    refetchInterval: (q) => (q.state.data?.telegram && !q.state.data.telegram_linked ? 5_000 : false),
+  });
+  const linked = link.data?.telegram_linked;
+  useEffect(() => {
+    if (linked) qc.invalidateQueries({ queryKey: ["care_radsmart", "messages"] });
+  }, [linked, qc]);
   return (
     <Card title={tr("patient_page", "The patient's phone page")}>
       {link.isLoading ? (
@@ -345,6 +355,7 @@ function PatientLinkCard({ c, facilityId }: { c: Course; facilityId: string }) {
       ) : !link.data ? (
         <Notice kind="error">{String((link.error as Error)?.message)}</Notice>
       ) : (
+        <>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           {/* SVG drawn by the server (segno) from the six-letter code only. */}
           <div className="w-40 shrink-0 rounded-lg border border-gray-200 bg-white p-1 [&_svg]:h-auto [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: link.data.qr }} />
@@ -381,6 +392,37 @@ function PatientLinkCard({ c, facilityId }: { c: Course; facilityId: string }) {
             </div>
           </div>
         </div>
+        {link.data.telegram && (
+          <div className="mt-4 flex flex-col gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-start">
+            {/* SVG drawn by the server (segno) from the bot link. */}
+            <div className="w-40 shrink-0 rounded-lg border border-gray-200 bg-white p-1 [&_svg]:h-auto [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: link.data.telegram_qr }} />
+            <div className="flex min-w-0 flex-col gap-2 text-sm">
+              <p className="flex flex-wrap items-center gap-2 font-medium text-gray-900">
+                {tr("telegram_title", "Telegram (demonstration)")}
+                {linked ? <Badge tone="green">{tr("telegram_linked", "Linked")}</Badge> : <Badge tone="gray">{tr("telegram_waiting", "Not opened yet")}</Badge>}
+              </p>
+              <p className="text-gray-600">
+                {tr(
+                  "telegram_text",
+                  "The patient scans this with their phone camera and presses Start in Telegram. The messages can then be sent from here with the voice note, and the patient answers with buttons. Real use sends on WhatsApp.",
+                )}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <a href={link.data.telegram} target="_blank" rel="noreferrer">
+                    <Send />
+                    {tr("open_telegram", "Open in Telegram")}
+                  </a>
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(link.data.telegram).then(() => toast.success(tr("copied_link", "Link copied")))}>
+                  <Copy />
+                  {tr("copy_link", "Copy link")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        </>
       )}
     </Card>
   );

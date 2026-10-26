@@ -3,12 +3,14 @@
     python manage.py radsmart_demo --facility <facility external id> --user care-doctor [--census 60] [--time HH:MM]
 """
 
+import datetime as dt
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
 from care.facility.models import Facility
 
-from care_radsmart.demo import seed
+from care_radsmart.demo import seed, set_shift
 from care_radsmart.viewsets import clock
 
 
@@ -27,6 +29,7 @@ class Command(BaseCommand):
             user = get_user_model().objects.get(username=opts["user"])
         except (Facility.DoesNotExist, get_user_model().DoesNotExist) as exc:
             raise CommandError(str(exc)) from exc
+        set_shift(dt.timedelta(0))     # a fresh day runs on the real clock again
         day, now = clock()
         if opts["time"]:
             h, m = opts["time"].split(":")

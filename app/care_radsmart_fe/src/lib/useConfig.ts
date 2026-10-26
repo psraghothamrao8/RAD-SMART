@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { setClockShift } from "@/lib/format";
 import { API } from "@/utils/api";
 
 export function useConfig(facilityId: string) {
   return useQuery({
     queryKey: ["care_radsmart", "config", facilityId],
-    queryFn: () => API.config(facilityId),
+    queryFn: () => API.config(facilityId).then((c) => (setClockShift(c.shift), c)),
     staleTime: 60_000,
   });
 }

@@ -10,9 +10,10 @@
 #             (migrations, CARE's fixtures, the demonstration data, kept Sarvam answers,
 #             new random passwords); run again to start the data afresh
 #   upload    only the last part of init: send the local copy to the server again
-#   push     push the image and create or update the app
+#   push      push the image and create or update the app
 #   webhook   point the Telegram bot at the app
-#   job       the daily job (05:30 IST): fresh demonstration data, and the guard's check
+#   job       push the image; the daily job (05:30 IST): migrations, fresh demonstration data, the guard's check
+#   reseed    run the daily job now and wait for it (after a plugin update: it migrates)
 #   status    address, whether it is public, replicas, awake hours, recent job runs
 #   pause / resume   take the app off the internet by hand, or put it back
 #   all       create build init push webhook job
@@ -52,6 +53,7 @@ AWAKE_HOURS="${AWAKE_HOURS:-85}"                 # of the 100 free hours a month
 SARVAM_DAILY_CHARS="${SARVAM_DAILY_CHARS:-6000}" # Sarvam spending caps for the public server
 SARVAM_TOTAL_CHARS="${SARVAM_TOTAL_CHARS:-40000}"
 CENSUS="${CENSUS:-60}"
+OPEN_DEMO="${OPEN_DEMO:-True}"                  # the one-click front door at /try/ (tryout.py)
 
 log() { printf '\n== %s\n' "$*"; }
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing prerequisite: $1" >&2; exit 1; }; }
@@ -173,6 +175,7 @@ build() {
   tar -C "$REPO/app/care_radsmart" --exclude=__pycache__ --exclude='*.egg-info' --exclude=tests \
     -cf - setup.py MANIFEST.in README.md care_radsmart | tar -C "$BUILD/plugin" -xf -
   cp "$HERE"/{Dockerfile,nginx.conf,entrypoint.sh,guard.py,settings.py} "$BUILD/"
+  sed -i 's/\r$//' "$BUILD"/{nginx.conf,entrypoint.sh,guard.py,settings.py}   # CRLF from a Windows editor breaks the shebang
 
   tag="$(date +%Y%m%d-%H%M)"
   log "Image $ACR.azurecr.io/radsmart:$tag"
@@ -248,16 +251,20 @@ grant() {   # grant <principal id>: let an identity open or close the app's ingr
   done
   return 1
 }
+ship() {   # the built image into the registry, for the app and the job alike
+  log "Push $(image)"
+  az acr login -n "$ACR" > /dev/null
+  docker push -q "$(image)"
+}
 push() {
   secrets
   local host img
   host="$(fqdn)"; img="$(image)"
-  log "Push $img"
-  az acr login -n "$ACR" > /dev/null
-  docker push -q "$img"
+  ship
   env_common "$host"; registry
   local env=("${ENV_COMMON[@]}" "GUNICORN_WORKERS=2"
-    "RADSMART_SARVAM_DAILY_CHARS=$SARVAM_DAILY_CHARS" "RADSMART_SARVAM_TOTAL_CHARS=$SARVAM_TOTAL_CHARS")
+    "RADSMART_SARVAM_DAILY_CHARS=$SARVAM_DAILY_CHARS" "RADSMART_SARVAM_TOTAL_CHARS=$SARVAM_TOTAL_CHARS"
+    "RADSMART_OPEN_DEMO=$OPEN_DEMO" "RADSMART_DEMO_FACILITY=$RADSMART_FACILITY" "RADSMART_CENSUS=$CENSUS")
   local sec=("${SECRETS_COMMON[@]}")
   [[ -n "${SARVAM_API_KEY:-}" ]] && { sec+=("sarvam-api-key=$SARVAM_API_KEY"); env+=("SARVAM_API_KEY=secretref:sarvam-api-key"); }
   if [[ -n "${RADSMART_TELEGRAM_TOKEN:-}" && -n "${RADSMART_TELEGRAM_SECRET:-}" ]]; then
@@ -293,6 +300,7 @@ webhook() {
 job() {
   secrets
   [[ -n "${RADSMART_FACILITY:-}" ]] || { echo "run init first" >&2; exit 1; }
+  ship
   env_common "$(fqdn)"; registry
   local env=("${ENV_COMMON[@]}" "RADSMART_FACILITY=$RADSMART_FACILITY" "RADSMART_CENSUS=$CENSUS")
   if az containerapp job show -g "$RG" -n "$JOB" -o none 2>/dev/null; then
@@ -308,6 +316,18 @@ job() {
       --secrets "${SECRETS_COMMON[@]}" --env-vars "${env[@]}" --args reseed -o none
     grant "$(az containerapp job show -g "$RG" -n "$JOB" --query identity.principalId -o tsv)"
   fi
+}
+
+reseed() {
+  log "Run $JOB now"
+  local run state
+  run="$(az containerapp job start -g "$RG" -n "$JOB" --query name -o tsv | tr -d '\r')"
+  while state="$(az containerapp job execution show -g "$RG" -n "$JOB" --job-execution-name "$run" \
+      --query properties.status -o tsv | tr -d '\r')"; [[ "$state" == Running || "$state" == Processing ]]; do
+    sleep 15
+  done
+  echo "$run: $state"
+  [[ "$state" == Succeeded ]]
 }
 
 # ------------------------------------------------------------------- status
@@ -352,7 +372,7 @@ down() {
 [[ $# -gt 0 ]] || { sed -n '2,30p' "$0"; exit 2; }
 for step in "$@"; do
   case "$step" in
-    create|build|init|upload|push|webhook|job|status|pause|resume|down) "$step" ;;
+    create|build|init|upload|push|webhook|job|reseed|status|pause|resume|down) "$step" ;;
     all) create; build; init; push; webhook; job ;;
     *) echo "unknown step: $step" >&2; exit 2 ;;
   esac

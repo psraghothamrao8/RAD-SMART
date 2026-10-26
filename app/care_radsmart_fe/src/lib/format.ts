@@ -12,20 +12,27 @@ export function toMinutes(value: string): number {
   return minutes < 360 ? minutes + 1440 : minutes;
 }
 
+// A demonstration started again at a working hour runs this far ahead of the real clock
+// (config.shift); real servers leave it at zero.
+let shiftMs = 0;
+export function setClockShift(seconds: number | undefined): void {
+  shiftMs = (seconds ?? 0) * 1000;
+}
+
 export function nowHM(): string {
-  const d = new Date();
+  const d = new Date(Date.now() + shiftMs);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 export function nowMinutes(): number {
-  const d = new Date();
+  const d = new Date(Date.now() + shiftMs);
   const m = d.getHours() * 60 + d.getMinutes();
   return m < 360 ? m + 1440 : m;
 }
 
 export function clockTime(iso: string | null | undefined): string {
   if (!iso) return "—";
-  const d = new Date(iso);
+  const d = new Date(new Date(iso).getTime() + shiftMs);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 

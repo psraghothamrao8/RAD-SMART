@@ -63,6 +63,9 @@ def clock(request=None):
     midnight, so 00:00-05:59 belongs to the previous day. A demonstration may
     pass `date` and `time` to act as if it were another moment."""
     now = timezone.localtime()
+    if plugin_settings.RADSMART_DEMO:
+        from care_radsmart.demo import shift
+        now = timezone.localtime(timezone.now() + shift())   # a demonstration started again runs apart
     day, minutes = now.date(), now.hour * 60 + now.minute
     if minutes < 6 * 60:
         day, minutes = day - dt.timedelta(days=1), minutes + 1440
@@ -95,6 +98,9 @@ class ConfigView(APIView):
             out["permissions"] = {k: can(request, k, facility) for k in DENIED}
         day, minutes = clock()
         out["today"], out["now"] = day.isoformat(), minutes
+        if plugin_settings.RADSMART_DEMO:
+            from care_radsmart.demo import shift
+            out["shift"] = round(shift().total_seconds())   # the app shows times this far ahead
         return Response(out)
 
 

@@ -10,9 +10,11 @@ RAD-SMART is an assistive, not diagnostic, operations layer for radiotherapy dep
 
 **Phase 2 final submission:** [PDF](docs/Phase2_Submission.pdf) ([DOCX](docs/Phase2_Submission.docx)): the eight template sections, what is built and what is not, and the evidence.
 
-**Demo video (3½ min, narrated, with captions):** https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4 file](docs/media/RAD-SMART_demo.mp4)
+**Demo video (3¾ min, narrated, with captions, recorded on the live demonstration):** https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4 file](docs/media/RAD-SMART_demo.mp4)
 
 [![The RAD-SMART demo: a recording of the app in CARE](docs/media/demo_poster.jpg)](https://psraghothamrao8.github.io/RAD-SMART/#demo)
+
+**Try it live:** https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ (synthetic patients only). In the demonstration, go straight in as a doctor, reception, a technologist or a patient with one click and no password, and a patient's messages can go to your own Telegram. In real use, staff sign in to CARE with their own accounts. The demonstration starts again every morning at 05:30 IST; how it is hosted, free, is in [`deploy/azure/`](deploy/azure/README.md).
 
 **How to use the app, and how to demo it:** [User guide (PDF)](docs/RAD-SMART_User_Guide.pdf): the five everyday tasks with screenshots, and a 5-minute demo script
 

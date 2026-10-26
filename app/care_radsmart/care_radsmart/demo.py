@@ -9,6 +9,11 @@ waits. Every patient is flagged as demonstration data.
 Today's twin is kept on the sessions, and `catch_up` fills in whatever it says
 has happened by now, so a demonstration server's board keeps moving through
 the day (and draws the next day's twin when it comes).
+
+A public demonstration can also start the day again at a working hour at any
+time (tryout.py): the demonstration clock then runs `shift()` apart from the
+real one, until the next reseed. Times are still kept as real moments; the
+played-out ones are written that far back, and the app shows them shifted.
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ from __future__ import annotations
 import datetime as dt
 
 import numpy as np
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
@@ -28,7 +34,8 @@ from radsmart.weeks import MIX, mean_course_days
 from care.emr.models import Patient
 
 from care_radsmart import engine
-from care_radsmart.models import Course, DayPlan, Machine, Session, Triage
+from care_radsmart.models import Course, DayPlan, DemoClock, Machine, Session, Triage
+from care_radsmart.settings import plugin_settings
 
 DIAGNOSES = {
     "HN": ["Carcinoma oropharynx", "Carcinoma larynx", "Carcinoma oral cavity"],
@@ -43,9 +50,31 @@ DIAGNOSES = {
 DOSE_PER_FX = {"PALL": 3.0, "SBRT": 10.0, "SRT": 6.0, "TBI": 2.0}
 
 
+SHIFT_KEY = "care_radsmart:demo_shift"
+
+
+def shift() -> dt.timedelta:
+    """How far the demonstration clock runs from the real one: zero unless a visitor
+    started the day again at a working hour."""
+    if not plugin_settings.RADSMART_DEMO:
+        return dt.timedelta(0)
+    seconds = cache.get(SHIFT_KEY)
+    if seconds is None:
+        seconds = DemoClock.objects.values_list("shift", flat=True).first() or 0
+        cache.set(SHIFT_KEY, seconds, timeout=60)
+    return dt.timedelta(seconds=seconds)
+
+
+def set_shift(delta: dt.timedelta) -> None:
+    seconds = round(delta.total_seconds())
+    DemoClock.objects.update_or_create(pk=1, defaults={"shift": seconds})
+    cache.set(SHIFT_KEY, seconds, timeout=60)
+
+
 def _local(day, minutes):
+    """The real moment at which the demonstration clock reads `minutes` on `day`."""
     base = timezone.make_aware(dt.datetime.combine(day, dt.time()))
-    return base + dt.timedelta(minutes=float(minutes))
+    return base + dt.timedelta(minutes=float(minutes)) - shift()
 
 
 def _working_days_back(today, n):

@@ -111,6 +111,8 @@ export interface Config {
   demo: boolean;
   today: string;
   now: number;
+  /** Seconds a demonstration started again runs ahead of the real clock. */
+  shift?: number;
   techniques: (Option & { complex: boolean; accessories: string[]; machines: string[]; fractions: [number, number] })[];
   sites: Option[];
   patterns: Option[];

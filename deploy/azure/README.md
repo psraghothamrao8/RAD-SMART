@@ -9,6 +9,21 @@ bash deploy/azure/deploy.sh status
 
 Run it in Git Bash after `az login`, with the development stack running (`workspace/restore.sh`). The `init` and `webhook` steps use the stack's containers.
 
+After a change to the plugin, update the server in this order. The job migrates the database before the app's new code needs it:
+
+```bash
+bash deploy/azure/deploy.sh build job reseed push
+```
+
+## Two ways in
+
+The address opens the demonstration's front door, `/try/` ([`tryout.py`](../../app/care_radsmart/care_radsmart/tryout.py), switched on by `RADSMART_OPEN_DEMO`):
+
+- **Demonstration.** One click signs the visitor in as the doctor, reception or the technologist, using that role's demonstration account (`RADSMART_DEMO_USERS`). No password is typed. Another link opens a demonstration patient's own phone page. Everyone shares the same demonstration. Changing a password or setting up two-factor sign-in is refused on this server (nginx answers 403), so one visitor cannot lock out the next.
+- **Real use.** CARE's own sign-in page, after signing out of any demonstration account. Each person signs in with their own account, and RAD-SMART checks the role at every step. Reviewers' accounts are in the workspace's `.agent/azure-logins.txt`.
+
+**A fresh day.** Out of hours the department's day is not running. "Start a fresh day" on the front door builds new synthetic patients, in a minute or two on this server (80 to 100 seconds in four tries). It then sets the demonstration's clock to 10:30 (or to `time`, 08:00 to 16:30, when posted to `try/restart/`), with the morning already played out. The clock is an offset from real time in the `DemoClock` table, and it applies only when `RADSMART_DEMO` is on. Times the app shows and records follow the offset, so the board, check-in and the patient's page agree. Fresh days start at most once every five minutes. The daily job sets the offset back to zero.
+
 ## What runs where, and why it is free
 
 | Piece | Azure service | Free allowance (Azure for Students) | Used |
@@ -57,7 +72,7 @@ The CARE frontend is built in the image's first stage, on Linux as CARE's own Do
 
 The local machine can reach the database only while `upload` or `status` runs, through a firewall rule that is removed afterwards. The app reaches it through the "Azure services" rule.
 
-The daily job runs at 05:30 IST. It replaces the demonstration patients with fresh ones and plays the past days out, and the live board then moves through the day as it is viewed. Anything a visitor changed, such as a Telegram link, is gone the next morning.
+The daily job runs at 05:30 IST. It runs any new migrations, then replaces the demonstration patients with fresh ones and plays the past days out. The live board then moves through the day as it is viewed. Anything a visitor changed, such as a Telegram link or the demonstration clock, is gone the next morning. `deploy.sh reseed` runs the job at once and waits for it.
 
 ## Secrets
 

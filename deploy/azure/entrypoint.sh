@@ -47,7 +47,8 @@ case "${1:-serve}" in
   reseed)
     redis --daemonize yes
     status=0
-    python manage.py radsmart_demo --facility "$RADSMART_FACILITY" --user "${RADSMART_DEMO_USER:-care-doctor}" \
+    python manage.py migrate --noinput -v 0 || status=$?   # a newer plugin's tables, before its code runs
+    [[ $status -eq 0 ]] && python manage.py radsmart_demo --facility "$RADSMART_FACILITY" --user "${RADSMART_DEMO_USER:-care-doctor}" \
       --census "${RADSMART_CENSUS:-60}" || status=$?
     python /srv/guard.py --check || true
     exit "$status"

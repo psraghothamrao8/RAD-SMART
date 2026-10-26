@@ -144,7 +144,15 @@ The chart compares each day with the department's baseline (108.6 minutes) and t
 
 ## Part B · Showing it in a demo
 
-### Before the demo (15 minutes)
+### The quickest way: the online demonstration
+
+Open https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ in any browser. Click **Doctor**, **Reception**, **Technologist** or **Patient** to go straight in, with no password. Every patient is synthetic.
+
+- If the department clock there is outside the working day, click **Start a fresh day at 10:30**. The page refreshes itself until the day is ready.
+- To show a message arriving on a phone, open an approved course, scan its **Telegram (demonstration)** code with the phone and press START in the bot's chat. Then click **Send on Telegram** on the Messages page. The patient gets the text, the voice note and the reply buttons. In real use the same message goes by WhatsApp.
+- Everyone who tries it shares the one demonstration. It starts again every morning at 05:30 IST.
+
+### Before the demo on your own CARE (15 minutes)
 
 1. Start the app as described in [app/README.md](https://github.com/psraghothamrao8/RAD-SMART/blob/main/app/README.md): the CARE backend, the RAD-SMART plugin and care_fe.
 2. **Refresh the demonstration data** so today's board is played out up to the current time (command below). On a weekend or a holiday, the demo shows the next working day.
@@ -191,4 +199,4 @@ The refresh command, run in the CARE workspace:
 
 ---
 
-*RAD-SMART proposes; a doctor or technologist decides. It is not a medical device. The demo uses synthetic data on a local copy of CARE.*
+*RAD-SMART proposes; a doctor or technologist decides. It is not a medical device. The demo uses synthetic data only, online or on a local copy of CARE.*

@@ -562,7 +562,8 @@ def postpone_new_start(s: Session, user):
 
 # ---------------------------------------------------------------- insights
 def _minutes_of(when, day) -> float:
-    local = timezone.localtime(when)
+    from care_radsmart.demo import shift         # a demonstration's clock may run apart from the real one
+    local = timezone.localtime(when + shift())
     m = local.hour * 60 + local.minute + local.second / 60
     if local.date() > day:
         m += 1440 * (local.date() - day).days

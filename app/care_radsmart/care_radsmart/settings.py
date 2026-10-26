@@ -96,6 +96,14 @@ DEFAULTS = {
     # Allow POST /api/care_radsmart/demo/seed/ (synthetic patients and courses for a
     # demonstration facility). Keep False anywhere real patients are treated.
     "RADSMART_DEMO": False,
+    # A public demonstration (needs RADSMART_DEMO too): /api/care_radsmart/try/ signs a visitor
+    # in as a role's demonstration account with one click, and can start the demonstration day
+    # again at a working hour. Never where real patients or real staff accounts are.
+    "RADSMART_OPEN_DEMO": False,
+    # The facility it opens (CARE's external id; empty: the one with demonstration courses),
+    # and the account each role enters as, "role:username" pairs.
+    "RADSMART_DEMO_FACILITY": "",
+    "RADSMART_DEMO_USERS": "doctor:care-doctor,reception:care-staff,technologist:care-staff",
     # Machines created for a facility the first time RAD-SMART is opened there:
     # "CODE:Label" pairs, comma separated. Codes match the engine's machine names.
     "RADSMART_MACHINES": "VERSA:Versa HD",

@@ -246,3 +246,11 @@ class SarvamUsage(models.Model):
     day = models.DateField(primary_key=True)
     chars = models.PositiveIntegerField(default=0)
     calls = models.PositiveIntegerField(default=0)
+
+
+class DemoClock(models.Model):
+    """How far a demonstration's clock runs from the real one (one row, RADSMART_DEMO only),
+    so a visitor can start the demonstration day again at a working hour at any time."""
+
+    shift = models.IntegerField(default=0)               # seconds
+    modified = models.DateTimeField(auto_now=True)

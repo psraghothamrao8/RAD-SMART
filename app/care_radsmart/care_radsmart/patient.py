@@ -97,10 +97,12 @@ class PatientPage(View):
         upcoming = [{"date": _date(s.date), "time": fmt(s.start - lead), "fraction": s.fraction_no}
                     for s in sessions if s.date > day and s.status in engine.ACTIVE][:5]
         msgs = []
+        from care_radsmart.demo import shift
+        ahead = shift()
         for m in c.messages.exclude(status="cancelled").order_by("-created_date")[:4]:
             local = m.local_text if lang != "English" and m.local_text else ""
             msgs.append({"id": m.external_id, "text": local or m.text, "english": m.text if local else "",
-                         "when": m.created_date, "voice": bool(sarvam.enabled() and sarvam.voice_language(lang))})
+                         "when": m.created_date + ahead, "voice": bool(sarvam.enabled() and sarvam.voice_language(lang))})
         ctx = {
             "t": t, "token": token, "dept": plugin_settings.RADSMART_DEPARTMENT, "name": _first_name(c.patient.name),
             "lang": lang, "html_lang": sarvam.LANGUAGES.get(lang, ("en-IN",))[0].split("-")[0], "own_language": NATIVE.get(c.language, c.language), "show_toggle": c.language != "English",

@@ -34,11 +34,15 @@ On the department's own 55 recorded days, replayed, the long wait falls from **1
 
 | Who | What they do in RAD-SMART |
 |---|---|
-| Doctor | Enters a course; approves its first day (before 17:00) and one standing daily time; asks for a plain-words explanation |
-| Technologist | Runs the day board (arrived, in room, out); reports a breakdown and approves the re-plan; sends patients' messages |
+| Doctor | Enters a course and the patient's preferred part of the day; approves its first day (before 17:00) and one standing daily time; asks for a plain-words explanation |
+| Technologist | Runs the day board (arrived, in room, out) with a live queue: who to call next, who is late, taking a ready patient in out of turn with a one-tap reason; reports a breakdown and approves the re-plan; sends patients' messages |
 | Reception | Checks patients in by scanning the QR code on their phone |
-| Patient and family | One private phone page, no app and no login: today's time, changes, messages with voice notes, the check-in code, four reply buttons |
+| Patient and family | One private phone page, no app and no login: today's time, changes, messages with voice notes, the check-in code, four reply buttons, a morning, afternoon or evening preference |
 | Head of department | Insights: are long waits falling? |
+
+**The patient's preferred time.** A patient can ask for the morning (08:30–12:00), afternoon or evening (to 21:00). A new patient often starts wherever there is room; as other courses finish, RAD-SMART looks for a free slot inside the preferred part of the day, on every remaining treatment day, that keeps every rule and the time kept for new starts, and offers it to staff. Staff ask the patient, and nothing changes until they approve.
+
+**Patients come early and late.** The day board shows who to call next: the first patient in the plan's order who is here, so the machine never waits for someone who has not come. A technologist can take anyone in at any time. RAD-SMART asks why with one tap, reminds them of anything to check (bladder preparation, senior staff, a shared ABC unit or breast board), and records it, but never blocks them.
 
 **Patients and Sarvam AI.** After each approval RAD-SMART drafts the patient's message in Kannada, Malayalam, Hindi or Konkani (Tulu speakers read Kannada script) with Sarvam Translate, and a voice note with Bulbul v3; a technologist opens it in WhatsApp and presses send. Sarvam-105B explains a proposed time in plain words. A translation that changes a time, or an explanation that invents one, is thrown away; without Sarvam everything works in English. In our evaluation ([`docs/evaluation/`](docs/evaluation/sarvam_evaluation.md)), 112 of 112 translations in four languages kept every time, and 20 of 20 explanations were accepted.
 
@@ -92,7 +96,7 @@ bash workspace/restore.sh
 # deploy to Azure (after az login, with the development environment running)
 bash deploy/azure/deploy.sh all
 
-# the plugin's 30 automated tests, inside the running CARE backend
+# the plugin's 37 automated tests, inside the running CARE backend
 docker exec care_radsmart_dev-backend-1 python manage.py test care_radsmart.tests
 
 # the engine's quick checks, also run by GitHub on every push

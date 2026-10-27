@@ -2,7 +2,7 @@ import datetime as dt
 
 from rest_framework import serializers
 
-from radsmart.config import DEPARTMENT, GAP_CATEGORIES, PATTERNS, TECHNIQUES, fmt
+from radsmart.config import BANDS, DEPARTMENT, GAP_CATEGORIES, PATTERNS, TECHNIQUES, fmt
 
 from care_radsmart.engine import CHECKLIST, IMAGING, LANGUAGES, MOBILITY, SITES, flags
 from care_radsmart.models import Course, Machine, SlotRequest, Triage
@@ -46,7 +46,6 @@ class CourseSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="external_id", read_only=True)
     patient = serializers.UUIDField(source="patient.external_id", read_only=True)
     patient_name = serializers.CharField(source="patient.name", read_only=True)
-    preferred_time = ClockField(required=False, allow_null=True)
     earliest_start = ClockField(required=False, allow_null=True)
     latest_end = ClockField(required=False, allow_null=True)
     approved_by = serializers.CharField(source="approved_by.username", read_only=True, default=None)
@@ -58,7 +57,7 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = ("id", "patient", "patient_name", "hospital_number", "diagnosis", "total_dose_gy",
                   "fractions", "pattern", "technique", "technique_label", "site", "mobility", "imaging",
-                  "machines", "checklist", "preferred_time", "earliest_start", "latest_end", "gap_category",
+                  "machines", "checklist", "time_band", "earliest_start", "latest_end", "gap_category",
                   "language", "start_date", "status", "approved_by", "approved_at", "proposal", "first",
                   "slots", "minutes", "first_minutes", "dates", "note", "demo", "flags", "sessions_done",
                   "created_date", "modified_date")
@@ -147,8 +146,11 @@ class CourseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"earliest_start": "Give the time window"})
         if lo is not None and hi is not None and hi - lo < 30:
             raise serializers.ValidationError({"latest_end": "The window must be at least 30 minutes"})
-        if ck.get("preferred") and attrs.get("preferred_time", getattr(self.instance, "preferred_time", None)) is None:
-            raise serializers.ValidationError({"preferred_time": "Give the preferred time"})
+        band = attrs.get("time_band", getattr(self.instance, "time_band", ""))
+        if ck.get("preferred") and not band:
+            raise serializers.ValidationError({"time_band": "Choose morning, afternoon or evening"})
+        if not ck.get("preferred"):
+            attrs["time_band"] = ""
         if ck.get("gap_sensitive"):
             attrs["gap_category"] = 1
         return attrs
@@ -172,16 +174,21 @@ class SlotRequestSerializer(serializers.ModelSerializer):
     hospital_number = serializers.CharField(source="course.hospital_number", read_only=True)
     current = serializers.SerializerMethodField()
     wanted = ClockField()
+    band_label = serializers.SerializerMethodField()
     decided_by = serializers.CharField(source="decided_by.username", read_only=True, default=None)
 
     class Meta:
         model = SlotRequest
-        fields = ("id", "course", "patient_name", "hospital_number", "current", "from_date", "wanted",
-                  "reason", "proposal", "status", "decided_by", "decided_at", "created_date")
+        fields = ("id", "course", "patient_name", "hospital_number", "current", "from_date", "wanted", "band",
+                  "band_label", "source", "reason", "proposal", "status", "decided_by", "decided_at",
+                  "created_date")
 
     def get_current(self, obj):
         slots = obj.course.slots or []
         return fmt(slots[-1]["start"]) if slots else None
+
+    def get_band_label(self, obj):
+        return BANDS.get(obj.band, "")
 
 
 def parse_date(value, default=None) -> dt.date:

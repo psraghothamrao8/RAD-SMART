@@ -104,7 +104,21 @@ export interface MachineInfo {
   last_end?: string;
   booked_min?: number;
   new_start_room_min?: number;
+  /** Today's live queue on this machine (a suggestion: staff take anyone in). */
+  queue?: MachineQueue | null;
 }
+
+export interface MachineQueue {
+  /** The first in plan order who is here and ready (hospice patients first from 16:00). */
+  next: string | null;
+  in_room: string | null;
+  waiting: number;
+  not_here: number;
+  /** Minutes the last room entry was after its planned time (negative: ahead). */
+  behind_min: number | null;
+}
+
+export type Band = "morning" | "afternoon" | "evening";
 
 export interface Config {
   enabled: boolean;
@@ -121,6 +135,7 @@ export interface Config {
   gap_categories: { code: number; label: string }[];
   languages: string[];
   checklist: { hard: ChecklistItem[]; soft: ChecklistItem[]; always: string[] };
+  bands: { code: Band; label: string; from: number; to: number }[];
   actions: Record<string, string>;
   day: {
     start: number;
@@ -174,6 +189,25 @@ export interface SessionRow {
   note: string;
   demo: boolean;
   date?: string;
+  band: Band | "";
+  /** Taken in ahead of someone earlier in the plan, and why. */
+  out_of_turn: boolean;
+  turn_note: string;
+  /** Today only: minutes past the treatment time while not here yet. */
+  late_by?: number;
+  /** Today only: what to check before taking the patient in now. */
+  cautions?: string[];
+  often_late?: boolean;
+  /** An open request for another standing time (the patient's, or RAD-SMART's offer). */
+  offer?: {
+    id: string;
+    source: SlotRequest["source"];
+    band: Band | "";
+    from_date: string;
+    time: string | null;
+    in_band: boolean | null;
+    problem: string | null;
+  } | null;
 }
 
 export interface Check {
@@ -185,6 +219,9 @@ export interface Check {
 
 export interface DayView {
   date: string;
+  /** Minutes after midnight now (today only). */
+  now: number | null;
+  now_time: string | null;
   sessions: SessionRow[];
   machines: MachineInfo[];
   check: Check;
@@ -217,6 +254,10 @@ export interface Proposal {
   alternatives: Slot[];
   from_date?: string;
   wanted?: string;
+  /** A request for a part of the day: whether the proposed time is inside it. */
+  in_band?: boolean;
+  /** RAD-SMART's offer: the standing time now. */
+  current?: string;
 }
 
 export interface Course {
@@ -235,7 +276,7 @@ export interface Course {
   imaging: string;
   machines: string[];
   checklist: Record<string, boolean>;
-  preferred_time: string | null;
+  time_band: Band | "";
   earliest_start: string | null;
   latest_end: string | null;
   gap_category: number;
@@ -320,10 +361,14 @@ export interface SlotRequest {
   hospital_number: string;
   current: string | null;
   from_date: string;
-  wanted: string;
+  wanted: string | null;
+  band: Band | "";
+  band_label: string;
+  /** Who asked: the patient, staff for the patient, or RAD-SMART offering a time inside the preferred part of the day. */
+  source: "patient" | "staff" | "radsmart";
   reason: string;
   proposal: Proposal;
-  status: "proposed" | "approved" | "rejected";
+  status: "proposed" | "approved" | "rejected" | "withdrawn";
   decided_by: string | null;
 }
 
@@ -380,6 +425,7 @@ export interface PatientReply {
   label: string;
   minutes: number | null;
   wanted: string | null;
+  band: Band | "";
   reason: string;
   slot_request: string | null;
   slot_request_status: SlotRequest["status"] | null;
@@ -425,8 +471,8 @@ export const API = {
   approveDay: (facility: string, date: string) => request<{ status: string; check: Check }>("/day/", "POST", { facility, date }),
   machineStatus: (id: string, body: { status: "online" | "offline"; expected_minutes?: number; note?: string; time?: string }) =>
     request<{ machine: MachineInfo; triage: Triage | null }>(`/machines/${id}/status/`, "POST", body),
-  session: (id: string, step: "arrive" | "room" | "done" | "undo" | "send-home", note?: string) =>
-    request<SessionRow>(`/sessions/${id}/${step}/`, "POST", note ? { note } : {}),
+  session: (id: string, step: "arrive" | "room" | "done" | "undo" | "send-home", body: { note?: string; reason?: string } = {}) =>
+    request<SessionRow>(`/sessions/${id}/${step}/`, "POST", body),
   courses: (facility: string, params: { status?: string; q?: string; patient?: string } = {}) =>
     request<Course[]>("/courses/", "GET", undefined, { facility, ...params }),
   course: (facility: string, id: string) => request<Course>(`/courses/${id}/`, "GET", undefined, { facility }),
@@ -438,9 +484,11 @@ export const API = {
   approve: (facility: string, id: string, proposal: Proposal, chosen_time?: string) =>
     request<Course>(`/courses/${id}/approve/`, "POST", { proposal, chosen_time }, { facility }),
   cancel: (facility: string, id: string) => request<Course>(`/courses/${id}/cancel/`, "POST", {}, { facility }),
+  preference: (facility: string, id: string, band: Band | "") =>
+    request<Course>(`/courses/${id}/preference/`, "POST", { band }, { facility }),
   courseSessions: (facility: string, id: string) =>
     request<SessionRow[]>(`/courses/${id}/sessions/`, "GET", undefined, { facility }),
-  slotRequest: (facility: string, id: string, body: { from_date: string; wanted: string; reason?: string }) =>
+  slotRequest: (facility: string, id: string, body: { from_date: string; wanted?: string; band?: Band; reason?: string }) =>
     request<SlotRequest>(`/courses/${id}/slot-request/`, "POST", body, { facility }),
   slotRequests: (facility: string, status?: string) =>
     request<SlotRequest[]>("/slot-requests/", "GET", undefined, { facility, status }),

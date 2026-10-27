@@ -186,16 +186,21 @@ class DayScheduler:
         d, w = self.d, self.d["weights"]
         c = 0.0
         target = p.requested if p.requested is not None else (None if standing else p.usual_time)
-        paying = p.requested is not None and p.paying
+        band = d.get("time_bands", {}).get(p.band) if p.band else None
+        paying = (p.requested is not None or band is not None) and p.paying
         weight = (w["pref_complex"] if p.complex
                   else w["pref_paying"] if paying
                   else w["pref_flexible"] if p.flexible else w["pref_general"])
         tol = w["pref_tolerance_paying"] if paying else w["pref_tolerance"]
         if target is not None:
             c += weight * max(0.0, abs(start - target) - tol) / 10
+        if band is not None:
+            if not (p.complex or paying or p.flexible):
+                weight = w.get("pref_band", weight)
+            c += weight * outside_band(band, start, end) / 10
         if standing and p.flexible:
             c += w["flexible_daytime"] * max(0, d["new_start_latest_end"] - start) / 10
-        if p.elderly:
+        if p.elderly and band is None:          # a stated band replaces "older patients earlier"
             c += w["elderly_after_1pm"] * max(0, start - d["elderly_pref_before"]) / 10
         if not p.flexible:
             c += w["late_evening"] * max(0, end - d["late_evening_after"]) / 10
@@ -466,7 +471,8 @@ class DayScheduler:
         if p.flexible and end > d["late_evening_after"]:
             kind = "inpatient" if p.inpatient else "dormitory" if p.dormitory else "lives nearby"
             out.append(f"{kind}: late-evening slot, keeps earlier slots for stricter constraints")
-        if p.elderly and start <= d["elderly_pref_before"]:
+        out += band_reason(d, p, start, end)
+        if p.elderly and not p.band and start <= d["elderly_pref_before"]:
             out.append("older patient: earlier slot")
         lead = p.report_lead
         out.append(f"report at {fmt(start - lead)} ({lead} min before"
@@ -481,6 +487,27 @@ class DayScheduler:
             out.append(f"moved {start - prev_time[p.pid]:+.0f} min from published time "
                        f"{fmt(prev_time[p.pid])}")
         return out
+
+
+def outside_band(band, start, end) -> float:
+    """Minutes of a session outside a (from, to) time band."""
+    lo, hi = band
+    return max(0.0, lo - start) + max(0.0, end - hi)
+
+
+def band_reason(d, p, start, end, standing=False) -> list[str]:
+    """The explanation line for a patient's morning/afternoon/evening."""
+    band = d.get("time_bands", {}).get(p.band) if p.band else None
+    if band is None:
+        return []
+    off = outside_band(band, start, end)
+    name = f"{p.band} ({fmt(band[0])}-{fmt(band[1])})"
+    if off < 1:
+        return [f"in the patient's preferred {name}"]
+    if not standing:
+        return [f"{off:.0f} min outside the patient's preferred {name}"]
+    return [f"outside the patient's preferred {name}: no time inside it is free on every date"
+            " without breaking a rule or the new-start reserve; RAD-SMART offers one when it frees up"]
 
 
 def check_plan(patients, schedule, dept: dict | None = None, standing: dict | None = None) -> dict:

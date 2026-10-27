@@ -382,9 +382,9 @@ for i, (n, verb, text) in enumerate(steps):
         arrow(sol1, x + stw + 0.08, TOP + 0.75, gw - 0.16, 0.3)
 box(sol1, L, 3.55, W, 0.3, [("label", "Key features, built and working")])
 feats = [("Standing slots", "One time per course, free on every treatment date"),
-         ("Day board", "Arrival, in room, out, and a live check of 9 hard rules"),
+         ("Day board", "Call next, late patients, out of turn; 9 hard rules checked"),
          ("Breakdown re-plan", "A proposal for each remaining patient, approved by a person"),
-         ("Requests", "Patients ask for another daily time; staff decide"),
+         ("Preferred time", "Morning, afternoon or evening; a better slot offered as one frees"),
          ("Messages", "Drafted after every approval, translated, with a voice note"),
          ("Patient phone page", "Today's time, changes and replies; no app, no login"),
          ("QR check-in", "Reception scans the code on the patient's phone"),
@@ -534,13 +534,13 @@ ytop = 3.35
 box(sprint, L, ytop, cw3, 6.85 - ytop, [
     ("label", "Functional now"),
     ("b", "Course entry with a standing time, approved by a doctor"),
-    ("b", "Day board: arrival, in room, out, live rule check"),
+    ("b", "Day board: live queue, out of turn for late patients, rule check"),
     ("b", "Breakdown re-planning, approved by a person"),
-    ("b", "Requests for another time, decided by staff"),
+    ("b", "Preferred part of the day; better times offered, agreed by staff"),
     ("b", "Messages in 4 Indian languages with voice notes, opened in WhatsApp"),
     ("b", "Patient phone page, replies and QR check-in"),
     ("b", "Plain-words explanations, with a time check"),
-    ("b", "Insights · 30 automated tests"),
+    ("b", "Insights · 45 automated tests"),
     ("b", "Live on Microsoft Azure in one Docker image; anyone can try it"),
 ], fill=GREEN_T, accent=GREEN, inset=0.16, size=12, gap=2, name="Functional now")
 box(sprint, L + cw3 + 0.2, ytop, cw3, 6.85 - ytop, [
@@ -548,9 +548,9 @@ box(sprint, L + cw3 + 0.2, ytop, cw3, 6.85 - ytop, [
     ("p", "**From idea to app:** Round 1 was an engine with a simulation; it now runs inside CARE, with a patient side."),
     ("p", "**After the department's answers:** one standing time per course; new starts finish before 17:00; "
           "their 60-minute breakdown rule; only a doctor approves a course."),
-    ("p", "**Challenges found in testing, fixed:** Kannada attaches suffixes to times; Konkani turned \"the next "
-          "working day\" into \"next week\", so messages now name the date; an explanation used the proposed time; "
-          "one patient button was unclear."),
+    ("p", "**From clinical feedback:** morning, afternoon or evening; a late patient's turn goes to whoever is ready."),
+    ("p", "**Challenges found in testing, fixed:** Kannada suffixes on times; Konkani's \"next week\" (messages "
+          "now name the date); an explanation using the proposed time; an unclear button."),
 ], fill=BLUE_T, inset=0.16, size=12, gap=6, name="How it changed")
 box(sprint, L + 2 * (cw3 + 0.2), ytop, cw3, 6.85 - ytop, [
     ("label", "Not yet built"),
@@ -639,7 +639,7 @@ box(ev2, L + cw3 + 0.2, yb, cw3, 6.85 - yb, [
     ("b", "Messages name the date: Konkani turned \"the next working day\" into \"next week\""),
     ("b", "Explanations use the time in force, not the proposed one"),
     ("b", "An unclear patient button was reworded"),
-    ("b", "30 automated tests now guard all of this"),
+    ("b", "45 automated tests now guard all of this"),
 ], fill=GREEN_T, accent=GREEN, inset=0.16, size=13, gap=3, name="Improvements")
 box(ev2, L + 2 * (cw3 + 0.2), yb, cw3, 6.85 - yb, [
     ("label", "Limitations"),
@@ -678,7 +678,7 @@ quads = [
         "Messages in Kannada, Malayalam, Hindi and Konkani, with voice notes for those who read little",
         "Tulu speakers read Kannada; staff can record a Tulu voice note",
         "Works on any phone with a browser: no app, no login; the page switches between the patient's language and English",
-        "Patients can ask for another daily time from the page; staff decide"]),
+        "Patients can ask for the morning, afternoon or evening; staff agree any change with them"]),
 ]
 qw, qh = (W - 0.2) / 2, (6.85 - TOP - 0.2) / 2
 for i, (h, fill, acc, items) in enumerate(quads):

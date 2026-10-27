@@ -92,9 +92,11 @@ def course_text(course: Course) -> str:
     return out
 
 
-def slot_text(course: Course, from_date, start: int) -> str:
+def slot_text(course: Course, from_date, start: int, agreed: bool = False) -> str:
+    """agreed: a time RAD-SMART offered and the patient accepted with staff."""
     return (f"{_dept()}: from {_day(from_date.isoformat())}, please come at {fmt(start - _lead(course))} "
-            "on every treatment day. This is the new time you asked for.")
+            "on every treatment day. "
+            + ("This is the new time you agreed with the staff." if agreed else "This is the new time you asked for."))
 
 
 def breakdown_text(action: str, report_now: str | None, report_usual: str, next_day: str | None = None,
@@ -144,8 +146,8 @@ def for_course(course: Course, user, day) -> Message | None:
     return draft(course, "course", course_text(course), day, user)
 
 
-def for_slot_change(course: Course, from_date, start: int, user, day) -> Message:
-    return draft(course, "slot", slot_text(course, from_date, start), day, user)
+def for_slot_change(course: Course, from_date, start: int, user, day, agreed: bool = False) -> Message:
+    return draft(course, "slot", slot_text(course, from_date, start, agreed), day, user)
 
 
 def for_triage(proposal: dict, user, day) -> list[Message]:

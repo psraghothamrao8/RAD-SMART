@@ -9,15 +9,17 @@ hard rule in the day's plan.
 from __future__ import annotations
 
 import datetime as dt
+import logging
 import threading
 from dataclasses import replace
 
 import numpy as np
-from django.db import transaction
+from django.core.cache import cache
+from django.db import connection, transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from radsmart.config import DEPARTMENT, GAP_CATEGORIES, PATTERNS, TECHNIQUES, fmt
+from radsmart.config import BANDS, DEPARTMENT, GAP_CATEGORIES, PATTERNS, TECHNIQUES, fmt
 from radsmart.courses import Course as EngineCourse
 from radsmart.courses import SlotAllocator, SlotBook, next_treatment_date, treatment_dates
 from radsmart.downtime import ACTION_LABELS
@@ -25,8 +27,10 @@ from radsmart.downtime import triage as engine_triage
 from radsmart.scheduler import Assignment, Schedule, check_plan
 from radsmart.synth import Patient as EnginePatient
 
-from care_radsmart.models import Course, Machine, Session
+from care_radsmart.models import Course, Machine, Session, SlotRequest
 from care_radsmart.settings import plugin_settings
+
+log = logging.getLogger(__name__)
 
 SITES = {"HN": "Head and neck", "BRAIN": "Brain", "THORAX": "Thorax", "BREAST": "Breast",
          "PELVIS": "Pelvis", "ABDOMEN": "Abdomen", "BONE": "Bone", "WHOLE_BODY": "Whole body"}
@@ -53,9 +57,11 @@ CHECKLIST = {
          "fields": ["gap_category"]},
     ],
     "soft": [
-        {"key": "preferred", "label": "Has a preferred time", "fields": ["preferred_time"]},
-        {"key": "paying", "label": "Paying patient: keep the preferred time where possible"},
-        {"key": "older", "label": "Older patient (70+): earlier in the day", "auto": "From the patient's age"},
+        {"key": "preferred", "label": "Prefers a part of the day: morning, afternoon or evening",
+         "fields": ["time_band"]},
+        {"key": "paying", "label": "Paying patient: keep the preferred part of the day firmly"},
+        {"key": "older", "label": "Older patient (70+): earlier in the day, unless they prefer another part",
+         "auto": "From the patient's age"},
         {"key": "inpatient", "label": "Inpatient: can take a late-evening slot"},
         {"key": "dormitory", "label": "Stays in the hospital dormitory: flexible"},
         {"key": "nearby", "label": "Lives nearby: flexible, can be called in early"},
@@ -118,6 +124,8 @@ def options(facility=None) -> dict:
         "gap_categories": [{"code": k, "label": v} for k, v in GAP_CATEGORIES.items()],
         "languages": LANGUAGES,
         "checklist": CHECKLIST,
+        "bands": [{"code": k, "label": v, "from": DEPARTMENT["time_bands"][k][0],
+                   "to": DEPARTMENT["time_bands"][k][1]} for k, v in BANDS.items()],
         "actions": ACTION_LABELS,
         "day": {"start": d["day_start"], "regular_end": d["regular_end"], "hard_end": d["hard_end"],
                 "new_start_latest_end": d["new_start_latest_end"],
@@ -160,8 +168,7 @@ def engine_patient(course: Course, pid=None, fraction_no=1, new_start=True, mach
         dormitory=bool(ck.get("dormitory")), nearby=bool(ck.get("nearby")), transport=transport,
         latest_end=latest if latest and latest < 10 ** 6 else None,
         earliest_start=course.earliest_start if ck.get("time_window") else None,
-        paying=bool(ck.get("paying")), requested=course.preferred_time,
-        usual_time=course.preferred_time or 0, language=course.language,
+        paying=bool(ck.get("paying")), band=course.time_band or None, language=course.language,
         gap_category=course.gap_category, eligible=eligible or ["VERSA"],
     )
 
@@ -180,6 +187,8 @@ def flags(course: Course) -> list[str]:
     out += [{"ABC": "ABC", "BREAST_BOARD": "breast board"}[a] for a in p.accessories]
     if course.gap_category == 1:
         out.append("gap-sensitive")
+    if course.time_band:
+        out.append(f"prefers {course.time_band}")
     return out
 
 
@@ -293,20 +302,32 @@ def approve(course: Course, user, proposal: dict, chosen_start=None) -> dict:
 
 
 # -------------------------------------------------------------- slot change
-def propose_change(course: Course, from_date, wanted: int) -> dict:
+def propose_change(course: Course, from_date, wanted: int | None = None, band: str | None = None) -> dict:
+    """The best standing slot from from_date near an exact time, or inside a
+    part of the day (morning, afternoon, evening), for staff to approve."""
     book = build_book(course.facility, from_date)
     alloc = SlotAllocator(book, predictor())
     c = _engine_course(course)
-    a = alloc.change_slot(c, from_date, wanted)
-    out = proposal_json(c, a, replace(c.patient, requested=wanted))
+    a = alloc.change_slot(c, from_date, wanted, band)
+    out = proposal_json(c, a, replace(c.patient, requested=wanted, band=band or c.patient.band))
     out["first"] = None
     out["from_date"] = from_date.isoformat()
-    out["wanted"] = fmt(wanted)
+    out["wanted"] = BANDS[band] if band else fmt(wanted)
+    if band and a.standing:
+        lo, hi = DEPARTMENT["time_bands"][band]
+        out["in_band"] = lo <= a.standing[1] and a.standing[1] + a.standing[2] <= hi
     return out
 
 
+def next_session_date(course: Course, day):
+    """The first treatment date after day still to come (a change starts there)."""
+    s = (course.sessions.filter(date__gt=day, status="scheduled").exclude(kind="new_start")
+         .order_by("date").first())
+    return s.date if s else None
+
+
 @transaction.atomic
-def apply_change(course: Course, from_date, start: int, user):
+def apply_change(course: Course, from_date, start: int, user, why="at the patient's request"):
     """Move every scheduled fraction from from_date to the approved standing time."""
     _lock_facility(course.facility)
     book = build_book(course.facility, from_date, exclude_course=course)
@@ -322,12 +343,158 @@ def apply_change(course: Course, from_date, start: int, user):
         raise ValidationError("That time is no longer free on every remaining date. Ask for a new proposal.")
     for s in later:
         s.planned_start, s.today_start, s.kind = start, None, "routine"
-        s.note = f"standing slot changed to {fmt(start)} at the patient's request"
+        s.note = f"standing slot changed to {fmt(start)} {why}"
         s.updated_by = user
         s.save()
     course.slots = [x for x in course.slots if x["from"] < from_date.isoformat()] + [
         {"from": from_date.isoformat(), "machine": machine, "start": int(start), "start2": None}]
     course.save(update_fields=["slots", "modified_date"])
+
+
+# ------------------------------------------------------------- better time
+OFFER_REASON = "RAD-SMART: a slot inside the patient's preferred {band} is free now"
+
+
+def offer_better_times(facility, day) -> int:
+    """When slots free up, offer patients treated outside their preferred part
+    of the day a standing slot inside it (same machine, free on every remaining
+    date, keeping the new-start reserve). Staff ask the patient and approve or
+    decline; nothing moves until then. Offers whose slot has been taken since,
+    or whose patient changed their preference, are withdrawn. A patient who
+    declined is not asked again unless their preference changes.
+    Returns the number of new offers."""
+    open_offers = list(SlotRequest.objects.filter(course__facility=facility, status="proposed", source="radsmart")
+                       .select_related("course"))
+    for req in open_offers:
+        c = req.course
+        start = (req.proposal.get("standing") or {}).get("start")
+        stale = (c.status != "approved" or req.band != c.time_band or req.from_date <= day or start is None
+                 or not _still_free(c, req.from_date, start))
+        if stale:
+            req.status, req.decided_at = "withdrawn", timezone.now()
+            req.save(update_fields=["status", "decided_at", "modified_date"])
+    busy = set(SlotRequest.objects.filter(course__facility=facility, status="proposed")
+               .values_list("course_id", flat=True))
+    declined = set(SlotRequest.objects.filter(course__facility=facility, status="rejected", source="radsmart")
+                   .values_list("course_id", "band"))
+    courses = [c for c in Course.objects.filter(facility=facility, status="approved").exclude(time_band="")
+               .exclude(pattern="bid").select_related("patient")
+               if c.pk not in busy and (c.pk, c.time_band) not in declined and c.slots]
+    if not courses:
+        return 0
+    starts = {}
+    for c in courses:
+        f = next_session_date(c, day)
+        if f is not None:
+            starts[c.pk] = f
+    if not starts:
+        return 0
+    book = build_book(facility, min(starts.values()))
+    _hold_open_requests(book, facility)
+    alloc = SlotAllocator(book, predictor())
+    engine_courses = {}
+    for c in courses:
+        if c.pk in starts:
+            ec = _engine_course(c)
+            ec.dates = sorted(set(ec.dates) | set(c.sessions.filter(date__gte=starts[c.pk], status="scheduled")
+                                                  .values_list("date", flat=True)))
+            engine_courses[c.pk] = (c, ec)
+    by_pid = {ec.pid: (c, ec) for c, ec in engine_courses.values()}
+    made = 0
+    for ec, m, st, score, why in alloc.better_times([ec for _, ec in engine_courses.values()],
+                                                    lambda ec: starts[by_pid[ec.pid][0].pk]):
+        c = by_pid[ec.pid][0]
+        f = starts[c.pk]
+        SlotRequest.objects.create(course=c, from_date=f, wanted=int(st), band=c.time_band, source="radsmart",
+                                   proposal=offer_json(c, ec, m, st, f, why, score),
+                                   reason=OFFER_REASON.format(band=c.time_band))
+        made += 1
+    return made
+
+
+def _hold_open_requests(book: SlotBook, facility) -> None:
+    """Hold the times of requests still waiting for staff, so a new offer never
+    shares one. An offer whose time an earlier open request already holds (two
+    passes running close together) is withdrawn."""
+    for req in (SlotRequest.objects.filter(course__facility=facility, status="proposed")
+                .select_related("course", "course__patient").order_by("created_date")):
+        st = req.proposal.get("standing") or {}
+        machine, start = st.get("machine"), st.get("start")
+        if start is None or machine not in book.machines:
+            continue
+        c = req.course
+        dates = sorted(set(c.sessions.filter(date__gte=req.from_date, status="scheduled")
+                           .exclude(kind="new_start").values_list("date", flat=True)))
+        own = str(c.external_id)
+        if req.source == "radsmart" and not all(_free_but(book, own, machine, d, start, c.minutes) for d in dates):
+            req.status, req.decided_at = "withdrawn", timezone.now()
+            req.save(update_fields=["status", "decided_at", "modified_date"])
+            continue
+        acc = engine_patient(c).accessories
+        for d in dates:
+            book.hold(f"{own}#open", machine, d, start, c.minutes, acc)
+
+
+def _free_but(book: SlotBook, pid: str, machine, date, start, minutes) -> bool:
+    """Is the machine free at start on date, apart from pid's own holds?"""
+    s, n = book.idx(start), book.steps(minutes)
+    used = book.day(machine, date)[s:s + n].copy()
+    for res, d, s0, n0 in book.owner.get(pid, ()):
+        lo, hi = max(s, s0), min(s + n, s0 + n0)
+        if res == machine and d == date and lo < hi:
+            used[lo - s:hi - s] -= 1
+    return not used.any()
+
+
+def _still_free(course: Course, from_date, start) -> bool:
+    later = [s for s in course.sessions.filter(date__gte=from_date, status="scheduled") if s.kind != "new_start"]
+    if not later:
+        return False
+    book = build_book(course.facility, from_date, exclude_course=course)
+    alloc = SlotAllocator(book, predictor())
+    p = engine_patient(course)
+    k = book.idx(start)
+    return all(k in alloc.free_steps(p, later[0].machine, d, course.minutes) for d in {s.date for s in later})
+
+
+def offer_json(course: Course, ec, machine, start, from_date, why, score) -> dict:
+    p, d = ec.patient, DEPARTMENT
+    lo, hi = d["time_bands"][course.time_band]
+    now = ec.slot_on(from_date)
+    left = sum(1 for x in ec.dates if x >= from_date)
+    reasons = [f"inside the patient's preferred {course.time_band} ({fmt(lo)}-{fmt(hi)}); now at {fmt(now[1])}",
+               f"free on every one of the {left} remaining treatment days, on the same machine",
+               f"keeps at least {d['new_start_reserve_min']} min free before {fmt(d['new_start_latest_end'])} "
+               "for new starts"] + [w for w in why if "ready at" not in w]
+    return {"ok": True, "problem": None, "start_date": course.start_date.isoformat(),
+            "end_date": ec.dates[-1].isoformat(), "treatment_days": left, "report_lead_min": p.report_lead,
+            "reasons": reasons, "first": None,
+            "standing": {**_slot(machine, start, course.minutes), "report": fmt(start - p.report_lead)},
+            "standing2": None, "alternatives": [], "from_date": from_date.isoformat(),
+            "wanted": BANDS[course.time_band], "in_band": True, "current": fmt(now[1]), "score": score}
+
+
+def offer_later(facility, day=None, throttle: int = 0) -> None:
+    """Run the better-time pass after the current transaction, in the
+    background (the demonstration server has no task worker). One pass per
+    facility at a time; throttle (seconds) skips a pass run that recently."""
+    if throttle and not cache.add(f"radsmart:offer-recent:{facility.pk}", 1, throttle):
+        return
+
+    def run():
+        key = f"radsmart:offer-running:{facility.pk}"
+        if not cache.add(key, 1, 300):
+            return
+        try:
+            from care_radsmart.viewsets import clock
+            offer_better_times(facility, day or clock()[0])
+        except Exception:      # an offer is a suggestion: never let it break the request that freed a slot
+            log.exception("better-time pass failed")
+        finally:
+            cache.delete(key)
+            connection.close()
+
+    transaction.on_commit(lambda: threading.Thread(target=run, daemon=True).start())
 
 
 def _engine_course(course: Course) -> EngineCourse:
@@ -383,11 +550,117 @@ def session_row(s: Session) -> dict:
         "report": fmt(s.start - lead), "minutes": round(s.planned_minutes, 1), "status": s.status,
         "arrived_at": s.arrived_at, "in_room_at": s.in_room_at, "out_at": s.out_at,
         "flags": flags(c), "language": c.language, "gap_category": c.gap_category, "note": s.note,
-        "demo": c.demo,
+        "demo": c.demo, "band": c.time_band, "out_of_turn": s.out_of_turn, "turn_note": s.turn_note,
     }
 
 
-def day_view(facility, day) -> dict:
+ACCESSORY_NAMES = {"ABC": "ABC", "BREAST_BOARD": "breast board"}
+
+
+def queue_row(s: Session, p=None) -> dict:
+    """What the live queue needs to know about one session."""
+    p = p or engine_patient(s.course)
+    return {"id": str(s.external_id), "machine": s.machine, "start": s.start, "minutes": s.planned_minutes,
+            "status": s.status, "new_start": s.kind == "new_start", "pelvic": p.pelvic, "complex": p.complex,
+            "mhrc": p.mhrc, "accessories": list(p.accessories),
+            "arrived": _minutes_of(s.arrived_at, s.date) if s.arrived_at else None,
+            "in_room": _minutes_of(s.in_room_at, s.date) if s.in_room_at else None}
+
+
+def cautions(row: dict, rows: list[dict], now: float, dept=DEPARTMENT) -> list[str]:
+    """What to check before taking a patient in now. Warnings, never blocks:
+    the technologist decides."""
+    d, out = dept, []
+    if row["pelvic"] and row["arrived"] is not None and now < row["arrived"] + d["pelvic_fill_min"]:
+        out.append(f"drinking water: bladder ready at {fmt(row['arrived'] + d['pelvic_fill_min'])}")
+    lo, hi = d["senior_staff_window"]
+    if row["complex"] and now < lo:
+        out.append(f"complex: senior staff from {fmt(lo)}")
+    elif row["complex"] and now + row["minutes"] > hi:
+        out.append(f"complex: senior staff until {fmt(hi)}")
+    if row["new_start"] and now + row["minutes"] > d["new_start_latest_end"]:
+        out.append(f"new start: must finish by {fmt(d['new_start_latest_end'])}")
+    for a in row["accessories"]:
+        name = ACCESSORY_NAMES.get(a, a)
+        other = next((r for r in rows if r["status"] == "in_room" and r["id"] != row["id"]
+                      and r["machine"] != row["machine"] and a in r["accessories"]), None)
+        if other is not None:
+            out.append(f"{name} in use on {d['machines'][other['machine']]['label']}")
+        pad = d["accessories"][a]["transfer_min"]
+        ct = next((b for b in d["ct_sim_bookings"] if b["accessory"] == a
+                   and b["start"] - pad <= now < b["end"] + pad), None)
+        if ct is not None:
+            out.append(f"{name} at the CT simulator until {fmt(ct['end'] + pad)}")
+    return out
+
+
+def live_queue(rows: list[dict], now: float, dept=DEPARTMENT) -> dict:
+    """The board's live queue. For each machine: who to call next (the first in
+    plan order who is here and ready; hospice patients first from 16:00),
+    who is in the room, and how far it runs behind (the longest wait past their
+    time of anyone here, so a patient's own lateness does not count).
+    For each session: minutes past its time while not here, and what to check
+    before taking it in out of turn. Patients not here yet are skipped, and go
+    next when they arrive: the plan is never re-made for an early or late
+    arrival."""
+    d = dept
+    out = {"machines": {}, "sessions": {}}
+    for r in rows:
+        if r["status"] == "scheduled" and now > r["start"]:
+            out["sessions"].setdefault(r["id"], {})["late_by"] = round(now - r["start"])
+        if r["status"] in ("scheduled", "arrived"):
+            c = cautions(r, rows, now, d)
+            if c:
+                out["sessions"].setdefault(r["id"], {})["cautions"] = c
+    for m in sorted({r["machine"] for r in rows}):
+        mine = sorted((r for r in rows if r["machine"] == m), key=lambda r: r["start"])
+        here = [r for r in mine if r["status"] == "arrived"]
+        ready = [r for r in here if not out["sessions"].get(r["id"], {}).get("cautions")]
+        if now >= d["mhrc_window"][0]:
+            ready.sort(key=lambda r: not r["mhrc"])      # stable: plan order within each group
+        kept = [now - max(r["start"], r["arrived"] or r["start"]) for r in here if r["start"] < now]
+        room = next((r for r in mine if r["status"] == "in_room"), None)
+        out["machines"][m] = {
+            "next": ready[0]["id"] if ready else None,
+            "in_room": room["id"] if room else None,
+            "waiting": len(here),
+            "not_here": sum(1 for r in mine if r["status"] == "scheduled" and now > r["start"]),
+            "behind_min": round(max(kept, default=0)),
+        }
+    return out
+
+
+def turn_detail(rows: list[dict], row: dict, now: float | None = None) -> tuple[bool, str]:
+    """Is taking row in now out of turn, and ahead of whom (by plan order).
+    Given the time, those not here are split into late and not due yet."""
+    ahead = [r for r in rows if r["machine"] == row["machine"] and r["id"] != row["id"]
+             and r["status"] in ("scheduled", "arrived") and r["start"] < row["start"]]
+    if not ahead:
+        return False, ""
+    here = sum(r["status"] == "arrived" for r in ahead)
+    away = len(ahead) - here
+    if now is None:
+        counts = [(away, "not here"), (here, "waiting")]
+    else:
+        late = sum(r["status"] == "scheduled" and r["start"] <= now for r in ahead)
+        counts = [(late, "late"), (here, "waiting"), (away - late, "not due yet")]
+    return True, f"ahead of {len(ahead)}: " + ", ".join(f"{n} {what}" for n, what in counts if n)
+
+
+def often_late(course_ids, day) -> set:
+    """Courses whose patient arrived after their treatment time in at least 3
+    of their last 5 arrivals (a gentle flag for the board, nothing more)."""
+    seen = {}
+    for s in (Session.objects.filter(course_id__in=course_ids, date__lt=day, arrived_at__isnull=False)
+              .order_by("course_id", "-date").only("course_id", "date", "arrived_at", "planned_start",
+                                                    "today_start")):
+        k = seen.setdefault(s.course_id, [])
+        if len(k) < 5:
+            k.append(_minutes_of(s.arrived_at, s.date) > s.start)
+    return {cid for cid, late in seen.items() if sum(late) >= 3}
+
+
+def day_view(facility, day, now=None) -> dict:
     sessions = list(Session.objects.filter(facility=facility, date=day)
                     .exclude(status="cancelled").select_related("course", "course__patient")
                     .order_by("machine", "today_start", "planned_start"))
@@ -405,10 +678,32 @@ def day_view(facility, day) -> dict:
             "booked_min": round(sum(s.planned_minutes for s in mine)),
             "new_start_room_min": round(book.new_start_room(m.code, day)),
         }
-    return {"date": day.isoformat(), "sessions": [session_row(s) for s in sessions],
+    patients = {}
+    for s in sessions:
+        if s.course_id not in patients:
+            patients[s.course_id] = engine_patient(s.course)
+    rows = [session_row(s) for s in sessions]
+    queue = {"machines": {}, "sessions": {}}
+    if now is not None:
+        queue = live_queue([queue_row(s, patients[s.course_id]) for s in sessions if s.status in ACTIVE], now)
+    late = often_late({s.course_id for s in sessions}, day)
+    offers = {}
+    for req in (SlotRequest.objects.filter(course__in={s.course_id for s in sessions}, status="proposed")
+                .order_by("created_date")):
+        offers[req.course_id] = {"id": str(req.external_id), "source": req.source, "band": req.band,
+                                 "from_date": req.from_date.isoformat(),
+                                 "time": (req.proposal.get("standing") or {}).get("time"),
+                                 "in_band": req.proposal.get("in_band"), "problem": req.proposal.get("problem")}
+    for s, row in zip(sessions, rows):
+        row.update(queue["sessions"].get(row["id"], {}))
+        row["often_late"] = s.course_id in late
+        row["offer"] = offers.get(s.course_id)
+    return {"date": day.isoformat(), "now": now, "now_time": fmt(now) if now is not None else None,
+            "sessions": rows,
             "machines": [{"id": str(m.external_id), "code": m.code, "name": m.name, "status": m.status,
                           "status_since": m.status_since, "expected_back": m.expected_back,
-                          "note": m.status_note, **per_machine.get(m.code, {})} for m in machines],
+                          "note": m.status_note, **per_machine.get(m.code, {}),
+                          "queue": queue["machines"].get(m.code)} for m in machines],
             "check": check_day(facility, day),
             "counts": {k: sum(s.status == k for s in sessions) for k, _ in Session.STATUS}}
 

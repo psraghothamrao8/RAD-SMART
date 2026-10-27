@@ -172,7 +172,7 @@
         {% endif %}
         <details><summary>{{ t.other_time }}</summary>
           <form method="post"><input type="hidden" name="kind" value="other_time">{% if lang == 'English' and show_toggle %}<input type="hidden" name="lang" value="en">{% endif %}
-            <label for="w">{{ t.time }}</label><input id="w" name="wanted" type="time" required>
+            <label for="w">{{ t.when }}</label><select id="w" name="band" required>{% for k, label in bands %}<option value="{{ k }}"{% if k == band %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
             <label for="r2">{{ t.reason }}</label><input id="r2" name="reason" maxlength="300">
             <button type="submit">{{ t.send }}</button></form>
         </details>

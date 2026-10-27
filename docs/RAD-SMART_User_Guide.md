@@ -34,7 +34,7 @@ The steps below follow one patient and one working day, in the same order as the
 
 2. The button opens the patient's radiotherapy courses. Click **New course**.
 3. Fill in the prescription, as on the paper form: hospital number, diagnosis, total dose, number of fractions, treatment days, technique and site.
-4. In the **priority checklist**, tick what matters for this patient: public transport, hospice bus, ABC or breast board, a time window, gap-sensitive course, preferred time, and so on. **Hard constraints** are always kept. **Soft goals** are met where possible. Some boxes tick themselves: age 70 or over ticks *older patient*, and the technique ticks its accessories.
+4. In the **priority checklist**, tick what matters for this patient: public transport, hospice bus, ABC or breast board, a time window, gap-sensitive course, a preferred part of the day (morning 08:30-12:00, afternoon 12:00-17:00 or evening 17:00-21:00), and so on. **Hard constraints** are always kept. **Soft goals** are met where possible. Some boxes tick themselves: age 70 or over ticks *older patient*, and the technique ticks its accessories.
 
 ![The intake form: prescription and priority checklist.](figures/app2_intake.png){width=5.4}
 
@@ -56,7 +56,7 @@ The patient opens the link on any phone. There is no app and no login, and the p
 - the next five treatment days and their times;
 - the department's messages, each with a voice note to play;
 - on treatment days, the QR code and six letters to show at reception;
-- four buttons: **I am on my way**, **I will be late** (15 to 60 minutes), **I cannot come today**, and **I want a different daily treatment time**. Nothing changes until staff decide; a patient can send at most six replies a day.
+- four buttons: **I am on my way**, **I will be late** (15 to 60 minutes), **I cannot come today**, and **I want a different daily treatment time**, where the patient chooses morning, afternoon or evening. Nothing changes until staff decide; a patient can send at most six replies a day.
 
 ![The patient's page on a phone, in Kannada.](figures/app10_patient_phone.png){width=2.6}
 
@@ -70,7 +70,7 @@ Open **RAD-SMART → Check-in**. A USB barcode scanner types the code from the p
 
 Open **RAD-SMART → Today**. The page shows four things:
 
-- **The machine card:** sessions, new starts, how many are after 17:00, when the day will finish, and the free time left for new starts.
+- **The machine card:** sessions, new starts, how many are after 17:00, when the day will finish, and the free time left for new starts. Below them is the **live queue**: who is in the room, who to **call next**, how many are waiting, how many are past their time and not here yet, and whether the machine is on time or running behind.
 - **The rule check:** a green bar means every hard rule holds for the patients still to be treated. **Approve the plan** records that a technologist or doctor has checked the day.
 - **The timeline:** one block per patient. Green is a new start, blue is a standing slot, orange was moved today, violet is an added fraction. The red line is *now*.
 - **The patient list:** each patient's time, reporting time, needs and status.
@@ -82,15 +82,29 @@ For each patient, tap **Arrived** when they come, **In room** when they go in, a
 - **Undo** corrects a wrong tap.
 - **Not today** sends a patient home for the day, and adds the missed fraction at the end of the course.
 
-**From patients' phones** lists what patients said today: on the way, late by about N minutes, cannot come, or want another time. A badge also appears beside the patient. Click **Done** when it is handled. A request for another time also appears under the course, where you can **Find a time** (step 3).
+**Patients come early and late, and the machine should not stand idle.** **Call next** is the first patient in the plan's order who is here and ready; anyone not here yet is skipped, not waited for, and goes next when they arrive. From 16:00 hospice patients come first, for the 17:00 bus. A patient past their time shows **Not here yet · N min past**, and one who arrived after their time in three of their last five visits shows **Often late**.
+
+You can take anyone in at any time. When you tap **In room** for a patient ahead of others in the plan, RAD-SMART asks why, with one tap: **Came early**, **Next patient not here**, **Clinical reason**, **Other**, or just **Take in**. It never blocks you. It only reminds you of what to check: a full bladder not ready yet, a complex case before senior staff arrive at 10:00, or an ABC unit or breast board in use on another machine or at the CT simulator. The patient is marked **Out of turn**, with the reason and whom they went ahead of, and the plan for everyone else stays as it is.
+
+**From patients' phones** lists what patients said today: on the way, late by about N minutes, cannot come, or asks for the morning, afternoon or evening. A badge also appears beside the patient. Click **Done** when it is handled. A request for another time also appears beside the patient and under the course, with RAD-SMART's proposal (step 3).
 
 ![Recording arrivals: one patient waiting, one in the room, the next ones still to come.](figures/app6_arrivals.png){width=6.2}
 
-### 3. A patient asks for another time
+### 3. The patient's preferred part of the day
+
+Patients say **when** they would like to come (morning, afternoon or evening) rather than an exact minute. The doctor can record it at intake, and the patient can change it from their phone; staff can change it on the course page under **Part of the day**. When the patient states one, it replaces the "older patients earlier" rule.
+
+A new patient often has to start wherever there is room. **As other courses finish and their slots free up, RAD-SMART looks for a better time** for each patient outside their preferred part of the day: a time inside it, on the same machine, free on every remaining treatment day, that keeps every rule and the time kept for new starts. When it finds one, the patient's row on **Today** shows **A morning slot is free: 09:18 every day from Wednesday. Ask the patient.**
+
+- Ask the patient. If they agree, click **Patient agrees**: the new time starts on the date shown, and a message in their language is drafted on **Messages**.
+- If they would rather stay, click **Prefers to stay**. RAD-SMART does not ask again unless their preference changes.
+- Patients with the most fractions left, and furthest from their preferred time, are offered first. No two patients are offered the same slot, an offer is withdrawn if its slot is taken, and patients with three or fewer fractions left are not asked to change.
+
+If the patient asks at the desk:
 
 1. Open **Courses**, search for the patient by name or hospital number, and open the course.
-2. Under **The patient asks for another time**, enter the date it should start from, the time the patient asks for, and the reason (for example, bus timing).
-3. Click **Find a time**. RAD-SMART shows the nearest time that keeps every rule, for this patient and for everyone else.
+2. Under **The patient asks for another time**, enter the date it should start from, what the patient asks for (morning, afternoon, evening, or an exact time), and the reason (for example, bus timing).
+3. Click **Find a time**. RAD-SMART shows the nearest time that keeps every rule, for this patient and for everyone else. If nothing inside the part of the day is free yet, it says so, keeps the preference, and offers a time when one frees up.
 4. Choose a time and click **Approve**, or **Keep** the current time. Nothing changes until someone approves.
 
 ![A slot change: the patient asked for 16:00, and RAD-SMART offers 15:20.](figures/app7_slot_change.png){width=6.2}
@@ -179,7 +193,7 @@ The refresh command, run in the CARE workspace:
 | 1:40 | Proposal (doctor) | **Explain in plain words**, then, after approving, point to the QR code and **Send on WhatsApp** | "Sarvam AI explains the time in the patient's language. Any invented time is thrown away." |
 | 2:10 | Phone (patient) | Show the patient's page in Kannada; play the voice note; tap **I am on my way** | "No app, no login. The patient hears the message in their language." |
 | 2:40 | Check-in (reception) | Type or scan the six-letter code | "Reception scans the phone. The board shows the patient waiting." |
-| 3:00 | Today (technologist) | Show the rule check, the timeline and **From patients' phones**; tap **In room**, **Out** | "Every rule holds. These taps measure the real wait." |
+| 3:00 | Today (technologist) | Show the rule check, the live queue (**Call next**, on time or behind) and **From patients' phones**; tap **In room**, **Out** | "Every rule holds. If the next patient is not here, the machine takes whoever is. These taps measure the real wait." |
 | 3:30 | Breakdown | **Report breakdown**, 2 hours: show the summary, **Approve and notify**, then **Open messages**: **Listen**, **Open WhatsApp** | "A new plan in seconds, under the department's own rules. Every patient's message is drafted in their language." |
 | 4:30 | Insights | Point to the long wait against the baseline and the target | "This is how the department will know if it works: 109 minutes today, target 25% lower." |
 
@@ -196,6 +210,8 @@ The refresh command, run in the CARE workspace:
 - **"Does it work without internet?"** Planning, the rule check, the board and check-in run on the hospital's own server. Translation, voice notes and Explain need Sarvam AI over the internet; without it, messages go in English and staff see RAD-SMART's own reasons. Messages are sent from the department's WhatsApp.
 - **"What if the translation is wrong?"** A translation that drops or changes a time is never used. In our test, 112 of 112 translations in four languages kept every time. (Sarvam has no Tulu model: Tulu speakers get Kannada, and staff can record a Tulu voice note.) Native speakers at the department rate every translation before the pilot.
 - **"Where does it run? Is it production-ready?"** It is live on Microsoft Azure now, as one Docker image built on CARE's production image, with a managed PostgreSQL database and HTTPS, deployed by one script. The pilot runs the same image with demonstration mode off, on the hospital's own server or in an Indian Azure region, after the hospital's IT, data-protection and ethics approvals.
+- **"What if a patient comes early, or is late?"** The technologist takes in whoever is ready. **Call next** skips anyone not here yet; taking a patient out of turn asks for a one-tap reason and is recorded, but is never blocked.
+- **"Patients want the morning or the evening, not an exact time."** The doctor or the patient chooses morning, afternoon or evening. When a slot inside it frees up, RAD-SMART offers it to staff, who ask the patient before anything changes.
 - **"What does staff have to do extra?"** Three taps per patient. The doctor fills in one form per course, which replaces the paper booking.
 
 ---

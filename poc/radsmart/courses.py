@@ -32,7 +32,8 @@ from dataclasses import dataclass, field, replace
 import numpy as np
 
 from .config import DEPARTMENT, PATTERNS, fmt
-from .scheduler import DayScheduler, Schedule, Assignment, check_plan, planning_minutes
+from .scheduler import (DayScheduler, Schedule, Assignment, band_reason, check_plan, outside_band,
+                        planning_minutes)
 
 WEEKDAYS = {"daily": {0, 1, 2, 3, 4}, "bid": {0, 1, 2, 3, 4}, "alternate": {0, 2, 4},
             "twice_weekly": {0, 3}}
@@ -275,7 +276,7 @@ class SlotAllocator:
         return m[first.pid], m[later.pid]
 
     # candidate starts for patient p on machine m whose steps are free on every date
-    def _candidates(self, p, machine, dates, minutes, reserve, ignore_pid=None):
+    def _candidates(self, p, machine, dates, minutes, reserve, ignore_pid=None, relax=False):
         b, d = self.book, self.d
         n = b.steps(minutes)
         lo, hi, why = self.sch._window(p, {})
@@ -296,7 +297,7 @@ class SlotAllocator:
         # the reserve only binds patients who could be treated after 17:00;
         # one whose hard window ends before it (MHRC, complex) is placed anyway
         if reserve and starts and hi > d["new_start_latest_end"]:
-            starts = self._keep_reserve(machine, dates, starts, n, ignore_pid)
+            starts = self._keep_reserve(machine, dates, starts, n, ignore_pid, relax)
         return starts, why
 
     def _fragments(self, machine, dates, starts, n, ignore_pid):
@@ -330,9 +331,11 @@ class SlotAllocator:
                 a[s:s + n] -= 1
         return a
 
-    def _keep_reserve(self, machine, dates, starts, n, ignore_pid):
+    def _keep_reserve(self, machine, dates, starts, n, ignore_pid, relax=False):
         """Drop starts that would leave less than the new-start reserve before
-        17:00 on any of the dates."""
+        17:00 on any of the dates. relax (a move of a booked slot): where the
+        reserve is already short, the move may use time no new start could
+        use, but must not make it any shorter."""
         b, d = self.book, self.d
         cut = b.idx(d["new_start_latest_end"] - d.get("deadline_buffer_min", 0))
         gap = b.steps(d["new_start_gap_min"])
@@ -346,6 +349,10 @@ class SlotAllocator:
             free = ~(occ[:cut].astype(bool) | b.fixed(machine, False)[:cut])
             runs = _runs(free)
             total = sum(r for _, r in runs if r >= gap)
+            floor = need
+            if relax:
+                now = ~(b.day(machine, date)[:cut].astype(bool) | b.fixed(machine, False)[:cut])
+                floor = min(need, sum(r for _, r in _runs(now) if r >= gap))
             run_starts = [a for a, _ in runs]
             for s in early:
                 if s in bad:
@@ -359,7 +366,7 @@ class SlotAllocator:
                         after += (-(r if r >= gap else 0) + (left if left >= gap else 0)
                                   + (right if right >= gap else 0))
                     k += 1
-                if after < need:
+                if after < floor:
                     bad.add(s)
         return [s for s in starts if s not in bad]
 
@@ -426,16 +433,22 @@ class SlotAllocator:
         alloc.standing = (m, st, later_min)
         alloc.reasons += self._explain(rp, m, st, later_min, why, len(later_dates), into_reserve)
         alloc.alternatives = _spread(options[1:], st)
-        if from_date is not None and not into_reserve and p.requested is not None \
-                and abs(st - p.requested) > 15:
+        if from_date is not None and not into_reserve and self._off(p, st, later_min) > 15:
             # a change request: also show the nearest time inside the new-start
             # reserve, for the approver to weigh against the next new starts
             near = self._standing_options(rp, pref, later_dates, later_min, ignore_pid, alloc, False)
-            near = [o for o in near if abs(o[2] - p.requested) < abs(st - p.requested)]
+            near = [o for o in near if self._off(p, o[2], later_min) < self._off(p, st, later_min)]
             if near:
-                o = min(near, key=lambda o: (abs(o[2] - p.requested), o[0]))
+                o = min(near, key=lambda o: (self._off(p, o[2], later_min), o[0]))
                 alloc.alternatives.insert(0, (o[1], o[2], round(o[0], 2), "uses time kept for new starts"))
         return alloc
+
+    def _off(self, p, start, minutes) -> float:
+        """Minutes away from what the patient asked for: an exact time, or a band."""
+        if p.requested is not None:
+            return abs(start - p.requested)
+        band = self.d.get("time_bands", {}).get(p.band) if p.band else None
+        return outside_band(band, start, start + minutes) if band else 0.0
 
     def _standing_options(self, rp, machines, dates, minutes, ignore_pid, alloc, reserve):
         b = self.book
@@ -515,7 +528,8 @@ class SlotAllocator:
             out.append("at the preferred time" if abs(delta) <= 15 else
                        f"{abs(delta):.0f} min {'later' if delta > 0 else 'earlier'} than the preferred "
                        f"time {fmt(p.requested)}")
-        if p.elderly and start <= d["elderly_pref_before"]:
+        out += band_reason(d, p, start, start + minutes, standing=True)
+        if p.elderly and not p.band and start <= d["elderly_pref_before"]:
             out.append("older patient: earlier in the day")
         return out
 
@@ -577,11 +591,81 @@ class SlotAllocator:
                 return c, a
         return c, a
 
-    def change_slot(self, c: Course, from_date, wanted: int) -> Allocation:
+    def change_slot(self, c: Course, from_date, wanted: int | None = None, band: str | None = None) -> Allocation:
         """A patient asks for another time from from_date: the best free standing
-        slot near the wanted time for the rest of the course (for approval)."""
-        p = replace(c.patient, requested=wanted, paying=True)    # honour the request firmly
+        slot near the wanted time, or inside the wanted morning, afternoon or
+        evening, for the rest of the course (for approval)."""
+        if band is not None:
+            p = replace(c.patient, requested=None, band=band, paying=True)
+        else:
+            p = replace(c.patient, requested=wanted, paying=True)    # honour the request firmly
         return self.allocate(replace(c, patient=p), ignore_pid=c.pid, from_date=from_date)
+
+    # ------------------------------------------------------------ better time
+    def better_time(self, c: Course, from_date):
+        """A standing slot inside the patient's time band, on the same machine,
+        free on every remaining date and keeping the new-start reserve: the
+        offer RAD-SMART makes when slots free up. (machine, start, why) or None.
+
+        Not offered for twice-daily courses, for the last few fractions, or
+        when the current slot is already inside the band."""
+        p, b, d = c.patient, self.book, self.d
+        band = d.get("time_bands", {}).get(p.band) if p.band else None
+        if band is None or c.pattern == "bid" or not c.slots:
+            return None
+        dates = [x for x in c.dates if x >= from_date]
+        if len(dates) < d.get("better_time_min_left", 4):
+            return None
+        m, now, _ = c.slot_on(dates[0])
+        if outside_band(band, now, now + c.minutes) < 1:
+            return None
+        rp = replace(p, fraction_no=2, new_start=False)
+        starts, why = self._candidates(rp, m, dates, c.minutes, reserve=True, ignore_pid=c.pid, relax=True)
+        inside = [s for s in starts if outside_band(band, b.t0 + s * b.g, b.t0 + s * b.g + c.minutes) < 1]
+        if not inside:
+            return None
+        w = d["weights"].get("fragment", 0.0)
+        waste = self._fragments(m, dates, inside, b.steps(c.minutes), c.pid) if w else {}
+        s = min(inside, key=lambda s: (self._cost(rp, b.t0 + s * b.g, c.minutes) + w * waste.get(s, 0.0) / 10,
+                                       abs(b.t0 + s * b.g - now)))
+        return m, b.t0 + s * b.g, why
+
+    def better_times(self, courses, from_date_of):
+        """The "better time" pass over every course outside its band. Offers go
+        first to whoever gains most (preference weight x fractions left x
+        minutes outside the band), and each offered slot is held before the
+        next patient is considered, so no two offers share a slot. Current
+        slots stay held too: nothing moves until staff approve an offer.
+        Returns [(course, machine, start, score, why)]."""
+        w, bands = self.d["weights"], self.d.get("time_bands", {})
+        ranked = []
+        for c in courses:
+            band = bands.get(c.patient.band) if c.patient.band else None
+            if band is None or not c.slots:
+                continue
+            f = from_date_of(c)
+            left = sum(1 for x in c.dates if x >= f)
+            slot = c.slot_on(f) if left else None
+            if slot is None:
+                continue
+            off = outside_band(band, slot[1], slot[1] + c.minutes)
+            if off < 1:
+                continue
+            p = c.patient
+            weight = (w["pref_complex"] if p.complex else w["pref_paying"] if p.paying
+                      else w["pref_flexible"] if p.flexible else w.get("pref_band", w["pref_general"]))
+            ranked.append((weight * left * off, c, f))
+        out = []
+        for score, c, f in sorted(ranked, key=lambda r: -r[0]):
+            found = self.better_time(c, f)
+            if found is None:
+                continue
+            m, st, why = found
+            for x in c.dates:
+                if x >= f:
+                    self.book.hold(c.pid + "#offer", m, x, st, c.minutes, c.patient.accessories)
+            out.append((c, m, st, round(score, 1), why))
+        return out
 
     def add_missed_fraction(self, c: Course, holidays=frozenset()):
         """A fraction missed today (breakdown, sent home) is added at the end of

@@ -81,7 +81,7 @@ The department keeps each patient's time for the whole course. When the doctor a
 1. a **new-start slot** on the first day, finishing before 17:00; and
 2. one **standing slot** for every later session: a time that is free on every treatment date of the course, keeps every hard rule, and leaves 150 minutes before 17:00 free for future new patients.
 
-Among the free times it picks the one with the lowest soft cost. If a patient asks for another time, RAD-SMART proposes the nearest time that keeps every rule. On days built from standing slots, the checker adds a ninth rule: every patient is in their slot.
+Among the free times it picks the one with the lowest soft cost. A patient's preferred part of the day (morning 08:30–12:00, afternoon to 17:00, evening to 21:00), when stated, is a soft goal that replaces "older patients earlier". If a patient asks for another time, RAD-SMART proposes the nearest time that keeps every rule. As courses end and slots free up, a *better-time* pass offers patients outside their part of the day a standing slot inside it, free on every remaining date and keeping the new-start reserve; offers are ranked by preference weight × fractions left × minutes outside, each offered slot is held so no two offers collide, and staff agree any change with the patient. On days built from standing slots, the checker adds a ninth rule: every patient is in their slot.
 
 ### 3.5 Breakdown re-planning
 

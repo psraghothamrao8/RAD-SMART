@@ -5,11 +5,11 @@ import { toast } from "sonner";
 
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Badge, Card, Empty, Field, Input, Notice, Spinner, Table } from "@/components/ui/primitives";
+import { Badge, Card, Empty, Field, Input, Notice, Select, Spinner, Table } from "@/components/ui/primitives";
 import { addDays, clockTime, hm, longDate, shortDate, workingDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { keys } from "@/lib/useConfig";
-import { API, type Config, type Course, type Explanation, type Proposal, type SlotRequest } from "@/utils/api";
+import { API, type Band, type Config, type Course, type Explanation, type Proposal, type SlotRequest } from "@/utils/api";
 
 import { COURSE_TONE, useCourseStatus } from "./Courses";
 import { MessageCard } from "./Messages";
@@ -80,7 +80,7 @@ function Detail({ facilityId, courseId, config }: { facilityId: string; courseId
           <Item label={tr("f_machine", "Preferred machine")} value={c.machines.join(", ")} />
           <Item label={tr("f_gap", "Gap category (RCR)")} value={gap ?? String(c.gap_category)} />
           <Item label={tr("progress", "Treated")} value={`${c.sessions_done} of ${c.fractions}`} />
-          {c.preferred_time && <Item label={tr("f_preferred", "Preferred time")} value={c.preferred_time} />}
+          {c.time_band && <Item label={tr("f_band", "Part of the day")} value={config.bands.find((b) => b.code === c.time_band)?.label ?? c.time_band} />}
           {(c.earliest_start || c.latest_end) && (
             <Item label={tr("window", "Time window")} value={`${c.earliest_start ?? "—"} – ${c.latest_end ?? "—"}`} />
           )}
@@ -232,12 +232,32 @@ function Standing({ c, facilityId, config }: { c: Course; facilityId: string; co
   const tr = useT();
   const canOperate = !!config.permissions?.can_operate_radsmart;
   const [fromDate, setFromDate] = useState(workingDay(addDays(config.today, 1)));
-  const [wanted, setWanted] = useState("");
+  const qc = useQueryClient();
+  // What the patient asks for: a part of the day (kept as their preference), or an exact time.
+  const [wanted, setWanted] = useState<string>(c.time_band || "");
+  const [exact, setExact] = useState("");
   const [reason, setReason] = useState("");
   const [req, setReq] = useState<SlotRequest | null>(null);
+  const isBand = wanted !== "" && wanted !== "exact";
   const ask = useMutation({
-    mutationFn: () => API.slotRequest(facilityId, c.id, { from_date: fromDate, wanted, reason }),
+    mutationFn: () =>
+      API.slotRequest(facilityId, c.id, isBand ? { from_date: fromDate, band: wanted as Band, reason } : { from_date: fromDate, wanted: exact, reason }),
     onSuccess: setReq,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  // Requests still waiting for staff: RAD-SMART's offer of a time inside the preferred part of the day, or the patient's.
+  const open = useQuery({
+    queryKey: keys.slotRequests(facilityId),
+    queryFn: () => API.slotRequests(facilityId, "proposed"),
+    enabled: canOperate,
+  });
+  const waiting = (open.data ?? []).filter((r) => r.course === c.id && r.id !== req?.id);
+  const prefer = useMutation({
+    mutationFn: (band: Band | "") => API.preference(facilityId, c.id, band),
+    onSuccess: () => {
+      toast.success(tr("band_saved", "Preference saved. RAD-SMART offers a time inside it when one frees up."));
+      qc.invalidateQueries({ queryKey: ["care_radsmart"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -251,7 +271,7 @@ function Standing({ c, facilityId, config }: { c: Course; facilityId: string; co
         {c.slots.map((s, i) => (
           <SlotBox
             key={`${s.from}-${i}`}
-            title={i === 0 ? tr("standing", "Standing slot, every later fraction") : tr("standing_from", "Standing slot from {{date}}", { date: shortDate(s.from) })}
+            title={c.slots.length === 1 ? tr("standing", "Standing slot, every later fraction") : tr("standing_from", "Standing slot from {{date}}", { date: shortDate(s.from) })}
             main={s.start2 ? `${hm(s.start)} + ${hm(s.start2)}` : hm(s.start)}
             sub={`${s.machine} · ${tr("slot_from", "from")} ${longDate(s.from)}`}
           />
@@ -260,6 +280,28 @@ function Standing({ c, facilityId, config }: { c: Course; facilityId: string; co
       {"ok" in c.proposal && c.proposal.ok && (
         <div className="mt-4">
           <ExplainBox c={c} facilityId={facilityId} />
+        </div>
+      )}
+      {waiting.map((r) => (
+        <div key={r.id} className="mt-4 rounded-lg border border-alert-200 p-3">
+          <RequestRow r={r} facilityId={facilityId} />
+        </div>
+      ))}
+      {canOperate && (
+        <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
+          <Field label={tr("f_band", "Part of the day")}>
+            <Select value={c.time_band} onChange={(e) => prefer.mutate(e.target.value as Band | "")} disabled={prefer.isPending} className="w-56">
+              <option value="">{tr("band_any_label", "Any time")}</option>
+              {config.bands.map((b) => (
+                <option key={b.code} value={b.code}>
+                  {b.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <p className="max-w-md pb-2 text-xs text-gray-500">
+            {tr("band_hint", "A preference: the time does not change now. When a slot inside it frees up on every remaining day, RAD-SMART offers it on the Today board, and staff agree it with the patient.")}
+          </p>
         </div>
       )}
       {canOperate && (
@@ -271,12 +313,25 @@ function Standing({ c, facilityId, config }: { c: Course; facilityId: string; co
               <Input type="date" value={fromDate} min={config.today} onChange={(e) => setFromDate(e.target.value)} className="w-44" />
             </Field>
             <Field label={tr("wanted", "Asks for")}>
-              <Input type="time" value={wanted} onChange={(e) => setWanted(e.target.value)} className="w-32" />
+              <Select value={wanted} onChange={(e) => setWanted(e.target.value)} className="w-56">
+                <option value="">{tr("choose", "Choose…")}</option>
+                {config.bands.map((b) => (
+                  <option key={b.code} value={b.code}>
+                    {b.label}
+                  </option>
+                ))}
+                <option value="exact">{tr("exact_time", "An exact time")}</option>
+              </Select>
             </Field>
+            {wanted === "exact" && (
+              <Field label={tr("time", "Time")}>
+                <Input type="time" value={exact} onChange={(e) => setExact(e.target.value)} className="w-32" />
+              </Field>
+            )}
             <Field label={tr("reason", "Reason")} className="min-w-48 flex-1">
               <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr("reason_ph", "e.g. bus timing, work, chemotherapy")} />
             </Field>
-            <Button onClick={() => ask.mutate()} disabled={!wanted || ask.isPending}>
+            <Button onClick={() => ask.mutate()} disabled={!wanted || (wanted === "exact" && !exact) || ask.isPending}>
               {ask.isPending ? tr("finding", "Finding a time…") : tr("find_time", "Find a time")}
             </Button>
           </div>

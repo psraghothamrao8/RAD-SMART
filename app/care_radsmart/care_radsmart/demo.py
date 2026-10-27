@@ -25,7 +25,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
-from radsmart.config import TECHNIQUES
+from radsmart.config import DEPARTMENT, TECHNIQUES
 from radsmart.scheduler import planning_minutes
 from radsmart.simulate import draw_day, simulate
 from radsmart.synth import _pick, make_patient
@@ -96,6 +96,21 @@ def clear(facility):
     Machine.objects.filter(facility=facility).update(status="online", expected_back=None, status_note="")
 
 
+def _band(p, k, seed) -> str:
+    """The part of the day a demonstration patient prefers. A paying patient's
+    requested time gives it; otherwise about 45% of patients who are not
+    flexible, hospice or complex state one (drawn apart from the main draws,
+    so the rest of the demonstration stays as it was)."""
+    if p.requested is not None:
+        return next((k for k, (lo, hi) in DEPARTMENT["time_bands"].items() if lo <= p.requested < hi), "")
+    if p.flexible or p.mhrc or p.complex:
+        return ""
+    r = np.random.default_rng([seed, k])
+    if r.random() >= 0.45:
+        return ""
+    return str(r.choice(["morning", "afternoon", "evening"], p=[0.5, 0.2, 0.3]))
+
+
 def seed(facility, user, census=60, today=None, now=None, seed=7, weeks=7) -> dict:
     today = today or timezone.localdate()
     now = now if now is not None else 11 * 60
@@ -117,6 +132,7 @@ def seed(facility, user, census=60, today=None, now=None, seed=7, weeks=7) -> di
             if machine not in TECHNIQUES[tech]["machines"]:
                 continue
             p = make_patient(rng, f"D{k:04d}", tech, machine, new_start=True)
+            band = _band(p, k, seed)
             with transaction.atomic():
                 patient = Patient.objects.create(
                     name=f"Demo patient {k:03d}", gender=str(rng.choice(["male", "female"])),
@@ -132,8 +148,8 @@ def seed(facility, user, census=60, today=None, now=None, seed=7, weeks=7) -> di
                     checklist={key: True for key, on in (
                         ("mhrc", p.mhrc), ("transport", p.transport), ("inpatient", p.inpatient),
                         ("dormitory", p.dormitory), ("nearby", p.nearby), ("paying", p.paying),
-                        ("preferred", p.requested is not None), ("gap_sensitive", p.gap_category == 1)) if on},
-                    preferred_time=p.requested, gap_category=p.gap_category, language=p.language,
+                        ("preferred", bool(band)), ("gap_sensitive", p.gap_category == 1)) if on},
+                    time_band=band, gap_category=p.gap_category, language=p.language,
                     start_date=day, demo=True, created_by=user, updated_by=user)
                 proposal = engine.propose(course, day, earliest=True)
                 if not proposal["ok"]:
@@ -143,7 +159,8 @@ def seed(facility, user, census=60, today=None, now=None, seed=7, weeks=7) -> di
                 engine.approve(course, user, proposal)
                 made += 1
     played = _play_out(facility, [d for d in days if d <= today], today, now, rng, user)
-    return {"courses": made, "not_placed": failed, "days_played": played,
+    offers = engine.offer_better_times(facility, today)
+    return {"courses": made, "not_placed": failed, "days_played": played, "better_time_offers": offers,
             "today": today.isoformat(), "sessions_today": Session.objects.filter(
                 facility=facility, date=today, status__in=engine.ACTIVE).count()}
 

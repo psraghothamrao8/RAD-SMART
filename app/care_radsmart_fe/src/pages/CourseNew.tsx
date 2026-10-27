@@ -10,7 +10,7 @@ import { Badge, Card, Field, Input, Notice, Select, TextArea } from "@/component
 import { addDays, workingDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { API, ApiError, type ChecklistItem, type Config, type PatientHit } from "@/utils/api";
+import { API, ApiError, type Band, type ChecklistItem, type Config, type PatientHit } from "@/utils/api";
 
 export default function CourseNew({ facilityId }: { facilityId: string }) {
   const tr = useT();
@@ -41,7 +41,7 @@ interface FormState {
   language: string;
   start_date: string;
   checklist: Record<string, boolean>;
-  preferred_time: string;
+  time_band: Band | "";
   earliest_start: string;
   latest_end: string;
   gap_category: number;
@@ -67,7 +67,7 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
     language: config.languages[0],
     start_date: workingDay(addDays(config.today, 1)),
     checklist: {},
-    preferred_time: "",
+    time_band: "",
     earliest_start: "",
     latest_end: "",
     gap_category: 2,
@@ -122,7 +122,7 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
         checklist: Object.fromEntries(
           Object.entries({ ...f.checklist, ...Object.fromEntries(Object.entries(auto).filter(([, v]) => v)) }).filter(([, v]) => v),
         ),
-        preferred_time: f.checklist.preferred ? f.preferred_time || null : null,
+        time_band: f.checklist.preferred ? f.time_band : "",
         earliest_start: f.checklist.time_window ? f.earliest_start || null : null,
         latest_end: f.checklist.time_window ? f.latest_end || null : null,
         gap_category: f.gap_category,
@@ -298,10 +298,17 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
             extra={(it) =>
               it.key === "preferred" && ticked("preferred") ? (
                 <div className="mt-2">
-                  <Field label={tr("f_preferred", "Preferred time")}>
-                    <Input type="time" value={f.preferred_time} onChange={(e) => set("preferred_time", e.target.value)} className="w-32" />
+                  <Field label={tr("f_band", "Part of the day")}>
+                    <Select value={f.time_band} onChange={(e) => set("time_band", e.target.value as Band | "")} className="w-56">
+                      <option value="">{tr("choose", "Choose…")}</option>
+                      {config.bands.map((b) => (
+                        <option key={b.code} value={b.code}>
+                          {b.label}
+                        </option>
+                      ))}
+                    </Select>
                   </Field>
-                  <Err e={errors.preferred_time} />
+                  <Err e={errors.time_band} />
                 </div>
               ) : null
             }

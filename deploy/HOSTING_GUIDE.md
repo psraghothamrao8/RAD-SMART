@@ -136,7 +136,7 @@ Useful Docker commands for looking around:
 docker ps                                              # which containers are running
 docker logs care_radsmart_dev-backend-1 --tail 50      # the backend's last 50 log lines
 docker exec -it care_radsmart_dev-backend-1 bash       # a shell inside the backend container
-docker exec care_radsmart_dev-backend-1 python manage.py test care_radsmart.tests   # the plugin's 30 tests
+docker exec care_radsmart_dev-backend-1 python manage.py test care_radsmart.tests   # the plugin's 37 tests
 docker images                                          # images on this computer
 docker system df                                       # how much disk Docker uses
 ```

@@ -93,6 +93,7 @@ class Patient:
     urgent: bool = False          # same-day palliative start
     ready_time: int | None = None  # urgent: earliest possible start
     eligible: list = field(default_factory=list)
+    band: str | None = None       # morning / afternoon / evening the patient would like (config time_bands)
 
     @property
     def elderly(self) -> bool:

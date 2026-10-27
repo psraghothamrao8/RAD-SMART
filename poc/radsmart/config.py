@@ -107,6 +107,13 @@ DEPARTMENT = {
     "mhrc_buffer_min": 10,
     "mhrc_bus_arrival": hm("15:45"),   # the hospice bus brings them together
     "public_transport_latest_end": hm("21:00"),
+    # The part of the day a patient would like to be treated in (asked at
+    # intake, changed by the patient on their page). A stated band replaces the
+    # "older patients earlier" default; the hard rules and the new-start reserve
+    # still come first.
+    "time_bands": {"morning": (hm("08:30"), hm("12:00")),
+                   "afternoon": (hm("12:00"), hm("17:00")),
+                   "evening": (hm("17:00"), hm("21:00"))},
     # Same-day urgent (palliative) starts: 0-3 a day, arriving in the afternoon,
     # treated before 18:00. Capacity is held back for them and used as catch-up
     # buffer (also for imaging re-treatments) when nobody needs it.
@@ -168,6 +175,7 @@ DEPARTMENT = {
         "pref_flexible": 0.2,      # inpatients, dormitory, nearby: can move
         "pref_tolerance": 30,      # minutes of free movement around preference
         "pref_tolerance_paying": 15,
+        "pref_band": 2.0,          # minutes outside the patient's morning/afternoon/evening
         "elderly_after_1pm": 1.5,  # older patients: earlier is better
         "late_evening": 2.0,       # non-flexible patients finishing after 21:00
         "flexible_daytime": 0.3,   # standing slots: flexible patients leave the day to others
@@ -196,7 +204,14 @@ DEPARTMENT = {
     "new_start_gap_min": 30,        # a gap shorter than this cannot take a new start
     "bid_min_gap_min": 360,         # twice-daily fractions at least 6 hours apart
     "sliver_min": 8,                # a free gap shorter than this is wasted
+    # "Better time": when slots free up, RAD-SMART offers patients outside their
+    # time band a standing slot inside it, for staff to agree with the patient.
+    # Not worth a change for the last few fractions.
+    "better_time_min_left": 4,
 }
+
+BANDS = {"morning": "Morning (08:30-12:00)", "afternoon": "Afternoon (12:00-17:00)",
+         "evening": "Evening (17:00-21:00)"}
 
 # Treatment days a doctor can choose on the intake form.
 PATTERNS = {

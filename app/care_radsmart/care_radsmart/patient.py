@@ -3,7 +3,8 @@
 It shows the patient's times (live, so a breakdown shows at once), the
 department's messages in their language with a voice note, and a QR code to
 check in at reception. The patient can say they are on the way, running late,
-cannot come today, or need another time; staff see it on the board and decide.
+cannot come today, or would like another part of the day (morning, afternoon or
+evening); staff see it on the board and decide.
 Only the first name is shown, and the link opens nothing else.
 """
 
@@ -17,12 +18,11 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from radsmart.config import fmt
+from radsmart.config import BANDS, fmt
 
 from care_radsmart import engine, sarvam, telegram
 from care_radsmart.messages import _lead
 from care_radsmart.models import Course, Machine, Message, PatientReply, SlotRequest
-from care_radsmart.serializers import to_minutes
 from care_radsmart.settings import plugin_settings
 
 REPLIES_PER_DAY = 6
@@ -50,7 +50,8 @@ LABELS = {
     "min": "minutes",
     "not_today": "I cannot come today",
     "other_time": "I want a different daily treatment time",
-    "time": "Time",
+    "when": "When would you like to come?",
+    **BANDS,
     "reason": "Reason (for example, bus time)",
     "send": "Send",
     "thanks": "Thank you. The department has your message. A staff member will decide and tell you.",
@@ -116,6 +117,7 @@ class PatientPage(View):
             "code": c.checkin_code, "qr": _qr(c.checkin_code), "done": request.GET.get("done"),
             "finished": c.status in ("completed", "cancelled"), "late_choices": (15, 30, 45, 60),
             "demo": c.demo, "query": "?lang=en" if lang == "English" and c.language != "English" else "",
+            "bands": [(k, t[k]) for k in BANDS], "band": c.time_band,
             "telegram": telegram.deep_link(c) if c.status == "approved" else "",
         }
         return render(request, "care_radsmart/patient.html", ctx)
@@ -124,25 +126,23 @@ class PatientPage(View):
         c = _course(token)
         back = request.path + ("?lang=en&" if request.POST.get("lang") == "en" else "?")
         try:
-            wanted = to_minutes(request.POST.get("wanted"))
-        except Exception:
-            wanted = None
-        try:
             minutes = int(request.POST.get("minutes") or 30)
         except ValueError:
             minutes = 30
-        result = record_reply(c, request.POST.get("kind"), minutes=minutes, wanted=wanted,
+        result = record_reply(c, request.POST.get("kind"), minutes=minutes, band=request.POST.get("band"),
                               reason=request.POST.get("reason"))
         return HttpResponseRedirect(back + {"done": "done=1", "too_many": "done=too_many"}.get(result, ""))
 
 
-def record_reply(c: Course, kind: str, minutes: int = 30, wanted: int | None = None, reason: str | None = "",
+def record_reply(c: Course, kind: str, minutes: int = 30, band: str | None = None, reason: str | None = "",
                  channel: str = "page") -> str:
     """Put what the patient said on the department's board: "done", "too_many"
-    (the day's replies are used up) or "invalid". Asking for another time also
-    makes the engine's proposal, for staff to approve."""
+    (the day's replies are used up) or "invalid". Asking for another part of
+    the day records the preference at once (RAD-SMART offers a time inside it
+    whenever one frees up) and makes the engine's proposal for staff to
+    approve; the times change only when staff approve."""
     day, _ = _today()
-    if c.status != "approved" or kind not in dict(PatientReply.KIND) or (kind == "other_time" and wanted is None):
+    if c.status != "approved" or kind not in dict(PatientReply.KIND) or (kind == "other_time" and band not in BANDS):
         return "invalid"
     if PatientReply.objects.filter(course=c, date=day).count() >= REPLIES_PER_DAY:
         return "too_many"
@@ -152,12 +152,17 @@ def record_reply(c: Course, kind: str, minutes: int = 30, wanted: int | None = N
     if kind == "late":
         reply.minutes = max(5, min(240, minutes))
     if kind == "other_time":
-        reply.wanted = wanted
-        from_date = engine.next_treatment_date(day, c.pattern, c.start_date.weekday(), engine.holidays())
-        proposal = engine.propose_change(c, from_date, wanted)
+        reply.band = band
+        from_date = engine.next_session_date(c, day) or engine.next_treatment_date(
+            day, c.pattern, c.start_date.weekday(), engine.holidays())
+        from care_radsmart.viewsets import set_band
+        set_band(c, band)
+        SlotRequest.objects.filter(course=c, status="proposed").update(status="withdrawn")
+        proposal = engine.propose_change(c, from_date, band=band)
         where = "in Telegram" if channel == "telegram" else "on their page"
         reply.slot_request = SlotRequest.objects.create(
-            course=c, from_date=from_date, wanted=wanted, proposal=proposal,
+            course=c, from_date=from_date, band=band, source="patient", proposal=proposal,
+            wanted=(proposal.get("standing") or {}).get("start"),
             reason=(f"Asked by the patient {where}. " + reply.reason)[:500])
     reply.save()
     return "done"

@@ -8,6 +8,8 @@ zone, on the engine's 2-minute grid; the day runs past midnight (25:00 = 01:00).
 from django.conf import settings
 from django.db import models
 
+from radsmart.config import BANDS
+
 from care.emr.models.base import EMRBaseModel
 
 
@@ -62,7 +64,8 @@ class Course(EMRBaseModel):
     imaging = models.CharField(max_length=8, default="kv")
     machines = models.JSONField(default=list)          # machine codes the plan can be delivered on
     checklist = models.JSONField(default=dict)         # ticked hard and soft constraints
-    preferred_time = models.IntegerField(null=True, blank=True)
+    time_band = models.CharField(max_length=16, blank=True, default="",   # morning, afternoon or evening
+                                 choices=[("", "Any time"), *BANDS.items()])
     earliest_start = models.IntegerField(null=True, blank=True)
     latest_end = models.IntegerField(null=True, blank=True)
     gap_category = models.PositiveSmallIntegerField(default=2)
@@ -112,6 +115,10 @@ class Session(EMRBaseModel):
     in_room_at = models.DateTimeField(null=True, blank=True)
     out_at = models.DateTimeField(null=True, blank=True)
     note = models.CharField(max_length=500, blank=True, default="")
+    # Taken into the room ahead of someone earlier in the plan (came early, the
+    # next patient was not here, ...): recorded, never blocked.
+    out_of_turn = models.BooleanField(default=False)
+    turn_note = models.CharField(max_length=200, blank=True, default="")
 
     class Meta:
         indexes = [models.Index(fields=["facility", "date"]), models.Index(fields=["course", "date"])]
@@ -159,13 +166,19 @@ class Triage(EMRBaseModel):
 
 
 class SlotRequest(EMRBaseModel):
-    """A patient's request for another standing time, and the decision."""
+    """Another standing time for a course, and the decision: asked for by the
+    patient (or by staff for them), or offered by RAD-SMART when a slot inside
+    the patient's preferred part of the day frees up."""
 
-    STATUS = (("proposed", "Proposed"), ("approved", "Approved"), ("rejected", "Rejected"))
+    STATUS = (("proposed", "Proposed"), ("approved", "Approved"), ("rejected", "Rejected"),
+              ("withdrawn", "Withdrawn"))           # RAD-SMART's offer whose slot was taken meanwhile
+    SOURCE = (("patient", "Patient"), ("staff", "Staff"), ("radsmart", "RAD-SMART"))
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="slot_requests")
     from_date = models.DateField()
-    wanted = models.IntegerField()
+    wanted = models.IntegerField(null=True, blank=True)    # an exact time asked for
+    band = models.CharField(max_length=16, blank=True, default="")   # or a part of the day
+    source = models.CharField(max_length=16, choices=SOURCE, default="patient")
     reason = models.CharField(max_length=500, blank=True, default="")
     proposal = models.JSONField(default=dict)
     status = models.CharField(max_length=16, choices=STATUS, default="proposed")
@@ -220,6 +233,7 @@ class PatientReply(EMRBaseModel):
     kind = models.CharField(max_length=16, choices=KIND)
     minutes = models.PositiveIntegerField(null=True, blank=True)       # how late
     wanted = models.IntegerField(null=True, blank=True)                # the time asked for
+    band = models.CharField(max_length=16, blank=True, default="")     # or the part of the day
     reason = models.CharField(max_length=300, blank=True, default="")
     slot_request = models.ForeignKey(SlotRequest, on_delete=models.SET_NULL, null=True, blank=True,
                                      related_name="+")

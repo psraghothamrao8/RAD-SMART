@@ -4,7 +4,7 @@ The patient opens the bot from their page (t.me/<bot>?start=<page token>), and
 that chat is linked to the course. Staff then send each message from CARE: the
 text in the patient's language and in English, the page link, and the voice
 note. The patient answers with buttons (on my way, late, cannot come today,
-another daily time), and the answers go to the same board as the page's.
+another part of the day), and the answers go to the same board as the page's.
 The bot sends nothing on its own, and nothing but the patient's first name and
 times; any other text gets the buttons again.
 """
@@ -23,7 +23,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from radsmart.config import fmt
+from radsmart.config import BANDS, fmt
 
 from care_radsmart import messages, sarvam
 from care_radsmart.models import Course, Message
@@ -33,12 +33,11 @@ log = logging.getLogger(__name__)
 
 API = "https://api.telegram.org"
 LATE = (15, 30, 45, 60)
-TIMES = [h * 60 for h in range(9, 21)]          # daily times a patient can ask for, 09:00-20:00
 TEXT = {                                         # the bot's own words, besides the page's labels
     "linked": "You will get the department's messages here. Use the buttons to tell the department if you are "
               "on your way, late, cannot come today, or need another daily time.",
     "how_late": "How late will you be?",
-    "pick_time": "Choose the daily time you would like. Staff will decide and tell you.",
+    "pick_time": "When would you like to come? Staff will decide and tell you.",
     "page": "Your page, with your times and the check-in code",
     "back": "Back",
     "use_buttons": "Please use the buttons. To talk to someone, please call the department.",
@@ -110,8 +109,7 @@ def _keyboard(course: Course, t: dict, menu: str = "main") -> dict:
     if menu == "late":
         rows = [[button(f"{n} {b['min']}", "l", n) for n in LATE], [button(b["back"], "b")]]
     elif menu == "time":
-        rows = [[button(fmt(m), "o", m) for m in TIMES[i:i + 4]] for i in range(0, len(TIMES), 4)]
-        rows.append([button(b["back"], "b")])
+        rows = [[button(b[k], "o", k)] for k in BANDS] + [[button(b["back"], "b")]]
     else:
         rows = [[button(b["on_way"], "w")], [button(b["late"], "L")], [button(b["not_today"], "n")],
                 [button(b["other_time"], "O")]]
@@ -218,18 +216,18 @@ def _button(q: dict) -> None:
         call("answerCallbackQuery", {"callback_query_id": q["id"]})
         return
     try:
-        number = int(arg) if arg else None
+        number = int(arg) if arg and kind == "late" else None
     except ValueError:
         number = None
+    band = arg if kind == "other_time" and arg in BANDS else None
     from care_radsmart.patient import _today
     day, _ = _today()
     if kind != "other_time" and not course.sessions.filter(date=day, status="scheduled").exists():
         result, said = "none", t["no_treatment"]
     else:
-        result = record_reply(course, kind, minutes=number or 30,
-                              wanted=number if kind == "other_time" and number in TIMES else None,
-                              channel="telegram")
-        detail = {"late": f": {number or 30} {t['bare']['min']}", "other_time": f": {fmt(number or 0)}"}.get(kind, "")
+        result = record_reply(course, kind, minutes=number or 30, band=band, channel="telegram")
+        detail = {"late": f": {number or 30} {t['bare']['min']}",
+                  "other_time": f": {t['bare'][band]}" if band else ""}.get(kind, "")
         said = {"done": f"{t['bare'][kind]}{detail}\n\n{t['thanks']}", "too_many": t["too_many"]}.get(
             result, t["course_over"] if course.status != "approved" else t["use_buttons"])
     call("answerCallbackQuery", {"callback_query_id": q["id"]})

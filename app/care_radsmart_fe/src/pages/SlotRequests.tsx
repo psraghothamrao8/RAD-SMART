@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { PageLink } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/primitives";
+import { Badge, Card } from "@/components/ui/primitives";
 import { shortDate } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { keys } from "@/lib/useConfig";
@@ -51,8 +51,13 @@ export function RequestRow({ r, facilityId, onDone }: { r: SlotRequest; facility
       <div className="lg:w-64">
         <PageLink href={`/facility/${facilityId}/radsmart/courses/${r.course}`}>{r.patient_name}</PageLink>
         <p className="text-xs text-gray-500">{r.hospital_number}</p>
+        <Badge tone={r.source === "radsmart" ? "violet" : "gray"} className="mt-1">
+          {r.source === "radsmart" ? tr("src_radsmart", "RAD-SMART offer") : r.source === "staff" ? tr("src_staff", "Asked at the desk") : tr("src_patient", "Asked by the patient")}
+        </Badge>
         <p className="mt-1 text-sm">
-          {tr("asks_for", "Now {{current}}, asks for {{wanted}} from {{date}}", { current: r.current ?? "—", wanted: r.wanted, date: shortDate(r.from_date) })}
+          {r.source === "radsmart"
+            ? tr("offer_for", "Now {{current}}; a time inside the {{band}} is free from {{date}}. Ask the patient first.", { current: r.current ?? "—", band: r.band_label || r.band, date: shortDate(r.from_date) })
+            : tr("asks_for", "Now {{current}}, asks for {{wanted}} from {{date}}", { current: r.current ?? "—", wanted: r.band_label || r.wanted || "—", date: shortDate(r.from_date) })}
         </p>
         {r.reason && <p className="text-xs text-gray-500">“{r.reason}”</p>}
       </div>
@@ -67,10 +72,10 @@ export function RequestRow({ r, facilityId, onDone }: { r: SlotRequest; facility
         ) : (
           <>
             <Button size="sm" onClick={() => decide.mutate("approve")} disabled={!time || decide.isPending}>
-              {tr("approve_time", "Approve {{time}}", { time })}
+              {r.source === "radsmart" ? tr("patient_agrees", "Patient agrees") : tr("approve_time", "Approve {{time}}", { time })}
             </Button>
             <Button size="sm" variant="outline" onClick={() => decide.mutate("reject")} disabled={decide.isPending}>
-              {tr("decline", "Decline")}
+              {r.source === "radsmart" ? tr("patient_stays", "Prefers to stay") : tr("decline", "Decline")}
             </Button>
           </>
         )}

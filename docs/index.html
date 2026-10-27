@@ -176,7 +176,7 @@
       <span class="chip">One Docker image</span>
       <span class="chip">Inside CARE, the open-source hospital system</span>
       <span class="chip">Sarvam AI in Indian languages</span>
-      <span class="chip">30 automated tests</span>
+      <span class="chip">45 automated tests</span>
     </div>
   </header>
 
@@ -236,7 +236,7 @@
     </div>
     <div class="steps">
       <div class="step" style="--c:var(--c1)"><span class="n">1 · Predict</span><p>How many minutes each patient needs on the machine.</p></div>
-      <div class="step" style="--c:var(--c2)"><span class="n">2 · Plan</span><p>One time slot for each course, with every rule guaranteed.</p></div>
+      <div class="step" style="--c:var(--c2)"><span class="n">2 · Plan</span><p>One time slot for each course, with every rule guaranteed, in the part of the day the patient prefers when one is free.</p></div>
       <div class="step" style="--c:var(--c3)"><span class="n">3 · Test</span><p>Try the plan in a virtual copy of the department first.</p></div>
       <div class="step" style="--c:var(--c4)"><span class="n">4 · Tell</span><p>Messages and voice notes in Kannada, Malayalam, Hindi and Konkani, by Sarvam AI.</p></div>
     </div>
@@ -285,7 +285,7 @@
       </figure>
       <figure>
         <a href="figures/app1_today.png"><img src="figures/app1_today.png" alt="The technologist's day board: the rule check, the day's timeline and each patient's status" loading="lazy"></a>
-        <figcaption><b>Technologist:</b> runs the day: who has arrived, who is in the room.</figcaption>
+        <figcaption><b>Technologist:</b> runs the day: who to call next, who is late, and taking a ready patient in out of turn.</figcaption>
       </figure>
       <figure>
         <a href="figures/app5_breakdown.png"><img src="figures/app5_breakdown.png" alt="The breakdown screen: the expected downtime, RAD-SMART's proposed response and the approval button" loading="lazy"></a>
@@ -293,7 +293,7 @@
       </figure>
       <figure>
         <a href="figures/app10_patient_phone.png"><img src="figures/app10_patient_phone.png" alt="The patient's page on a phone, in Kannada: today's time to come, a QR code and six letters for reception, and the next treatment days" loading="lazy"></a>
-        <figcaption><b>Patient:</b> one private link, no app: times, voice notes, and a tap to say they are late.</figcaption>
+        <figcaption><b>Patient:</b> one private link, no app: times, voice notes, a tap to say they are late, and a morning, afternoon or evening preference.</figcaption>
       </figure>
       <figure>
         <a href="figures/app12_messages.png"><img src="figures/app12_messages.png" alt="Messages after a breakdown: each in the patient's language and in English, with Listen and Open WhatsApp buttons" loading="lazy"></a>
@@ -304,7 +304,7 @@
         <figcaption><b>Reception:</b> scans the code on the patient's phone.</figcaption>
       </figure>
     </div>
-    <p class="muted"><b>Tested:</b> 112 of 112 Sarvam translations in four languages kept every time; 20 of 20 plain-word explanations used only the plan's times; 30 automated tests pass. <b>Next phase:</b> reading the paper prescription by photo, importing the department's past records, and spoken replies from patients. Details in the <a href="Phase2_Submission.pdf">Phase 2 submission</a>.</p>
+    <p class="muted"><b>Tested:</b> 112 of 112 Sarvam translations in four languages kept every time; 20 of 20 plain-word explanations used only the plan's times; 45 automated tests pass. <b>Next phase:</b> reading the paper prescription by photo, importing the department's past records, and spoken replies from patients. Details in the <a href="Phase2_Submission.pdf">Phase 2 submission</a>.</p>
   </section>
 
   <section id="deployed" aria-labelledby="h-deployed">
@@ -319,7 +319,7 @@
       <div class="tile"><h3>Managed database</h3><p>Azure Database for PostgreSQL, with automatic daily backups.</p></div>
       <div class="tile"><h3>One script to run it</h3><p>Creates, builds, migrates, deploys and checks everything. Every release is a tagged image and the last three are kept, so going back is one command.</p></div>
       <div class="tile"><h3>Costs kept in check</h3><p>A daily limit on AI spending, and a guard that takes the server offline before its free hours run out.</p></div>
-      <div class="tile"><h3>Tested</h3><p>30 automated tests on the plugin, and the engine's tests run by GitHub on every change.</p></div>
+      <div class="tile"><h3>Tested</h3><p>37 automated tests on the plugin, and the engine's 8 run by GitHub on every change.</p></div>
     </div>
     <p class="decide"><b>From demonstration to pilot: settings, not new code.</b> The same image runs with demonstration mode off and staff signing in with their own accounts, on the hospital's own server beside its CARE, or in an Indian Azure region so patient data stays in India. <a href="https://github.com/psraghothamrao8/RAD-SMART/tree/main/deploy/azure#from-demonstration-to-pilot">How it is deployed</a>.</p>
   </section>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ChevronLeft, ChevronRight, Power, RotateCcw, Smartphone, Wrench } from "lucide-react";
+import { ArrowRightCircle, Check, ChevronLeft, ChevronRight, Power, RotateCcw, Smartphone, Sparkles, Wrench } from "lucide-react";
 import { useState } from "react";
 import { navigate } from "raviger";
 import { toast } from "sonner";
@@ -8,11 +8,13 @@ import Layout, { PageLink } from "@/components/Layout";
 import Timeline from "@/components/Timeline";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, Empty, Input, Notice, Spinner, Table, type Tone } from "@/components/ui/primitives";
-import { addDays, clockTime, longDate, nowMinutes, workingDay } from "@/lib/format";
+import { addDays, clockTime, longDate, nowMinutes, shortDate, workingDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { keys } from "@/lib/useConfig";
 import { cn } from "@/lib/utils";
-import { API, type Config, type MachineInfo, type PatientReply, type SessionRow } from "@/utils/api";
+import { API, type Band, type Config, type MachineInfo, type PatientReply, type SessionRow } from "@/utils/api";
+
+type Step = "arrive" | "room" | "done" | "undo" | "send-home";
 
 export const STATUS_TONE: Record<string, Tone> = {
   scheduled: "gray",
@@ -79,8 +81,16 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
   };
 
   const step = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: "arrive" | "room" | "done" | "undo" | "send-home" }) => API.session(id, action),
+    mutationFn: ({ id, action, reason }: { id: string; action: Step; reason?: string }) => API.session(id, action, reason ? { reason } : {}),
     onSuccess: refresh,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const decide = useMutation({
+    mutationFn: ({ id, decision }: { id: string; decision: "approve" | "reject" }) => API.decideSlot(facilityId, id, decision),
+    onSuccess: (_, v) => {
+      toast.success(v.decision === "approve" ? tr("offer_taken", "New standing time saved; a message to the patient is ready") : tr("offer_kept", "The patient keeps their time"));
+      refresh();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const approve = useMutation({
@@ -118,6 +128,11 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
   const replyFor = new Map<string, PatientReply>();
   for (const r of openReplies) if (!replyFor.has(r.course)) replyFor.set(r.course, r);
   const toTreat = d.sessions.filter((s) => ["scheduled", "arrived", "in_room"].includes(s.status)).length;
+  const byId = new Map(d.sessions.map((s) => [s.id, s]));
+  const nextIds = new Set(d.machines.map((m) => m.queue?.next).filter(Boolean));
+  // Patients earlier in the plan on the same machine who are still to come or waiting.
+  const aheadOf = (s: SessionRow) =>
+    d.sessions.filter((x) => x.machine === s.machine && x.id !== s.id && ["scheduled", "arrived"].includes(x.status) && x.start < s.start);
 
   return (
     <div className="flex flex-col gap-4">
@@ -194,6 +209,15 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
             </dl>
             {m.status === "offline" && m.expected_back && (
               <p className="mt-3 text-xs text-danger-700">{tr("expected_back", "Expected back {{time}}", { time: clockTime(m.expected_back) })}</p>
+            )}
+            {isToday && m.status === "online" && m.queue && (
+              <Queue
+                q={m.queue}
+                byId={byId}
+                canOperate={canOperate}
+                busy={step.isPending}
+                onTakeIn={(id) => step.mutate({ id, action: "room", reason: tr("reason_queue", "Next in the queue") })}
+              />
             )}
           </Card>
         ))}
@@ -278,8 +302,11 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
                 statusLabel={statusLabel}
                 reply={replyFor.get(s.course)}
                 canOperate={canOperate && isToday}
-                busy={step.isPending && step.variables?.id === s.id}
-                onStep={(action) => step.mutate({ id: s.id, action })}
+                isNext={nextIds.has(s.id)}
+                ahead={["scheduled", "arrived"].includes(s.status) ? aheadOf(s) : []}
+                busy={(step.isPending && step.variables?.id === s.id) || (decide.isPending && decide.variables?.id === s.offer?.id)}
+                onStep={(action, reason) => step.mutate({ id: s.id, action, reason })}
+                onDecide={(decision) => s.offer && decide.mutate({ id: s.offer.id, decision })}
               />
             ))}
           </Table>
@@ -289,14 +316,72 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
   );
 }
 
+export function useBandName() {
+  const tr = useT();
+  return (b: Band | "") =>
+    ({ morning: tr("band_morning", "morning"), afternoon: tr("band_afternoon", "afternoon"), evening: tr("band_evening", "evening") })[b as Band] ?? tr("band_any", "any time");
+}
+
+/** Who to call next on a machine, who is in the room, and how far it runs behind. */
+function Queue({ q, byId, canOperate, busy, onTakeIn }: {
+  q: NonNullable<MachineInfo["queue"]>;
+  byId: Map<string, SessionRow>;
+  canOperate: boolean;
+  busy: boolean;
+  onTakeIn: (id: string) => void;
+}) {
+  const tr = useT();
+  const next = q.next ? byId.get(q.next) : undefined;
+  const room = q.in_room ? byId.get(q.in_room) : undefined;
+  const behind = q.behind_min;
+  return (
+    <div className="mt-3 flex flex-col gap-1.5 rounded-md border border-gray-200 bg-gray-50 p-2 text-sm">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="text-xs text-gray-500">{tr("q_in_room", "In the room")}</span>
+        <span className="font-medium">{room ? room.patient_name : tr("q_free", "free")}</span>
+        {behind != null && (
+          <Badge tone={behind >= 5 ? "amber" : "green"} className="ml-auto" title={tr("q_behind_hint", "The longest anyone here has waited past their time")}>
+            {behind >= 5 ? tr("q_behind", "{{n}} min behind", { n: behind }) : tr("q_on_time", "on time")}
+          </Badge>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="text-xs text-gray-500">{tr("q_next", "Call next")}</span>
+        {next ? (
+          <>
+            <span className="font-medium">{next.patient_name}</span>
+            <span className="text-xs tabular-nums text-gray-500">{next.time}</span>
+            {canOperate && !room && (
+              <Button size="xs" className="ml-auto" onClick={() => onTakeIn(next.id)} disabled={busy}>
+                <ArrowRightCircle />
+                {tr("q_take_in", "Take in")}
+              </Button>
+            )}
+          </>
+        ) : (
+          <span className="text-xs text-gray-500">{q.waiting ? tr("q_none_ready", "nobody ready yet") : tr("q_nobody", "nobody waiting")}</span>
+        )}
+      </div>
+      <p className="text-xs text-gray-500">
+        {tr("q_counts", "{{waiting}} waiting · {{away}} past their time, not here yet", { waiting: q.waiting, away: q.not_here })}
+      </p>
+    </div>
+  );
+}
+
 export function useReplyText() {
   const tr = useT();
+  const bandName = useBandName();
   return (r: PatientReply) =>
     ({
       on_way: tr("r_on_way", "On the way"),
       late: r.minutes ? tr("r_late_n", "Late, about {{n}} min", { n: r.minutes }) : tr("r_late", "Running late"),
       not_today: tr("r_not_today", "Cannot come today"),
-      other_time: r.wanted ? tr("r_other_n", "Asks for {{time}}", { time: r.wanted }) : tr("r_other", "Asks for another time"),
+      other_time: r.band
+        ? tr("r_other_band", "Asks for the {{band}}", { band: bandName(r.band) })
+        : r.wanted
+          ? tr("r_other_n", "Asks for {{time}}", { time: r.wanted })
+          : tr("r_other", "Asks for another time"),
     })[r.kind];
 }
 
@@ -352,6 +437,48 @@ function Replies({ replies, facilityId, canOperate }: { replies: PatientReply[];
   );
 }
 
+/** An open request for another standing time, beside the patient: RAD-SMART's
+ * offer of a time inside their preferred part of the day (staff ask the patient),
+ * or the patient's own request. */
+function OfferBox({ offer, bandName, canOperate, busy, onDecide }: {
+  offer: NonNullable<SessionRow["offer"]>;
+  bandName: (b: Band | "") => string;
+  canOperate: boolean;
+  busy: boolean;
+  onDecide: (d: "approve" | "reject") => void;
+}) {
+  const tr = useT();
+  const mine = offer.source === "radsmart";
+  const when = shortDate(offer.from_date);
+  return (
+    <div className="mt-2 max-w-52 rounded-md border border-alert-200 bg-alert-50 p-2 text-xs text-alert-900 max-md:max-w-none">
+      <p className="flex items-start gap-1">
+        <Sparkles className="mt-0.5 size-3 shrink-0" />
+        <span>
+          {mine
+            ? tr("offer_text", "A {{band}} slot is free: {{time}} every day from {{date}}. Ask the patient.", { band: bandName(offer.band), time: offer.time ?? "—", date: when })
+            : offer.time
+              ? tr("request_text", "Asked for {{wanted}}: {{time}} from {{date}}", { wanted: offer.band ? bandName(offer.band) : offer.time, time: offer.time, date: when })
+              : offer.problem ?? tr("request_open", "Asked for another time")}
+        </span>
+      </p>
+      {!mine && offer.band && offer.in_band === false && (
+        <p className="mt-1 text-alert-800">{tr("not_in_band_yet", "Nothing inside the {{band}} is free yet: RAD-SMART offers one when it frees up.", { band: bandName(offer.band) })}</p>
+      )}
+      {canOperate && offer.time && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          <Button size="xs" onClick={() => onDecide("approve")} disabled={busy}>
+            {mine ? tr("patient_agrees", "Patient agrees") : tr("approve_time", "Approve {{time}}", { time: offer.time })}
+          </Button>
+          <Button size="xs" variant="outline" onClick={() => onDecide("reject")} disabled={busy}>
+            {mine ? tr("patient_stays", "Prefers to stay") : tr("decline", "Decline")}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Metric({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div title={hint}>
@@ -367,20 +494,38 @@ function SessionLine({
   statusLabel,
   reply,
   canOperate,
+  isNext,
+  ahead,
   busy,
   onStep,
+  onDecide,
 }: {
   s: SessionRow;
   facilityId: string;
   statusLabel: (s: string) => string;
   reply?: PatientReply;
   canOperate: boolean;
+  isNext: boolean;
+  ahead: SessionRow[];
   busy: boolean;
-  onStep: (a: "arrive" | "room" | "done" | "undo" | "send-home") => void;
+  onStep: (a: Step, reason?: string) => void;
+  onDecide: (d: "approve" | "reject") => void;
 }) {
   const tr = useT();
   const replyText = useReplyText();
+  const bandName = useBandName();
+  const [asking, setAsking] = useState(false);
   const gone = ["sent_home", "postponed", "missed", "cancelled"].includes(s.status);
+  const cautions = s.cautions ?? [];
+  // Taking someone in ahead of the plan, or with something to check: ask why (optional), never block.
+  const takeIn = () => (ahead.length || cautions.length ? setAsking(true) : onStep("room"));
+  const waiting = ahead.filter((x) => x.status === "arrived").length;
+  const reasons = [
+    tr("reason_early", "Came early"),
+    tr("reason_not_here", "Next patient not here"),
+    tr("reason_clinical", "Clinical reason"),
+    tr("reason_other", "Other"),
+  ];
   return (
     // Below md each row is a card: time | patient, fraction | treatment, needs, in/out, status | actions.
     <tr
@@ -397,7 +542,7 @@ function SessionLine({
           <div className="text-xs text-gray-500">{tr("report_at", "report {{time}}", { time: s.report })}</div>
         )}
       </td>
-      <td className="px-3 py-2 align-top">
+      <td className="max-w-60 px-3 py-2 align-top max-md:max-w-none">
         <PageLink href={`/facility/${facilityId}/radsmart/courses/${s.course}`}>{s.patient_name}</PageLink>
         <div className="text-xs text-gray-500">
           {s.hospital_number} · {s.age} {tr("years", "y")} · {s.language}
@@ -408,6 +553,13 @@ function SessionLine({
             {replyText(reply)}
           </Badge>
         )}
+        <div className="mt-1 flex flex-wrap gap-1">
+          {isNext && <Badge tone="blue">{tr("q_next", "Call next")}</Badge>}
+          {s.late_by != null && s.late_by > 0 && <Badge tone="amber">{tr("not_here_yet", "Not here yet · {{n}} min past", { n: s.late_by })}</Badge>}
+          {s.often_late && <Badge tone="gray" title={tr("often_late_hint", "Arrived after their treatment time in 3 of their last 5 visits")}>{tr("often_late", "Often late")}</Badge>}
+          {s.out_of_turn && <Badge tone="violet" title={s.turn_note}>{tr("out_of_turn", "Out of turn")}</Badge>}
+        </div>
+        {s.offer && <OfferBox offer={s.offer} bandName={bandName} canOperate={canOperate} busy={busy} onDecide={onDecide} />}
       </td>
       <td className="px-3 py-2 align-top tabular-nums">
         {s.fraction}/{s.fractions}
@@ -422,17 +574,18 @@ function SessionLine({
           </div>
         )}
       </td>
-      <td className="px-3 py-2 align-top">
+      <td className="max-w-44 px-3 py-2 align-top max-md:max-w-none">
         <div>{s.technique}</div>
         <div className="text-xs text-gray-500">
           {s.diagnosis} · {Math.round(s.minutes)} min
         </div>
       </td>
-      <td className={cn("max-w-56 px-3 py-2 align-top max-md:col-span-2 max-md:max-w-none", s.flags.length === 0 && "max-md:hidden")}>
+      <td className={cn("max-w-44 px-3 py-2 align-top max-md:col-span-2 max-md:max-w-none", s.flags.length === 0 && "max-md:hidden")}>
         <div className="flex flex-wrap gap-1">
           {s.flags.slice(0, 3).map((f) => (
             <Badge key={f}>{f}</Badge>
           ))}
+          {s.flags.length > 3 && <Badge title={s.flags.slice(3).join(", ")}>+{s.flags.length - 3}</Badge>}
         </div>
       </td>
       <td className={cn("px-3 py-2 align-top text-xs tabular-nums text-gray-600 max-md:col-span-2 max-md:flex max-md:gap-3", !s.arrived_at && "max-md:hidden")}>
@@ -445,9 +598,15 @@ function SessionLine({
       </td>
       <td className="px-3 py-2 align-top">
         <Badge tone={STATUS_TONE[s.status]}>{statusLabel(s.status)}</Badge>
-        {s.note && <div className="mt-1 max-w-48 text-xs text-gray-500">{s.note}</div>}
+        {s.note && <div className="mt-1 max-w-32 text-xs text-gray-500">{s.note}</div>}
+        {s.out_of_turn && s.turn_note && <div className="mt-1 max-w-32 text-xs text-alert-700">{s.turn_note}</div>}
+        {cautions.map((c) => (
+          <div key={c} className="mt-1 max-w-32 text-xs text-warning-800">
+            {c}
+          </div>
+        ))}
       </td>
-      <td className="px-3 py-2 align-top">
+      <td className={cn("px-3 py-2 align-top md:sticky md:right-0 md:shadow-[-6px_0_6px_-6px_rgb(0_0_0/0.15)]", gone ? "bg-gray-50" : "bg-white")}>
         {canOperate && (
           <div className="flex flex-wrap justify-end gap-1">
             {s.status === "scheduled" && (
@@ -465,10 +624,38 @@ function SessionLine({
                 </Button>
               </>
             )}
-            {s.status === "arrived" && (
-              <Button size="xs" onClick={() => onStep("room")} disabled={busy}>
+            {s.status === "arrived" && !asking && (
+              <Button size="xs" variant={isNext || !ahead.length ? "primary" : "outline"} onClick={takeIn} disabled={busy}>
                 {tr("a_in_room", "In room")}
               </Button>
+            )}
+            {asking && (
+              <div className="flex w-full max-w-48 flex-col items-end gap-1 rounded-md border border-alert-200 bg-alert-50 p-2 text-left">
+                <p className="w-full text-xs text-alert-900">
+                  {ahead.length
+                    ? tr("ahead_of", "Due {{time}}, ahead of {{n}} due before them ({{waiting}} here). Why?", { time: s.time, n: ahead.length, waiting })
+                    : tr("check_first", "Check first:")}
+                </p>
+                {cautions.map((c) => (
+                  <p key={c} className="w-full text-xs text-warning-800">
+                    {c}
+                  </p>
+                ))}
+                <div className="flex flex-wrap justify-end gap-1">
+                  {ahead.length > 0 &&
+                    reasons.map((r) => (
+                      <Button key={r} size="xs" variant="outline" disabled={busy} onClick={() => (setAsking(false), onStep("room", r))}>
+                        {r}
+                      </Button>
+                    ))}
+                  <Button size="xs" disabled={busy} onClick={() => (setAsking(false), onStep("room"))}>
+                    {ahead.length ? tr("skip_reason", "Take in") : tr("take_in_anyway", "Take in")}
+                  </Button>
+                  <Button size="xs" variant="ghost" onClick={() => setAsking(false)}>
+                    {tr("cancel", "Cancel")}
+                  </Button>
+                </div>
+              </div>
             )}
             {s.status === "in_room" && (
               <Button size="xs" onClick={() => onStep("done")} disabled={busy}>

@@ -42,10 +42,10 @@ The department's own records (55 working days, October–December 2024, 3,137 pa
 
 | User | What they do with RAD-SMART |
 |---|---|
-| **Radiation oncologist** | Enters a course from the patient's visit in CARE; approves its first day and one standing daily time; can ask for a plain-language explanation in the patient's language |
-| **Radiation therapy technologist** | Runs the day board (arrived, in room, out), declares breakdowns and approves the re-plan, sends patient messages on WhatsApp, handles requests for another time |
+| **Radiation oncologist** | Enters a course from the patient's visit in CARE, with the patient's preferred part of the day; approves its first day and one standing daily time; can ask for a plain-language explanation in the patient's language |
+| **Radiation therapy technologist** | Runs the day board (arrived, in room, out) with a live queue, taking a ready patient in out of turn when another is late; declares breakdowns and approves the re-plan; sends patient messages on WhatsApp; agrees better times with patients |
 | **Reception** | Checks patients in by scanning the QR code on their phone |
-| **Patient and family** | Open one private link on their phone: today's time, changes, messages in their language with a voice note, the check-in code, and four reply buttons |
+| **Patient and family** | Open one private link on their phone: today's time, changes, messages in their language with a voice note, the check-in code, and four reply buttons, including a morning, afternoon or evening preference |
 | **Head of department** | Sees on Insights whether long waits are falling |
 
 ### Solution
@@ -70,14 +70,14 @@ The MVP is a working application, not a mock-up: a Django backend plugin and a R
 | Page | What it does |
 |---|---|
 | **RADSMART button** on the patient's visit | Opens the patient's courses; shows the daily time once approved |
-| **New course** | The prescription and a priority checklist (hard constraints and soft goals); *Save and propose slots* returns a first day and a standing time, with reasons and alternatives |
-| **Course** | Approve, explain in plain words (English and the patient's language), the patient's link and QR code, the messages sent to this patient |
-| **Today** | The machine card, the live rule check, the timeline, the patient list with arrival / in room / out, requests for another time, and patients' replies |
+| **New course** | The prescription and a priority checklist (hard constraints and soft goals, including the preferred part of the day); *Save and propose slots* returns a first day and a standing time, with reasons and alternatives |
+| **Course** | Approve, explain in plain words (English and the patient's language), the patient's link and QR code, the preferred part of the day, requests and offers of another time, the messages sent to this patient |
+| **Today** | The machine card with a live queue (in the room, *Call next*, on time or running behind), the live rule check, the timeline, the patient list with arrival / in room / out, late and out-of-turn badges, RAD-SMART's better-time offers, and patients' replies |
 | **Breakdown** | Declare a fault and its estimate; RAD-SMART proposes what happens to each remaining patient under the department's rules; a person approves; messages are drafted automatically |
 | **Messages** | Every message drafted after an approval, translated, with a voice note; *Open WhatsApp* opens the chat with the text filled in; *Mark sent*. In the online demonstration a message can also be sent to the visitor's own Telegram, to show it arriving on a phone |
 | **Check-in** | Reception scans the patient's QR code (USB scanner or camera) or types the six-letter code |
 | **Insights** | Waiting times and punctuality from the times the board records |
-| **Patient page** (no app, no login) | Today's time, any change after a breakdown, the next five treatment days, messages in the patient's language with a voice note, the check-in QR code, and four buttons: *on my way*, *I will be late*, *I cannot come today*, *I want a different daily time* |
+| **Patient page** (no app, no login) | Today's time, any change after a breakdown, the next five treatment days, messages in the patient's language with a voice note, the check-in QR code, and four buttons: *on my way*, *I will be late*, *I cannot come today*, *I want a different daily time* (morning, afternoon or evening) |
 
 ### 3.2 The AI approach: each part does what it is best at
 
@@ -107,7 +107,7 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | 24 Oct | The department's second set of answers (roles, standing slots, breakdown rules, the screens they need) built into the engine and **into a working application inside CARE**; with/without impact analysis |
 | 25 Oct | User guide; demo video, narrated with Sarvam Bulbul; **Sarvam AI layer, patient messages, patient phone page, QR check-in and plain-language explanations built**; Sarvam evaluation; automated safety tests |
 | 26 Oct | **Deployed live on Microsoft Azure** in a Docker container (CARE's production build, managed PostgreSQL, HTTPS), with one-click demonstration roles and messages to Telegram; demo video re-recorded on the live server |
-| 27 Oct | 30 automated tests on the plugin and engine tests run by GitHub on every change |
+| 27 Oct | From clinical feedback, **the preferred part of the day** with better-time offers, and **a live queue for early and late patients**; 45 automated tests, the engine's run by GitHub on every change |
 | [by 7 Nov] | [Technologist trial on the demo; native-speaker rating of translations] |
 
 ### 4.2 What changed because of the department's feedback
@@ -117,6 +117,7 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 - **Breakdown rules.** Up to 60 minutes: everyone is treated the same day. Over 60 minutes: patients still at home are told not to travel, those already waiting are treated first, and missed fractions are added at the end of the course. The machine starting late moves new starts to the next working day.
 - **Roles.** Only a doctor can enter or approve a course; a technologist runs the day and approves day changes.
 - **Languages and WhatsApp.** The department confirmed that patients use WhatsApp, and that most speak Kannada or Tulu. Messages therefore open in WhatsApp in the patient's language; Tulu speakers get Kannada, which they read.
+- **Preferred part of the day, and patients out of turn (27 Oct).** From clinical feedback: a patient's morning, afternoon or evening now replaces "older patients earlier", and as courses end RAD-SMART offers staff a slot inside it, which they agree with the patient. The day board keeps the plan as an order: it shows whom to call next among those here, and a technologist can take a ready patient in out of turn, with the reason recorded, never blocked.
 - **From testing**, we fixed four problems before anyone saw them: translations in Indian scripts attach suffixes to times (for example ಕ್ಕೆ in Kannada), which our first time check missed; Konkani translated "the next working day" as "next week", so messages now name the actual date; the explanation used the proposed time instead of the time in force; and one patient button was ambiguous in Kannada, so its English wording was simplified.
 
 ### 4.3 Built, and not yet built
@@ -127,6 +128,8 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | Day board with arrival, in room, out, live rule check | **Built** |
 | Breakdown re-planning under the department's rules, with approval | **Built** |
 | Requests for another time, decided by staff | **Built** |
+| Preferred part of the day, with better-time offers as slots free up, agreed by staff with the patient | **Built** |
+| Live queue for early and late patients: call next, running behind, out of turn with a reason | **Built** |
 | Insights from recorded times | **Built** |
 | Messages in Kannada, Malayalam, Hindi and Konkani (Tulu speakers get Kannada), with voice notes, opened in WhatsApp | **Built**; a technologist presses send |
 | Patient phone page with replies and QR check-in | **Built** |
@@ -177,7 +180,7 @@ An independent checker found **no broken hard rule** on any evaluation day.
 | Optimiser | 87-patient day, about 4,800 variables | **Proven optimum in 7.1 s** on a laptop |
 | Sarvam Translate | 7 message templates × 4 sets of times in each of Kannada, Malayalam, Hindi and Konkani (Tulu speakers get the Kannada text), each translated back to English | **112 of 112 kept every time** (100%); back-translation chrF median 76–80 (lowest 67); median 1.3–2.0 s per message |
 | Sarvam-105B explanations | 20 synthetic plans | **20 of 20 accepted**, **0 invented times**, 16 state both come-at times; median 1.5 s per answer |
-| Safety guards | 30 automated tests on the plugin (no Sarvam calls), plus engine tests run by GitHub on every change | **All pass**: times read in every script, changed times rejected, invented times rejected, English fallback, rate limits retried, no phone number for demo patients |
+| Safety guards | 37 automated tests on the plugin (no Sarvam calls), plus 8 engine tests run by GitHub on every change | **All pass**: times read in every script, changed times rejected, invented times rejected, English fallback, rate limits retried, no phone number for demo patients |
 
 Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluation/sarvam_evaluation.md` (regenerated by `tools/evaluate_sarvam.py`).
 
@@ -196,7 +199,7 @@ Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluat
 - **Costs of standing slots.** The evening runs about two hours later (still inside the department's hours), one new patient in five starts later by under half a day on average, and requested times are kept less often.
 - **Translation.** Back-translation is a rough meaning check, not a substitute for native speakers. Sarvam has no Tulu model.
 
-> **Short version.** On the department's 55 recorded days, re-planned in a calibrated twin, the 90th-percentile wait fell from 108.6 to 70.4 min (−35%) and over-an-hour lateness from 22.2% to 5.7%. Over 12 synthetic weeks: 82 → 49 min (−40%). After a 150-min breakdown, live re-planning cut the median wait from 104 to 39 min, with a new plan in 14 s. No hard rule was broken. Prediction error 2.15 min; optimum in 7.1 s. Sarvam translations kept every time in 112 of 112 messages across four languages; 20 of 20 explanations accepted with no invented time; 30 automated tests pass. [Technologist trial and native-speaker ratings.] Limits: replay not trial, synthetic session lengths.
+> **Short version.** On the department's 55 recorded days, re-planned in a calibrated twin, the 90th-percentile wait fell from 108.6 to 70.4 min (−35%) and over-an-hour lateness from 22.2% to 5.7%. Over 12 synthetic weeks: 82 → 49 min (−40%). After a 150-min breakdown, live re-planning cut the median wait from 104 to 39 min, with a new plan in 14 s. No hard rule was broken. Prediction error 2.15 min; optimum in 7.1 s. Sarvam translations kept every time in 112 of 112 messages across four languages; 20 of 20 explanations accepted with no invented time; 45 automated tests pass. [Technologist trial and native-speaker ratings.] Limits: replay not trial, synthetic session lengths.
 
 ## 6. Safety & Responsible AI
 
@@ -313,4 +316,4 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 | Sarvam AI evaluation | `docs/evaluation/sarvam_evaluation.md` |
 | User guide and demo script | `docs/RAD-SMART_User_Guide.pdf` |
 | Full research report | `docs/RAD-SMART_Research_Report.pdf` |
-| Automated tests | `app/care_radsmart/care_radsmart/tests/` (30 tests) · `poc/tests/` (run by GitHub on every change) |
+| Automated tests | `app/care_radsmart/care_radsmart/tests/` (37 tests) · `poc/tests/` (8 tests, run by GitHub on every change) |

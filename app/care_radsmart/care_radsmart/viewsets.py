@@ -19,7 +19,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from radsmart.config import fmt
+from radsmart.config import BANDS, fmt
 
 from care.emr.models import Patient
 from care.facility.models import Facility
@@ -244,6 +244,7 @@ class CourseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
             course.sessions.filter(date__gte=day, status="scheduled").update(status="cancelled")
             course.status, course.updated_by = "cancelled", request.user
             course.save()
+            engine.offer_later(course.facility)       # its slot is free from today
         return Response(CourseSerializer(course).data)
 
     @action(detail=True, methods=["get"])
@@ -261,14 +262,32 @@ class CourseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
             raise ValidationError("Only an approved course has a standing slot.")
         day, _ = clock()
         from_date = parse_date(request.data.get("from_date"), day + dt.timedelta(days=1))
-        wanted = to_minutes(request.data.get("wanted"))
-        if wanted is None:
-            raise ValidationError({"wanted": "Give the time the patient asked for."})
-        proposal = engine.propose_change(course, from_date, wanted)
-        req = SlotRequest.objects.create(course=course, from_date=from_date, wanted=wanted,
-                                         reason=str(request.data.get("reason") or "")[:500], proposal=proposal,
-                                         created_by=request.user, updated_by=request.user)
+        band = request.data.get("band") or None
+        wanted = None if band else to_minutes(request.data.get("wanted"))
+        if band is not None and band not in BANDS:
+            raise ValidationError({"band": "Morning, afternoon or evening."})
+        if band is None and wanted is None:
+            raise ValidationError({"wanted": "Give the time, or the part of the day, the patient asked for."})
+        proposal = engine.propose_change(course, from_date, wanted, band)
+        req = SlotRequest.objects.create(course=course, from_date=from_date, wanted=wanted, band=band or "",
+                                         source="staff", reason=str(request.data.get("reason") or "")[:500],
+                                         proposal=proposal, created_by=request.user, updated_by=request.user)
         return Response(SlotRequestSerializer(req).data, status=201)
+
+    @action(detail=True, methods=["post"])
+    def preference(self, request, external_id=None):
+        """The part of the day the patient would like (morning, afternoon,
+        evening, or any time). Times do not change: RAD-SMART offers a time
+        inside it when one frees up, for staff to agree with the patient."""
+        course = self.get_object()
+        require(request, "can_operate_radsmart", course.facility)
+        band = request.data.get("band") or ""
+        if band and band not in BANDS:
+            raise ValidationError({"band": "Morning, afternoon, evening, or empty for any time."})
+        with transaction.atomic():
+            set_band(course, band, request.user)
+            engine.offer_later(course.facility)
+        return Response(CourseSerializer(course).data)
 
 
     @action(detail=True, methods=["get"], url_path="patient-link")
@@ -332,6 +351,15 @@ class CourseViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.G
         return Response(out)
 
 
+def set_band(course: Course, band: str, user=None) -> None:
+    """Record the part of the day the patient prefers (a preference, not a
+    change of time: nothing moves until staff approve a new time)."""
+    course.time_band = band
+    course.checklist = {**(course.checklist or {}), "preferred": bool(band)}
+    course.updated_by = user or course.updated_by
+    course.save(update_fields=["time_band", "checklist", "updated_by", "modified_date"])
+
+
 class SlotRequestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = None                  # one facility's list; the boards need all of it
     permission_classes = [IsAuthenticated]
@@ -364,14 +392,23 @@ class SlotRequestViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             (req.proposal.get("standing") or {}).get("start")
         if start is None:
             raise ValidationError("No time to approve.")
+        offer = req.source == "radsmart"
+        why = (f"to the patient's preferred {req.band}, agreed with the patient" if offer
+               else "at the patient's request")
         with transaction.atomic():
-            engine.apply_change(req.course, req.from_date, start, request.user)
+            engine.apply_change(req.course, req.from_date, start, request.user, why)
             req.status, req.decided_by, req.decided_at = "approved", request.user, timezone.now()
             req.save()
+            if req.band and req.band != req.course.time_band:
+                set_band(req.course, req.band, request.user)
+            # other open requests for this course were about the old time
+            SlotRequest.objects.filter(course=req.course, status="proposed").exclude(pk=req.pk).update(
+                status="withdrawn", decided_at=timezone.now())
             messages.translate_later([messages.for_slot_change(req.course, req.from_date, start, request.user,
-                                                               clock()[0])])
+                                                               clock()[0], agreed=offer)])
             PatientReply.objects.filter(slot_request=req, status="open").update(
                 status="done", handled_by=request.user, handled_at=timezone.now())
+            engine.offer_later(req.course.facility)        # the old slot is free now
         return Response(SlotRequestSerializer(req).data)
 
     @action(detail=True, methods=["post"])
@@ -397,7 +434,8 @@ class DayView(APIView):
         if plugin_settings.RADSMART_DEMO and day == today:
             from care_radsmart.demo import catch_up
             catch_up(facility, today, now)      # the demonstration patients' day moves on
-        out = engine.day_view(facility, day)
+        out = engine.day_view(facility, day, now if day == today else None)
+        engine.offer_later(facility, throttle=600)   # slots freed by courses ending: offer better times
         plan = DayPlan.objects.filter(facility=facility, date=day).order_by("-modified_date").first()
         out["approval"] = None if plan is None else {
             "status": plan.status, "by": plan.approved_by.username if plan.approved_by else None,
@@ -444,12 +482,23 @@ class SessionViewSet(viewsets.GenericViewSet):
             s.arrived_at = s.arrived_at or timezone.now()
         elif s.status != before:
             raise ValidationError(f"This session is {s.get_status_display().lower()}.")
+        if step == "room":
+            # Anyone can be taken in: out of turn is recorded with the reason, never blocked.
+            others = Session.objects.filter(facility=s.facility, date=s.date, machine=s.machine,
+                                            status__in=("scheduled", "arrived")).exclude(pk=s.pk)
+            rows = [{"id": str(x.external_id), "machine": x.machine, "start": x.start, "status": x.status}
+                    for x in others]
+            me = {"id": str(s.external_id), "machine": s.machine, "start": s.start, "status": s.status}
+            s.out_of_turn, detail = engine.turn_detail(rows, me, clock()[1])
+            reason = str(request.data.get("reason") or "").strip()[:80]
+            s.turn_note = "; ".join(x for x in (reason, detail) if x) if s.out_of_turn else ""
         setattr(s, field, timezone.now())
         s.status, s.updated_by = after, request.user
         s.save()
         if after == "done" and not s.course.sessions.filter(status__in=("scheduled", "arrived", "in_room")).exists():
             s.course.status = "completed"
             s.course.save(update_fields=["status", "modified_date"])
+            engine.offer_later(s.facility)        # the course's slot is free from tomorrow
         return Response(engine.session_row(s))
 
     @action(detail=True, methods=["post"])
@@ -471,10 +520,15 @@ class SessionViewSet(viewsets.GenericViewSet):
                 "done": ("in_room", "out_at")}
         if s.status not in back:
             raise ValidationError("Nothing to undo.")
+        if s.status == "in_room":
+            s.out_of_turn, s.turn_note = False, ""
         s.status, field = back[s.status]
         setattr(s, field, None)
         s.updated_by = request.user
         s.save()
+        if s.course.status == "completed":       # the last fraction was marked done by mistake
+            s.course.status = "approved"
+            s.course.save(update_fields=["status", "modified_date"])
         return Response(engine.session_row(s))
 
     @action(detail=True, methods=["post"], url_path="send-home")
@@ -726,7 +780,8 @@ def reply_row(r: PatientReply) -> dict:
             "hospital_number": r.course.hospital_number,
             "session": str(r.session.external_id) if r.session else None,
             "time": fmt(r.session.start) if r.session else None, "kind": r.kind, "label": r.get_kind_display(),
-            "minutes": r.minutes, "wanted": fmt(r.wanted) if r.wanted is not None else None, "reason": r.reason,
+            "minutes": r.minutes, "wanted": fmt(r.wanted) if r.wanted is not None else None, "band": r.band,
+            "reason": r.reason,
             "slot_request": str(r.slot_request.external_id) if r.slot_request else None,
             "slot_request_status": r.slot_request.status if r.slot_request else None,
             "status": r.status, "handled_by": r.handled_by.username if r.handled_by else None,

@@ -297,9 +297,10 @@ push() {
       --secrets "${sec[@]}" --env-vars "${env[@]}" -o none
     grant "$(az containerapp show -g "$RG" -n "$APP" --query identity.principalId -o tsv)"
   fi
-  # Keep the registry small: the newest three images.
-  az acr repository show-tags -n "$ACR" --repository radsmart --orderby time_desc -o tsv | tail -n +4 |
-    while read -r old; do az acr repository delete -n "$ACR" --image "radsmart:$old" --yes -o none; done
+  # Keep the registry small: the newest three images. The Windows az ends lines with CR,
+  # which would make every tag one that does not exist.
+  az acr repository show-tags -n "$ACR" --repository radsmart --orderby time_desc -o tsv | tr -d '\r' | tail -n +4 |
+    while read -r old; do az acr repository delete -n "$ACR" --image "radsmart:$old" --yes -o none </dev/null; done
   echo "https://$host"
 }
 

@@ -43,7 +43,8 @@ export default function Layout({
   ];
   return (
     <Page>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 p-4 md:p-6">
+      {/* inline-size containment: wide tables scroll in their card instead of widening CARE's main column */}
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 p-4 [contain:inline-size] md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">RAD-SMART</p>

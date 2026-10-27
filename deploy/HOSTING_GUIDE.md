@@ -427,6 +427,8 @@ az acr repository show-tags -n radsmartabc123 --repository radsmart --orderby ti
 az acr repository delete -n radsmartabc123 --image radsmart:<old tag> --yes                     # delete an old one
 ```
 
+On Windows, `az ... -o tsv` ends each line with a carriage return. A script that reads those tags must strip it (`tr -d '\r'`), or Azure answers "The requested data does not exist" because no tag ends in `\r`.
+
 ### Step `webhook`: Telegram
 
 ```bash

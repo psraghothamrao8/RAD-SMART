@@ -86,6 +86,10 @@ For each patient, tap **Arrived** when they come, **In room** when they go in, a
 
 You can take anyone in at any time. When you tap **In room** for a patient ahead of others in the plan, RAD-SMART asks why, with one tap: **Came early**, **Next patient not here**, **Clinical reason**, **Other**, or just **Take in**. It never blocks you. It only reminds you of what to check: a full bladder not ready yet, a complex case before senior staff arrive at 10:00, or an ABC unit or breast board in use on another machine or at the CT simulator. The patient is marked **Out of turn**, with the reason and whom they went ahead of, and the plan for everyone else stays as it is.
 
+**An emergency, or a patient who cannot wait.** Press **First** beside any patient still to be treated and choose why: **Emergency**, **Doctor's request**, **Unwell, cannot wait** or **Transport leaving**. Once they are here, they are **Call next**, ahead of everyone (their cautions are still shown), and taking them in records the priority with whom they went ahead of. A breakdown never proposes sending them back. **Not first** puts them back in plan order. Who pressed it, and when, is kept.
+
+**An emergency course the same day.** On **New course**, tick **Emergency start today** (for example cord compression, bleeding or airway obstruction). RAD-SMART places the first fraction today in the first free time from when the patient can be ready until 18:00, using the time it keeps free every day for urgent starts, or this evening if nothing is free. That fraction is marked priority. The later fractions get a standing time as usual.
+
 **From patients' phones** lists what patients said today: on the way, late by about N minutes, cannot come, or asks for the morning, afternoon or evening. A badge also appears beside the patient. Click **Done** when it is handled. A request for another time also appears beside the patient and under the course, with RAD-SMART's proposal (step 3).
 
 ![Recording arrivals: one patient waiting, one in the room, the next ones still to come.](figures/app6_arrivals.png){width=6.2}
@@ -160,7 +164,9 @@ The chart compares each day with the department's baseline (108.6 minutes) and t
 
 ### The quickest way: the online demonstration
 
-Open https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ in any browser. Click **Doctor**, **Reception**, **Technologist** or **Patient** to go straight in, with no password. Every patient is synthetic.
+Open https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ in any browser. It is a guided tour of the whole pipeline in seven steps: plan a course, the patient's phone, check-in, the day board, a breakdown, the messages and Insights. Each step's button signs you in as the right person and opens the right page, with no password. Every patient is synthetic.
+
+- To sign in at CARE's own page instead, use **care-doctor** (doctor) or **care-staff** (reception and technologist), with the password **radsmart2026**, then choose the facility and RAD-SMART.
 
 - If the department clock there is outside the working day, click **Start a fresh day at 10:30**. The page refreshes itself until the day is ready.
 - To show a message arriving on a phone, open an approved course, scan its **Telegram (demonstration)** code with the phone and press START in the bot's chat. Then click **Send on Telegram** on the Messages page. The patient gets the text, the voice note and the reply buttons. In real use the same message goes by WhatsApp.
@@ -210,6 +216,7 @@ The refresh command, run in the CARE workspace:
 - **"Does it work without internet?"** Planning, the rule check, the board and check-in run on the hospital's own server. Translation, voice notes and Explain need Sarvam AI over the internet; without it, messages go in English and staff see RAD-SMART's own reasons. Messages are sent from the department's WhatsApp.
 - **"What if the translation is wrong?"** A translation that drops or changes a time is never used. In our test, 112 of 112 translations in four languages kept every time. (Sarvam has no Tulu model: Tulu speakers get Kannada, and staff can record a Tulu voice note.) Native speakers at the department rate every translation before the pilot.
 - **"Where does it run? Is it production-ready?"** It is live on Microsoft Azure now, as one Docker image built on CARE's production image, with a managed PostgreSQL database and HTTPS, deployed by one script. The pilot runs the same image with demonstration mode off, on the hospital's own server or in an Indian Azure region, after the hospital's IT, data-protection and ethics approvals.
+- **"What about an emergency?"** Staff press **First** beside the patient and choose a reason; once here, that patient is called next ahead of everyone. A new emergency course, ticked **Emergency start today**, gets its first fraction today in the first free time, using the time RAD-SMART keeps free every day for urgent starts.
 - **"What if a patient comes early, or is late?"** The technologist takes in whoever is ready. **Call next** skips anyone not here yet; taking a patient out of turn asks for a one-tap reason and is recorded, but is never blocked.
 - **"Patients want the morning or the evening, not an exact time."** The doctor or the patient chooses morning, afternoon or evening. When a slot inside it frees up, RAD-SMART offers it to staff, who ask the patient before anything changes.
 - **"What does staff have to do extra?"** Three taps per patient. The doctor fills in one form per course, which replaces the paper booking.

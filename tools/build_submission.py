@@ -540,7 +540,7 @@ box(sprint, L, ytop, cw3, 6.85 - ytop, [
     ("b", "Messages in 4 Indian languages with voice notes, opened in WhatsApp"),
     ("b", "Patient phone page, replies and QR check-in"),
     ("b", "Plain-words explanations, with a time check"),
-    ("b", "Insights · 45 automated tests"),
+    ("b", "Insights, and 49 automated tests"),
     ("b", "Live on Microsoft Azure in one Docker image; anyone can try it"),
 ], fill=GREEN_T, accent=GREEN, inset=0.16, size=12, gap=2, name="Functional now")
 box(sprint, L + cw3 + 0.2, ytop, cw3, 6.85 - ytop, [
@@ -639,7 +639,7 @@ box(ev2, L + cw3 + 0.2, yb, cw3, 6.85 - yb, [
     ("b", "Messages name the date: Konkani turned \"the next working day\" into \"next week\""),
     ("b", "Explanations use the time in force, not the proposed one"),
     ("b", "An unclear patient button was reworded"),
-    ("b", "45 automated tests now guard all of this"),
+    ("b", "49 automated tests now guard all of this"),
 ], fill=GREEN_T, accent=GREEN, inset=0.16, size=13, gap=3, name="Improvements")
 box(ev2, L + 2 * (cw3 + 0.2), yb, cw3, 6.85 - yb, [
     ("label", "Limitations"),

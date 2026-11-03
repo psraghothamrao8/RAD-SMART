@@ -249,6 +249,7 @@
         <h4 style="margin-top:12px">Prototype result (median wait, minutes)</h4>
         <table><tr><th>Fault</th><th class="n">No re-plan</th><th class="n">Re-planned</th></tr><tr><td>45 min</td><td class="n">53</td><td class="n">37</td></tr><tr><td>150 min</td><td class="n">104</td><td class="n">39</td></tr></table></div>
     </div>
+    <div class="say" style="margin-top:12px"><b class="t">Emergencies (3 Nov)</b>Staff can put any patient first today with a reason: once here they are <b>Call next</b> ahead of everyone, their cautions shown rather than waited for, and a breakdown never proposes sending them back. <b>Emergency start today</b> on New course places the first fraction in the first free time from when the patient can be ready until 18:00, the engine's urgent holds included, and marks it priority; later fractions get a standing slot as usual.</div>
     <div class="say" style="margin-top:12px"><b class="t">Early and late patients (27 Oct)</b>Patients rarely come at exactly their time, and the department does not keep a machine idle waiting: it treats whoever is ready. So the day board keeps the plan as the <b>order</b>, not a timetable. Each machine shows who is in the room, <b>Call next</b> (the first patient in plan order who has arrived; from 16:00 hospice patients first, for the 17:00 bus) and how far it runs behind (the longest wait past their time among those here). A patient past their time and not here shows <b>Not here yet · N min past</b>; one late in 3 of their last 5 visits shows <b>Often late</b>. A technologist can take anyone in at any time: RAD-SMART asks why in one tap (came early, next patient not here, clinical reason), shows what to check (bladder preparation, senior staff before 10:00, an ABC unit or breast board in use elsewhere), records <b>out of turn</b> and whom they went ahead of, and never blocks. Nobody else's time changes, so no messages are needed; a breakdown is still a re-plan.</div>
   </article>
 
@@ -472,7 +473,7 @@
     <tr><td>Fault median wait (no re-plan → re-plan)</td><td>45 min fault: 53 → 37 · 150 min fault: 104 → 39</td></tr>
     <tr><td>Forecast (two machines, TBI week)</td><td>Peak load 154% → 98% · days over capacity 10 → 0</td></tr>
     <tr><td>Sarvam AI evaluation</td><td>112 of 112 translations in 4 languages kept every time · 20 of 20 explanations accepted, 0 invented times</td></tr>
-    <tr><td>Live deployment</td><td>Microsoft Azure: Container Apps (one Docker image), PostgreSQL with daily backups, Container Registry, a daily job · 45 automated tests (37 plugin, 8 engine)</td></tr>
+    <tr><td>Live deployment</td><td>Microsoft Azure: Container Apps (one Docker image), PostgreSQL with daily backups, Container Registry, a daily job · 49 automated tests (40 plugin, 9 engine)</td></tr>
     <tr><td>Pilot headline target</td><td>P90 at least 25% below 109 min within a 90-day pilot</td></tr>
     <tr><td>Team</td><td>Dr Akshay Dinesan (team leader, doctor partner) · Abhinand T M (technical lead) · P S Raghotham Rao (lead engineer) · Dr Shirley Lewis Salins and Dr Umesh Velu (doctor partners)</td></tr>
   </table></div>

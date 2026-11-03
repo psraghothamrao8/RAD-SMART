@@ -2,7 +2,7 @@
 
 Health-a-thon 2026 · Cancer track · Use case 04: Clinic Operations & Patient Flow · 27 October 2026
 
-> **Deadline: Sunday 8 November 2026.** Top 30 announced by 14 November; finale on 28 November at IIT Bombay. The eight sections below follow the Phase 2 template. Each has a **full version** and a **short version** in case the form limits length. Replace every [square bracket] before submitting: they mark evidence only the department can give (the technologist trial and the native-speaker ratings).
+> **Deadline: Saturday 7 November 2026, 11:59 pm IST.** The final deliverables are in the organisers' templates: the presentation (`docs/RAD-SMART_Final_Presentation.pptx`) and the two-page overview (`docs/RAD-SMART_Solution_Brief.pptx`), built by `tools/build_final.py`, with the live demo and the video. This document holds the full text behind them. The Top 10 teams of each track go to the finale at IIT Bombay on 28 November. Square brackets mark evidence only the department can give (the technologist trial and the native-speaker ratings).
 
 > **Everything described as built in this document runs today** in the CARE plugin in `app/`, is shown in the demo video, and is **live on Microsoft Azure** for anyone to try: https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ Section 4.3 lists what is not built yet. Every patient in the app, the video and the evaluation is synthetic; the department's records are used only as anonymised totals.
 
@@ -43,7 +43,7 @@ The department's own records (55 working days, October–December 2024, 3,137 pa
 | User | What they do with RAD-SMART |
 |---|---|
 | **Radiation oncologist** | Enters a course from the patient's visit in CARE, with the patient's preferred part of the day; approves its first day and one standing daily time; can ask for a plain-language explanation in the patient's language |
-| **Radiation therapy technologist** | Runs the day board (arrived, in room, out) with a live queue, taking a ready patient in out of turn when another is late; declares breakdowns and approves the re-plan; sends patient messages on WhatsApp; agrees better times with patients |
+| **Radiation therapy technologist** | Runs the day board (arrived, in room, out) with a live queue, taking a ready patient in out of turn when another is late, and putting a patient first for an emergency; declares breakdowns and approves the re-plan; sends patient messages on WhatsApp; agrees better times with patients |
 | **Reception** | Checks patients in by scanning the QR code on their phone |
 | **Patient and family** | Open one private link on their phone: today's time, changes, messages in their language with a voice note, the check-in code, and four reply buttons, including a morning, afternoon or evening preference |
 | **Head of department** | Sees on Insights whether long waits are falling |
@@ -107,7 +107,8 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | 24 Oct | The department's second set of answers (roles, standing slots, breakdown rules, the screens they need) built into the engine and **into a working application inside CARE**; with/without impact analysis |
 | 25 Oct | User guide; demo video, narrated with Sarvam Bulbul; **Sarvam AI layer, patient messages, patient phone page, QR check-in and plain-language explanations built**; Sarvam evaluation; automated safety tests |
 | 26 Oct | **Deployed live on Microsoft Azure** in a Docker container (CARE's production build, managed PostgreSQL, HTTPS), with one-click demonstration roles and messages to Telegram; demo video re-recorded on the live server |
-| 27 Oct | From clinical feedback, **the preferred part of the day** with better-time offers, and **a live queue for early and late patients**; 45 automated tests, the engine's run by GitHub on every change |
+| 27 Oct | From clinical feedback, **the preferred part of the day** with better-time offers, and **a live queue for early and late patients**, the engine's tests run by GitHub on every change |
+| 3 Nov | **A Priority override for emergencies** and **same-day emergency starts**; the online demonstration becomes a guided tour of the whole pipeline; 49 automated tests |
 | [by 7 Nov] | [Technologist trial on the demo; native-speaker rating of translations] |
 
 ### 4.2 What changed because of the department's feedback
@@ -130,6 +131,7 @@ We chose this hybrid after scoring five approaches (a fixed timetable, a chatbot
 | Requests for another time, decided by staff | **Built** |
 | Preferred part of the day, with better-time offers as slots free up, agreed by staff with the patient | **Built** |
 | Live queue for early and late patients: call next, running behind, out of turn with a reason | **Built** |
+| Priority for an emergency, and an emergency course started the same day in the urgent holds | **Built** |
 | Insights from recorded times | **Built** |
 | Messages in Kannada, Malayalam, Hindi and Konkani (Tulu speakers get Kannada), with voice notes, opened in WhatsApp | **Built**; a technologist presses send |
 | Patient phone page with replies and QR check-in | **Built** |
@@ -180,7 +182,7 @@ An independent checker found **no broken hard rule** on any evaluation day.
 | Optimiser | 87-patient day, about 4,800 variables | **Proven optimum in 7.1 s** on a laptop |
 | Sarvam Translate | 7 message templates × 4 sets of times in each of Kannada, Malayalam, Hindi and Konkani (Tulu speakers get the Kannada text), each translated back to English | **112 of 112 kept every time** (100%); back-translation chrF median 76–80 (lowest 67); median 1.3–2.0 s per message |
 | Sarvam-105B explanations | 20 synthetic plans | **20 of 20 accepted**, **0 invented times**, 16 state both come-at times; median 1.5 s per answer |
-| Safety guards | 37 automated tests on the plugin (no Sarvam calls), plus 8 engine tests run by GitHub on every change | **All pass**: times read in every script, changed times rejected, invented times rejected, English fallback, rate limits retried, no phone number for demo patients |
+| Safety guards | 40 automated tests on the plugin (no Sarvam calls), plus 9 engine tests run by GitHub on every change | **All pass**: times read in every script, changed times rejected, invented times rejected, English fallback, rate limits retried, no phone number for demo patients |
 
 Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluation/sarvam_evaluation.md` (regenerated by `tools/evaluate_sarvam.py`).
 
@@ -199,7 +201,7 @@ Full tables, the lowest-scoring messages and a sample explanation: `docs/evaluat
 - **Costs of standing slots.** The evening runs about two hours later (still inside the department's hours), one new patient in five starts later by under half a day on average, and requested times are kept less often.
 - **Translation.** Back-translation is a rough meaning check, not a substitute for native speakers. Sarvam has no Tulu model.
 
-> **Short version.** On the department's 55 recorded days, re-planned in a calibrated twin, the 90th-percentile wait fell from 108.6 to 70.4 min (−35%) and over-an-hour lateness from 22.2% to 5.7%. Over 12 synthetic weeks: 82 → 49 min (−40%). After a 150-min breakdown, live re-planning cut the median wait from 104 to 39 min, with a new plan in 14 s. No hard rule was broken. Prediction error 2.15 min; optimum in 7.1 s. Sarvam translations kept every time in 112 of 112 messages across four languages; 20 of 20 explanations accepted with no invented time; 45 automated tests pass. [Technologist trial and native-speaker ratings.] Limits: replay not trial, synthetic session lengths.
+> **Short version.** On the department's 55 recorded days, re-planned in a calibrated twin, the 90th-percentile wait fell from 108.6 to 70.4 min (−35%) and over-an-hour lateness from 22.2% to 5.7%. Over 12 synthetic weeks: 82 → 49 min (−40%). After a 150-min breakdown, live re-planning cut the median wait from 104 to 39 min, with a new plan in 14 s. No hard rule was broken. Prediction error 2.15 min; optimum in 7.1 s. Sarvam translations kept every time in 112 of 112 messages across four languages; 20 of 20 explanations accepted with no invented time; 49 automated tests pass. [Technologist trial and native-speaker ratings.] Limits: replay not trial, synthetic session lengths.
 
 ## 6. Safety & Responsible AI
 
@@ -289,14 +291,14 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 
 | When | Step |
 |---|---|
-| By 8 Nov 2026 | Technologist trial of the demo; native-speaker rating of every translation |
+| Nov 2026 | Technologist trial of the demo; native-speaker rating of every translation |
 | Nov–Dec 2026 | Head of department approval; ethics committee review; hospital IT sign-off; patient notice and consent for messaging |
 | Jan 2027 | Pilot phase 1: two weeks measuring today's waits with the day board |
 | Feb 2027 | Pilot phase 2: three weeks in shadow mode |
 | Feb–Apr 2027 | Pilot phase 3: eight weeks live; retrain the session-minute model on real minutes |
 | 2027 | WhatsApp Business API (automatic sending and replies); spoken replies; the second machine; a read-only OIS feed; offer the plugin to other CARE hospitals |
 
-> **Short version.** Before 8 Nov: technologist trial and native-speaker ratings. Nov–Dec: approvals, ethics review, consent. Jan–Apr 2027: a 90-day pilot (baseline, shadow, live) and retraining on real minutes. Later in 2027: automatic WhatsApp, spoken replies, the second machine, an OIS feed, and other CARE hospitals.
+> **Short version.** Next: technologist trial and native-speaker ratings. Nov–Dec: approvals, ethics review, consent. Jan–Apr 2027: a 90-day pilot (baseline, shadow, live) and retraining on real minutes. Later in 2027: automatic WhatsApp, spoken replies, the second machine, an OIS feed, and other CARE hospitals.
 
 ---
 
@@ -316,4 +318,4 @@ RAD-SMART uses CARE's own patients, facilities, users and permissions, and adds 
 | Sarvam AI evaluation | `docs/evaluation/sarvam_evaluation.md` |
 | User guide and demo script | `docs/RAD-SMART_User_Guide.pdf` |
 | Full research report | `docs/RAD-SMART_Research_Report.pdf` |
-| Automated tests | `app/care_radsmart/care_radsmart/tests/` (37 tests) · `poc/tests/` (8 tests, run by GitHub on every change) |
+| Automated tests | `app/care_radsmart/care_radsmart/tests/` (40 tests) and `poc/tests/` (9 tests, run by GitHub on every change) |

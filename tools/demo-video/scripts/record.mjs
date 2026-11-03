@@ -424,6 +424,11 @@ try {
   zoom(older, 1.6);
   await sleep(2800);
   zoom(null);
+  const emergency = await hover(`__byText("Emergency start today", "label")`, 700);
+  await say("emergency");
+  zoom(emergency, 1.5);
+  await voiceDone();
+  zoom(null);
 
   await say("save");
   await click(btn("Save and propose slots"), { pause: 200 });
@@ -549,9 +554,52 @@ try {
   const rr = await rectOf(rowOf(arriving.patient_name));
   if (rr) zoom({ x: 140, y: rr.y - 40, w: 1300, h: rr.h + 80 }, 1.3);
   await click(inRow(arriving.patient_name, "In room"), { pause: 1400 });
+  // someone earlier in the plan is still waiting: RAD-SMART asks why, and takes them in anyway
+  if (await evaluate(`!!(${inRow(arriving.patient_name, "Take in")})`)) await click(inRow(arriving.patient_name, "Take in"), { pause: 1200 });
   await waitFor(inRow(arriving.patient_name, "Out"), 15000);
   await click(inRow(arriving.patient_name, "Out"), { pause: 1600 });
   zoom(null);
+
+  // the live queue, a patient put first for an emergency, and a better time offered
+  const queue = `[...document.querySelectorAll("div")].filter(__vis).find((d) => d.innerText.startsWith("In the room") && d.innerText.length < 400)`;
+  await say("queue");
+  const qr = await reveal(queue);
+  zoom(qr, fit(qr));
+  await hover(queue, 800);
+  await voiceDone();
+  zoom(null);
+  await say("first");
+  let urgent = await evaluate(`(() => { const r = [...document.querySelectorAll("tr")].filter(__vis)
+    .filter((t) => /\bWaiting\b/.test(t.innerText) && !/Call next/.test(t.innerText)).pop(); return r ? r.querySelector("a").innerText.trim() : null; })()`);
+  if (!urgent) {     // nobody else waiting: one still to come arrives first
+    urgent = await evaluate(`[...document.querySelectorAll("tr")].filter(__vis).filter((t) => /To come/.test(t.innerText))[2].querySelector("a").innerText.trim()`);
+    await reveal(inRow(urgent, "Arrived"));
+    await click(inRow(urgent, "Arrived"), { pause: 1500 });
+  }
+  await reveal(inRow(urgent, "First"));
+  const ur = await rectOf(rowOf(urgent));
+  if (ur) zoom({ x: 140, y: ur.y - 40, w: 1300, h: ur.h + 140 }, 1.3);
+  await click(inRow(urgent, "First"), { pause: 900 });
+  await click(inRow(urgent, "Emergency"), { pause: 1500 });
+  await waitFor(`(${rowOf(urgent)}).innerText.includes("Priority")`, 15000);
+  zoom(null);
+  const qr2 = await reveal(queue);
+  zoom(qr2, fit(qr2));
+  await voiceDone();
+  await sleep(1400);
+  zoom(null);
+  const offered = await evaluate(`(() => { const r = [...document.querySelectorAll("tr")].filter(__vis)
+    .find((t) => t.innerText.includes("Ask the patient")); return r ? r.querySelector("a").innerText.trim() : null; })()`);
+  if (offered) {
+    await say("offer");
+    await reveal(inRow(offered, "Patient agrees"));
+    const orr = await rectOf(rowOf(offered));
+    if (orr) zoom({ x: 140, y: orr.y - 30, w: 1300, h: orr.h + 60 }, 1.3);
+    await hover(inRow(offered, "Patient agrees"), 900);
+    await voiceDone();
+    await click(inRow(offered, "Patient agrees"), { pause: 1800 });
+    zoom(null);
+  }
 
   // ======== 5 · Breakdown ========
   await chapter("The machine breaks down", "Technologist");

@@ -1,5 +1,5 @@
-// Turns the recorder's log (public/rec/rec.json) into the video's timeline: an intro card,
-// a title card before each step, the recording itself, and an outro card. Waits for the
+// Turns the recorder's log (public/rec/rec.json) into the video's timeline: the story cards
+// (the team, the problem, how it was built), an intro card, a title card before each step, the recording itself, and an outro card. Waits for the
 // server and page loads are compressed so the video keeps moving, except while the
 // narrator speaks or a voice note plays.
 import narration from "../public/narration/index.json";
@@ -14,6 +14,8 @@ const FAST_TO = 1300; // a server wait is shown in this many ms
 const IDLE_MAX = 6000; // a gap between actions longer than this is a page load...
 const IDLE_TO = 1300; // ...shown in this many ms
 const voice = narration as Record<string, { file: string | null; sec: number }>;
+export const STORY_KEYS = ["team", "problem", "approach", "partners"] as const;
+export const STORY_VOICE = STORY_KEYS.map((k) => voice[`story_${k}`] ?? { file: null, sec: 6 });
 export const INTRO_VOICE = voice.intro;
 export const OUTRO_VOICE = voice.outro;
 const INTRO = Math.max(5, INTRO_VOICE.sec + 1.6);
@@ -53,6 +55,7 @@ export const PHONE = rec.phone as { w: number; h: number; dsf: number } | undefi
 export const UNIGRAM = (rec as { unigram?: { w: number; h: number; frames: Frame[] } }).unigram;
 
 export type Piece =
+  | { kind: "story"; from: number; dur: number; index: number }
   | { kind: "intro"; from: number; dur: number }
   | { kind: "outro"; from: number; dur: number }
   | { kind: "card"; from: number; dur: number; index: number }
@@ -95,6 +98,7 @@ export function buildTimeline() {
     pieces.push(p);
     f += p.dur;
   };
+  STORY_VOICE.forEach((v, index) => push({ kind: "story", from: f, dur: sec(v.sec + 1.4), index }));
   push({ kind: "intro", from: f, dur: sec(INTRO) });
   const skips = compressed();
   const end = events.find((e) => e.type === "end")?.t ?? events[events.length - 1].t;

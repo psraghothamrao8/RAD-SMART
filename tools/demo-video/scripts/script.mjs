@@ -2,8 +2,15 @@
 // given) is how the voice reads it, for times and numbers a voice reads badly.
 // narrate.mjs turns each line into an MP3 with Sarvam Bulbul; record.mjs shows the
 // caption and waits for the voice to finish before the next one.
+// Before the app: who we are, the problem, and how we built it with the department.
+export const STORY = {
+  team: { text: "We are team RAD-SMART. Dr Akshay Dinesan, a doctor in the radiotherapy department at Kasturba Medical College, Manipal, leads the team, with Dr Shirley Lewis Salins and Dr Umesh Velu. Abhinand T M and P S Raghotham Rao are the engineers." },
+  problem: { text: "The department has one machine for 70 to 90 patients a day. Times are given by hand, so one patient in ten waits more than 109 minutes, and a breakdown is handled by phone.", say: "The department has one machine for seventy to ninety patients a day. Times are given by hand, so one patient in ten waits more than 109 minutes, and a breakdown is handled by phone." },
+  approach: { text: "We started from the department's own records and rules. Its technologists and doctors answered our questions in writing, twice, and every answer became a rule in the code." },
+  partners: { text: "After each demonstration, the doctors' feedback added more: preferred times, treating a ready patient out of turn, and priority for emergencies. We built it inside CARE, with Sarvam AI for Indian languages, on Microsoft Azure." },
+};
 export const INTRO = "This is RAD-SMART, working inside CARE, the hospital's information system. Every patient you will see is synthetic.";
-export const OUTRO = "RAD-SMART predicts, plans, tests and tells. A person decides every change.";
+export const OUTRO = "On the department's own days, replayed, long waits fall by a third. Try it yourself: every step is one click, with no password.";
 
 export const LINES = {
   visit: { text: "The doctor opens the patient's visit in CARE. RAD-SMART adds one button." },
@@ -11,6 +18,7 @@ export const LINES = {
   prescription: { text: "The prescription goes in as on the paper form." },
   ticks: { text: "Each tick in the checklist becomes a rule RAD-SMART must keep." },
   older: { text: "Some ticks are automatic: this patient is over 70, so 'older patient' is already ticked.", say: "Some ticks are automatic. This patient is over seventy, so older patient is already ticked." },
+  emergency: { text: "For an emergency, such as cord compression, one tick starts the course today, in the first free time." },
   save: { text: "Saving asks RAD-SMART to propose a time." },
   proposal: { text: "It proposes a first day before 17:00, and one standing time for the whole course.", say: "It proposes a first day before five in the evening, and one standing time for the whole course." },
   explain: { text: "Explain in plain words asks Sarvam AI to explain the time, in English and in Kannada, the patient's language." },
@@ -31,6 +39,9 @@ export const LINES = {
   blocks: { text: "Each block is one patient. Green is a new start, blue a standing time. The red line is now." },
   replies: { text: "Patients' replies arrive here: who is on the way, and who will be late." },
   taps: { text: "When the patient goes in and comes out, the technologist taps In room, then Out. That measures the real wait." },
+  queue: { text: "The live queue shows who is in the room, and whom to call next among the patients who are here." },
+  first: { text: "For an emergency, the technologist presses First and gives the reason. That patient goes to the top of the queue, and the reason is recorded." },
+  offer: { text: "As courses end, RAD-SMART offers a patient a time in the part of the day they asked for. Staff agree it with the patient first." },
 
   fault: { text: "The machine fails. The technologist reports it, with the engineer's estimate." },
   replan: { text: "In seconds, RAD-SMART re-plans the day under the department's own breakdown rules." },

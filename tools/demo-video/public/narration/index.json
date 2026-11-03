@@ -1,11 +1,27 @@
 {
+ "story_team": {
+  "file": "8004a14c83cc.mp3",
+  "sec": 14.58
+ },
+ "story_problem": {
+  "file": "ece181733c90.mp3",
+  "sec": 9.95
+ },
+ "story_approach": {
+  "file": "92955ef92de8.mp3",
+  "sec": 8.52
+ },
+ "story_partners": {
+  "file": "3ada808262b2.mp3",
+  "sec": 12.77
+ },
  "intro": {
   "file": "1b517f5419e0.mp3",
   "sec": 6.37
  },
  "outro": {
-  "file": "6f9aa5e3cc51.mp3",
-  "sec": 5.36
+  "file": "73a327374eb7.mp3",
+  "sec": 7.5
  },
  "visit": {
   "file": "3fb50d4e655f.mp3",
@@ -26,6 +42,10 @@
  "older": {
   "file": "60a6fefa0cb4.mp3",
   "sec": 5.28
+ },
+ "emergency": {
+  "file": "043a6c423283.mp3",
+  "sec": 5.36
  },
  "save": {
   "file": "a9fec30ea2e4.mp3",
@@ -94,6 +114,18 @@
  "taps": {
   "file": "5191b90a0e88.mp3",
   "sec": 5.54
+ },
+ "queue": {
+  "file": "50a7db70c50e.mp3",
+  "sec": 4.49
+ },
+ "first": {
+  "file": "0fffb18c7821.mp3",
+  "sec": 6.97
+ },
+ "offer": {
+  "file": "a1b1671f600d.mp3",
+  "sec": 7.39
  },
  "fault": {
   "file": "01131e3aacd7.mp3",

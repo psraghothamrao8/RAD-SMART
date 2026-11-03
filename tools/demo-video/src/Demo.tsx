@@ -2,7 +2,7 @@ import { loadFont as loadSans } from "@remotion/google-fonts/IBMPlexSans";
 import { loadFont as loadSerif } from "@remotion/google-fonts/SourceSerif4";
 import { AbsoluteFill, Audio, Easing, Img, interpolate, Sequence, staticFile, useCurrentFrame } from "remotion";
 
-import { chapters, type Ev, events, FPS, frameFileAt, INTRO_VOICE, OUTRO_VOICE, PHONE, phoneAt, pieceAt, REC_H, REC_W, telegramAt, timeline, UNIGRAM, unigramFileAt, videoFrameOf } from "./timeline";
+import { chapters, type Ev, events, FPS, frameFileAt, INTRO_VOICE, OUTRO_VOICE, PHONE, phoneAt, pieceAt, REC_H, REC_W, STORY_VOICE, telegramAt, timeline, UNIGRAM, unigramFileAt, videoFrameOf } from "./timeline";
 
 const { fontFamily: sans } = loadSans("normal", { weights: ["400", "500", "600"], subsets: ["latin"] });
 const { fontFamily: serif } = loadSerif("normal", { weights: ["600"], subsets: ["latin"] });
@@ -36,7 +36,8 @@ export const Demo: React.FC = () => {
   const fade = interpolate(local, [0, 10, p.dur - 10, p.dur], [0, 1, 1, 0], clamp);
 
   let view: React.ReactNode;
-  if (p.kind === "intro") view = <Intro opacity={fade} local={local} />;
+  if (p.kind === "story") view = <Story index={p.index} opacity={fade} local={local} />;
+  else if (p.kind === "intro") view = <Intro opacity={fade} local={local} />;
   else if (p.kind === "outro") view = <Outro opacity={interpolate(local, [0, 12], [0, 1], clamp)} local={local} />;
   else if (p.kind === "card") view = <Card index={p.index} opacity={fade} local={local} />;
   else {
@@ -62,10 +63,19 @@ export const Demo: React.FC = () => {
 // The narrator (one MP3 per caption, from scripts/narrate.mjs) and the voice notes the
 // app played, each placed where its moment of the recording is shown.
 const outro = timeline.pieces.find((p) => p.kind === "outro");
+const intro = timeline.pieces.find((p) => p.kind === "intro");
+const stories = timeline.pieces.filter((p) => p.kind === "story");
 const SOUNDS = (
   <>
-    {INTRO_VOICE.file && (
-      <Sequence from={12}>
+    {stories.map((p, i) =>
+      STORY_VOICE[i].file ? (
+        <Sequence key={`s${i}`} from={p.from + 12}>
+          <Audio src={staticFile(`narration/${STORY_VOICE[i].file}`)} />
+        </Sequence>
+      ) : null,
+    )}
+    {INTRO_VOICE.file && intro && (
+      <Sequence from={intro.from + 12}>
         <Audio src={staticFile(`narration/${INTRO_VOICE.file}`)} />
       </Sequence>
     )}
@@ -265,6 +275,64 @@ function Card({ index, opacity, local }: { index: number; opacity: number; local
   );
 }
 
+// The story before the app: plain type on the dark ground, one idea per card.
+const STORY_CARDS: { title: string; rows: [string, string][] }[] = [
+  {
+    title: "The team",
+    rows: [
+      ["Dr Akshay Dinesan", "Team leader and doctor partner, radiotherapy, Kasturba Medical College, Manipal"],
+      ["Dr Shirley Lewis Salins", "Doctor partner"],
+      ["Dr Umesh Velu", "Doctor partner"],
+      ["Abhinand T M", "Technical lead"],
+      ["P S Raghotham Rao", "Lead engineer: the engine, the CARE app and the Sarvam AI layer"],
+    ],
+  },
+  {
+    title: "The problem",
+    rows: [
+      ["One machine", "70 to 90 patients a day, every weekday for one to seven weeks"],
+      ["109 minutes", "one patient in ten waits longer than this, in the department's own records"],
+      ["22%", "are treated more than an hour after their appointment time"],
+      ["By phone", "a breakdown today: patients already on the bus are not told"],
+    ],
+  },
+  {
+    title: "Built with the department",
+    rows: [
+      ["21 September", "the technologists' and doctors' first written answers: the rules"],
+      ["24 October", "their second answers: one daily time per course, the breakdown rules, who approves"],
+      ["27 October", "the doctor partner: preferred times, and treating a ready patient out of turn"],
+      ["3 November", "priority for emergencies, and an emergency course started the same day"],
+    ],
+  },
+  {
+    title: "How it is built",
+    rows: [
+      ["The doctors", "decide what is safe: every rule, and who approves each change"],
+      ["The engineers", "an optimiser that keeps every rule, inside CARE, the open-source hospital system"],
+      ["Sarvam AI", "messages and voice notes in Kannada, Malayalam, Hindi and Konkani"],
+      ["Microsoft Azure", "live in one Docker image: anyone can try it"],
+    ],
+  },
+];
+
+function Story({ index, opacity, local }: { index: number; opacity: number; local: number }) {
+  const card = STORY_CARDS[index];
+  return (
+    <AbsoluteFill style={{ background: C.bg, fontFamily: sans, justifyContent: "center", padding: "0 220px", opacity }}>
+      <h1 style={{ margin: 0, fontFamily: serif, fontSize: 96, fontWeight: 600, lineHeight: 1.05, color: C.ink }}>{card.title}</h1>
+      <div style={{ marginTop: 52, display: "grid", gridTemplateColumns: "520px 1fr", rowGap: 0 }}>
+        {card.rows.map(([a, b], i) => (
+          <div key={a} style={{ display: "contents", opacity: interpolate(local, [8 + i * 10, 20 + i * 10], [0, 1], clamp) }}>
+            <div style={{ borderTop: `1px solid ${C.bg2}`, padding: "20px 0", fontSize: 44, fontWeight: 600, color: C.ink, opacity: interpolate(local, [8 + i * 10, 20 + i * 10], [0, 1], clamp) }}>{a}</div>
+            <div style={{ borderTop: `1px solid ${C.bg2}`, padding: "24px 0", fontSize: 36, lineHeight: 1.3, color: C.ink2, opacity: interpolate(local, [8 + i * 10, 20 + i * 10], [0, 1], clamp) }}>{b}</div>
+          </div>
+        ))}
+      </div>
+    </AbsoluteFill>
+  );
+}
+
 function Intro({ opacity, local }: { opacity: number; local: number }) {
   return (
     <AbsoluteFill style={{ background: `radial-gradient(circle at 30% 30%, ${C.bg2}, ${C.bg})`, fontFamily: sans, justifyContent: "center", padding: "0 220px", opacity }}>
@@ -296,8 +364,8 @@ function Outro({ opacity, local }: { opacity: number; local: number }) {
           A person decides
         </span>
       </div>
-      <p style={{ margin: "56px 0 0", fontSize: 36, color: C.ink2 }}>psraghothamrao8.github.io/RAD-SMART</p>
-      <p style={{ margin: "10px 0 0", fontSize: 30, color: C.muted }}>Code: github.com/psraghothamrao8/RAD-SMART</p>
+      <p style={{ margin: "56px 0 0", fontSize: 40, color: C.ink }}>Try it: psraghothamrao8.github.io/RAD-SMART</p>
+      <p style={{ margin: "12px 0 0", fontSize: 30, color: C.muted }}>One click a step, no password. Code: github.com/psraghothamrao8/RAD-SMART</p>
     </AbsoluteFill>
   );
 }

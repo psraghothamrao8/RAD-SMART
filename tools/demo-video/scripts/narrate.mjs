@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { INTRO, LINES, OUTRO } from "./script.mjs";
+import { INTRO, LINES, OUTRO, STORY } from "./script.mjs";
 
 const OUT = join(import.meta.dirname, "..", "public", "narration");
 const SPEAKER = process.env.SPEAKER || "shubh";
@@ -23,7 +23,7 @@ const key = process.env.SARVAM_API_KEY
 if (!dry && !key) throw new Error("no SARVAM_API_KEY (pass --env-file or set it)");
 mkdirSync(OUT, { recursive: true });
 
-const all = { intro: { text: INTRO }, outro: { text: OUTRO }, ...LINES };
+const all = { ...Object.fromEntries(Object.entries(STORY).map(([k, v]) => [`story_${k}`, v])), intro: { text: INTRO }, outro: { text: OUTRO }, ...LINES };
 const index = {};
 let chars = 0;
 for (const [k, line] of Object.entries(all)) {

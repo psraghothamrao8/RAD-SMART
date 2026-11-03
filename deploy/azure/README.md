@@ -2,7 +2,7 @@
 
 RAD-SMART runs live on Microsoft Azure, packaged as **one Docker image**: CARE's own production build with both RAD-SMART plugins, nginx and gunicorn. It is served by Azure Container Apps over HTTPS, with Azure Database for PostgreSQL, Azure Container Registry and a daily Container Apps job. One script builds, migrates, deploys and checks the whole system.
 
-The public server is in **demonstration mode**, for judges and the department: the patients are synthetic and the data is renewed every morning. It runs on an **Azure for Students** subscription using only services that subscription gets free, so it spends none of the credit. The same image runs a real department; [From demonstration to pilot](#from-demonstration-to-pilot) lists what changes.
+The public server is in **demonstration mode**, for judges and the department: the patients are synthetic and the data is renewed every morning. It runs on an **Azure for Students** subscription using only services that subscription gets free. The one exception is the judging month, November 2026: then one copy of the app is kept warm by day, which spends a little of the credit, at most $10 ([the judging month](#the-judging-month)). The same image runs a real department; [From demonstration to pilot](#from-demonstration-to-pilot) lists what changes.
 
 ```bash
 bash deploy/azure/deploy.sh all       # setup, create, build, init, push, webhook, job
@@ -31,7 +31,7 @@ The address opens the demonstration's front door, `/try/` ([`tryout.py`](../../a
 
 | Piece | Azure service | Free allowance (Azure for Students) | Used |
 |---|---|---|---|
-| CARE, the plugin and both frontends, in one container | Container Apps, Consumption profile | 180,000 vCPU-s, 360,000 GiB-s and 2 million requests a month, always free | 0.5 vCPU / 1 GiB, 0 to 1 replica, about 100 h of running a month |
+| CARE, the plugin and both frontends, in one container | Container Apps, Consumption profile | 180,000 vCPU-s, 360,000 GiB-s and 2 million requests a month, always free | 0.5 vCPU / 1 GiB, 0 to 1 replica, up to 85 h of running a month (November 2026: warm by day, about $7) |
 | Database | PostgreSQL Flexible Server | 750 h of Burstable B1ms, 32 GB storage, 32 GB backup a month, 12 months | one B1ms server, 32 GB, no auto-grow, high availability or geo-backup, 7-day backups |
 | Image store | Container Registry | 1 Standard registry with 100 GB, 12 months | about 1.5 GB; the newest three images are kept |
 | Daily fresh data | Container Apps job | the same grant as the app | about 3 minutes a day |
@@ -50,9 +50,15 @@ The free allowances are listed on [Azure for Students](https://azure.microsoft.c
 
 A Container Apps replica is billed for every second it runs beyond the free grant. At 0.5 vCPU and 1 GiB that grant is 100 hours a month. The app scales to zero when nobody uses it, but a browser left open on the live board keeps it awake.
 
-[`guard.py`](guard.py) runs beside the server and counts each minute the app is awake in the database, per day. When the last 31 days reach **85 hours**, it makes the app's ingress internal through Azure Resource Manager, using the app's own managed identity. Nothing outside can reach the app then, so it scales to zero and costs nothing. The daily job opens it again once the 31 days are back under the limit. Any billing month fits inside a 31-day window, and the 15 spare hours cover the daily job and start-up time.
+[`guard.py`](guard.py) runs beside the server. Each minute it adds the app's vCPU-seconds and GiB-seconds to the database, per day. The vCPU-seconds are split into active and idle, from the container's CPU and network counters every five seconds, by Azure's idle rule. It prices the calendar month (the subscription's billing month) at the Consumption rates, counting only 85% of the free grant, so the daily job and start-up time fit in the rest. When the month costs more than its budget, it makes the app's ingress internal through Azure Resource Manager, using the app's own managed identity. Nothing outside can reach the app then, so it scales to zero and costs nothing. The daily job opens it again in the next month. With no budget, the limit is the free grant: **85 hours** a month at this size.
 
-`deploy.sh status` shows the hours used. `pause` and `resume` take the app off the internet by hand; a hand pause is tagged on the app, so the daily job leaves it closed.
+`deploy.sh status` shows the month's hours and estimate. `pause` and `resume` take the app off the internet by hand; a hand pause is tagged on the app, so the daily job leaves it closed.
+
+### The judging month
+
+Judges trying the demonstration should not wait 25 seconds for the first page. Until `WARM_UNTIL` (1 December 2026), the month may cost `BUDGET_USD` ($10), and the guard keeps **one replica warm** from 05:30 IST (the daily job) to 23:00 IST. It stops warming when the month is within $1 of the budget. A replica kept by the minimum count pays the idle vCPU rate, an eighth of the active one, for the seconds it does nothing; memory costs the same either way. A warm day costs about $0.28, so November comes to about $7 of the credit. At night the app scales to zero as before. From 1 December the budget is nothing, and the app lives on the free grant again with no change needed.
+
+A bigger replica was not worth it. Once started, pages answer in 0.1 to 0.6 seconds at 0.5 vCPU, and memory comes with the CPU (2 GiB per vCPU), so 1 vCPU kept warm would cost twice as much.
 
 Azure for Students has no spending API (Cost Management answers 422), so check the remaining credit at [microsoftazuresponsorships.com](https://www.microsoftazuresponsorships.com/Balance) now and then.
 
@@ -67,7 +73,9 @@ Azure for Students has no spending API (Cost Management answers 422), so check t
 
 The CARE frontend is built in the image's first stage, on Linux as CARE's own Dockerfile does, from a clean export of the pinned care_fe commit. It uses same-origin API calls and no build-time plugins. (A build on Windows does not work: CARE's icon tree-shaking passes a backslash path to glob, finds no files, and every page then fails on a missing icon.) On every start the container registers the plugin's frontend with CARE (`PlugConfig`) at its own address (`RADSMART_PUBLIC_URL`), so neither the image nor the database depends on the address.
 
-**Cold start:** after five quiet minutes the app scales to zero, and the next request wakes it. Azure holds that request until CARE answers: about 15 to 20 seconds (measured 13 s and 20 s on 26 Oct 2026). [`entrypoint.sh`](entrypoint.sh) opens port 8080 only once gunicorn is up, so the first page does not fail.
+**Cold start:** when no replica is kept warm, the app scales to zero after five quiet minutes, and the next request wakes it. Azure holds that request until CARE answers: about 15 to 25 seconds (13 s and 20 s on 26 Oct 2026, 25 s on 3 Nov). [`entrypoint.sh`](entrypoint.sh) opens port 8080 only once gunicorn is up, so the first page does not fail, and gunicorn loads all of CARE's URLs and views once, before it forks its workers ([`wsgi.py`](wsgi.py) with `--preload`), so no worker's first request waits for them (3 to 5 s before).
+
+**Downloads:** the build files are compressed once, in the image (`gzip -9`), and nginx sends those copies (`gzip_static`). CARE's frontend is about 2.5 MB compressed on a first visit, then cached.
 
 ## The data
 
@@ -96,7 +104,7 @@ The pilot uses the same image and the same script. Only configuration changes:
 | Sign-in | One-click roles, no password (`RADSMART_OPEN_DEMO`) | Each person's own CARE account, with CARE's two-factor sign-in; open demonstration off |
 | Data | Synthetic patients, renewed every morning (`RADSMART_DEMO`, the daily job) | Real courses, kept; the daily job runs migrations only |
 | Where | UAE North, free services | The hospital's own server (Docker Compose, beside its CARE), or an Indian Azure region such as Central India so data stays in India |
-| Size | 0.5 vCPU, 1 GiB, scales to zero | Always at least one replica during the department's hours (08:30–01:00); a larger database tier |
+| Size | 0.5 vCPU, 1 GiB, scales to zero (warm by day in November 2026) | Always at least one replica during the department's hours (08:30–01:00); a larger database tier |
 | Patient messages | WhatsApp, or Telegram for visitors | The department's WhatsApp |
 | Sarvam | 6,000 characters a day | Sized for the department: about ₹5,000–10,000 a year |
 | Backups | 7-day automatic database backups | The same, plus the hospital's own retention policy |

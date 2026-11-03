@@ -397,7 +397,7 @@ az containerapp create -g radsmart-demo -n radsmart --environment radsmart-env -
 | `--ingress external` | reachable from the internet; Azure gives it an `https://` address and certificate |
 | `--target-port 8080` | the port nginx listens on inside the container |
 | `--cpu 0.5 --memory 1.0Gi` | the size of each copy |
-| `--min-replicas 0` | scale to zero: no copy runs when nobody visits, so no cost; the next visit starts one |
+| `--min-replicas 0` | scale to zero: no copy runs when nobody visits, so no cost; the next visit starts one. The guard raises it to 1 by day while a month's budget allows (section 9) |
 | `--max-replicas 1` | never more than one copy |
 | `--system-assigned` | gives the app a managed identity, which the cost guard uses |
 | `--secrets name=value` | stores secrets in the app |
@@ -468,7 +468,7 @@ The [`Dockerfile`](azure/Dockerfile) has two stages. A **multi-stage build** use
 | `FROM ${BASE}` | **Stage 2** starts from CARE's own production image: Python, Django, gunicorn and CARE. |
 | `apt-get install nginx redis-server` | adds the web server and the cache |
 | `COPY engine/ ...`, `COPY plugin/ ...`, `pip install -e ...` | adds and installs the scheduling engine and the RAD-SMART backend plugin |
-| `COPY settings.py`, `nginx.conf`, `entrypoint.sh`, `guard.py` | our configuration and start-up script |
+| `COPY settings.py`, `wsgi.py`, `nginx.conf`, `entrypoint.sh`, `guard.py` | our configuration and start-up script |
 | `COPY --from=care-fe ... /srv/www/`, `COPY www/ /srv/www/` | the built CARE frontend and the plugin frontend, served by nginx |
 | `ENV DJANGO_SETTINGS_MODULE=...`, `ADDITIONAL_PLUGS=...` | tells CARE to use our settings and to load the RAD-SMART plugin |
 | `RUN ... collectstatic`, `compilemessages` | prepares static files and translations at build time, so starting up is faster |
@@ -477,10 +477,10 @@ The [`Dockerfile`](azure/Dockerfile) has two stages. A **multi-stage build** use
 
 **[`entrypoint.sh`](azure/entrypoint.sh)** starts, inside one container:
 1. Redis, as a cache only, keeping nothing on disk;
-2. gunicorn running CARE and the plugin, on port 9000, inside the container only;
+2. gunicorn running CARE and the plugin, on port 9000, inside the container only. gunicorn loads all of CARE's URLs and views once, before it starts its workers ([`wsgi.py`](azure/wsgi.py) with `--preload`), so no visitor waits 3 to 5 seconds for a worker's first request;
 3. a registration of the plugin's frontend address in CARE's database, so the image works at any address;
 4. nginx on port 8080, **only once gunicorn answers**, so the visit that wakes the app waits instead of failing;
-5. `guard.py`, which counts the awake minutes.
+5. `guard.py`, which counts the awake minutes and what they cost.
 
 If any server stops, the container stops, and Container Apps starts a new one. With `reseed` it runs the daily job instead.
 
@@ -490,14 +490,14 @@ If any server stops, the container stops, and Container Apps starts a new one. W
 - `/` and `/try/` redirect to the demonstration's front page.
 - Changing a password or setting up two-factor sign-in is refused, so one visitor cannot lock out the next.
 - Files with a content hash in their name are cached for a year; other pages are not cached.
-- Text is compressed with gzip.
+- Text is compressed with gzip. The build files are compressed once, when the image is built (`gzip -9`), and nginx sends those copies (`gzip_static`).
 
 **[`settings.py`](azure/settings.py)** is CARE's production settings plus one change: background tasks run inside the request, because there is no separate Celery worker.
 
 ## 8. Day to day
 
 ```bash
-bash deploy/azure/deploy.sh status                       # address, public or not, image, replicas, awake hours, last job runs
+bash deploy/azure/deploy.sh status                       # address, public or not, warm or not, image, replicas, the month's estimate, last job runs
 bash deploy/azure/deploy.sh build job reseed push        # deploy a code change
 bash deploy/azure/deploy.sh reseed                       # a fresh demonstration day now
 bash deploy/azure/deploy.sh pause                        # take it off the internet (costs nothing then)
@@ -518,11 +518,11 @@ az containerapp job start -g radsmart-demo -n radsmart-reseed                   
 az resource list -g radsmart-demo -o table                                      # everything in the resource group
 ```
 
-**Cold start:** after 5 quiet minutes the app scales to zero. The next visit waits about 15 to 20 seconds while a copy starts, then the app is fast.
+**Cold start:** when the app is not kept warm, it scales to zero after 5 quiet minutes. The next visit waits about 20 to 25 seconds while a copy starts, then the app is fast. Through November 2026 one copy is kept warm from 05:30 to 23:00 IST, so visitors do not wait (section 9).
 
-## 9. Keeping it free
+## 9. Keeping it free, and the judging month
 
-Azure for Students includes $100 of credit, and some services are free on top of it. Everything here stays inside the free part:
+Azure for Students includes $100 of credit, and some services are free on top of it. Outside the judging month, everything here stays inside the free part:
 
 | Service | Free allowance | How we stay inside it |
 |---|---|---|
@@ -530,10 +530,16 @@ Azure for Students includes $100 of credit, and some services are free on top of
 | PostgreSQL B1ms | 750 hours, 32 GB, 12 months | one server, auto-grow off, no high availability, no geo-backup |
 | Container Registry Standard | one registry, 12 months | the newest three images only |
 
+**The judging month.** While judges try the demonstration, waiting 25 seconds for the first page is a poor start. So until `WARM_UNTIL` (1 December 2026), the app keeps **one copy warm** from 05:30 to 23:00 IST, and a month may cost up to `BUDGET_USD` ($10) of the credit. Container Apps bills a copy that is kept running at the idle rate for the seconds it does nothing: an eighth of the active vCPU rate. Memory costs the same either way. A warm day costs about $0.28, so November comes to about $7. At night the app still scales to zero. Doubling the size to 1 vCPU and 2 GiB would have doubled that cost and barely helped: once started, pages answer in 0.1 to 0.6 seconds.
+
 **The guard ([`guard.py`](azure/guard.py)):** a browser left open on the live board would keep the app awake. The guard:
-- counts each awake minute in the database;
-- when the last 31 days reach **85 hours**, makes the app's ingress internal through Azure's API, using the app's managed identity, so nobody outside reaches it and it sleeps;
-- is checked by the daily job, which reopens the app once the 31 days are back under the limit.
+- adds each awake minute to the database, as vCPU-seconds (active or idle, from the container's CPU and network counters every five seconds) and GiB-seconds;
+- prices the calendar month, the subscription's billing month, at Azure's rates, counting only 85% of the free grant, which leaves room for the daily job and for starting up;
+- keeps a copy warm (minimum one replica) from 05:30 to 23:00 IST while the month is at least $1 under budget, and lets the app scale to zero otherwise. The scale is part of the app's template, so each change starts a new revision;
+- when the month costs more than its budget, makes the app's ingress internal through Azure's API, using the app's managed identity, so nobody outside reaches it and it sleeps;
+- is checked by the daily job, which warms the app each morning and reopens it in a new month.
+
+From 1 December the budget is nothing. The guard then closes the app when a month's awake time would leave the free grant (85 hours at 0.5 vCPU and 1 GiB), exactly as before the judging month.
 
 **Left out on purpose, because each is billed:** Log Analytics, dedicated workload profiles, `az acr build` (images are built on your computer instead), Key Vault, a separate Redis, and storage accounts.
 
@@ -603,8 +609,8 @@ The same image and the same script; only settings change. Do this only after the
 | Demonstration data and clock | on | off | set `"RADSMART_DEMO": false` in `ADDITIONAL_PLUGS` in the `Dockerfile`, then `build job push` |
 | The daily job | fresh synthetic day | migrations only, or no job | change the `reseed` case in `entrypoint.sh`, or `az containerapp job delete` |
 | Region | UAE North | Central India, or the hospital's own server | `LOC=centralindia RG=radsmart-pilot bash deploy/azure/deploy.sh all` on a paid subscription |
-| Always on during the day | scales to zero | at least one copy | `az containerapp update -g <rg> -n radsmart --min-replicas 1` |
-| Cost guard | 85 hours | off | leave `RADSMART_APP_ID` unset |
+| Always on during the day | warm 05:30–23:00 IST through November 2026, then scales to zero | at least one copy | `az containerapp update -g <rg> -n radsmart --min-replicas 1` |
+| Cost guard | a month's budget (the free grant from December 2026) | off | leave `RADSMART_APP_ID` unset |
 | Your own address | `*.azurecontainerapps.io` | e.g. `radsmart.hospital.in` | `az containerapp hostname add` and `az containerapp hostname bind` (free managed certificate) |
 | Users | demonstration accounts | each person's own CARE account, with two-factor sign-in | CARE's admin pages |
 

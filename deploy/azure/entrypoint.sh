@@ -2,7 +2,7 @@
 # The demonstration container.
 #
 #   entrypoint.sh            serve: Redis (CARE's cache; nothing is kept), gunicorn with CARE
-#                            and the plugin, nginx on port 8080, and the awake-time guard
+#                            and the plugin, nginx on port 8080, and the cost guard
 #   entrypoint.sh reseed     the daily job: fresh demonstration data, then the guard's check
 #   entrypoint.sh CMD ...    anything else, e.g. python manage.py shell
 set -euo pipefail
@@ -29,7 +29,9 @@ case "${1:-serve}" in
   serve)
     register_plugin & registering=$!
     redis &
-    gunicorn --config python:config.gunicorn config.wsgi:application --bind 127.0.0.1:9000 --chdir=/app \
+    # config.radsmart_wsgi (wsgi.py here) also loads CARE's URLs and views. With --preload
+    # that is done once, before the workers are forked, so both start warm.
+    gunicorn --config python:config.gunicorn config.radsmart_wsgi:application --preload --bind 127.0.0.1:9000 --chdir=/app \
       --workers "${GUNICORN_WORKERS:-2}" --worker-class gthread --threads 4 --timeout 90 \
       --access-logfile - --error-logfile - &
     # nginx opens port 8080 only once CARE answers, so Azure holds the request

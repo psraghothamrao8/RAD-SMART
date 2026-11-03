@@ -15,7 +15,7 @@
 #   webhook   point the Telegram bot at the app
 #   job       push the image; the daily job (05:30 IST): migrations, fresh demonstration data, the guard's check
 #   reseed    run the daily job now and wait for it (after a plugin update: it migrates)
-#   status    address, whether it is public, replicas, awake hours, recent job runs
+#   status    address, whether it is public, warm or not, replicas, this month's estimate, recent job runs
 #   pause / resume   take the app off the internet by hand, or put it back
 #   all       setup create build init push webhook job
 #   down      delete everything in the resource group (asks first)
@@ -50,7 +50,8 @@ LOC="${LOC:-uaenorth}"
 CAE="${CAE:-radsmart-env}"
 APP="${APP:-radsmart}"
 JOB="${JOB:-radsmart-reseed}"
-AWAKE_HOURS="${AWAKE_HOURS:-85}"                 # of the 100 free hours a month at 0.5 vCPU / 1 GiB
+BUDGET_USD="${BUDGET_USD:-10}"                   # the most a month may cost until WARM_UNTIL (guard.py) ...
+WARM_UNTIL="${WARM_UNTIL:-2026-12-01}"          # ... which keeps a replica warm by day; then the free grant only
 SARVAM_DAILY_CHARS="${SARVAM_DAILY_CHARS:-6000}" # Sarvam spending caps for the public server
 SARVAM_TOTAL_CHARS="${SARVAM_TOTAL_CHARS:-40000}"
 CENSUS="${CENSUS:-60}"
@@ -188,8 +189,8 @@ build() {
     tar -C "$BUILD/engine" -xf -
   tar -C "$REPO/app/care_radsmart" --exclude=__pycache__ --exclude='*.egg-info' --exclude=tests \
     -cf - setup.py MANIFEST.in README.md care_radsmart | tar -C "$BUILD/plugin" -xf -
-  cp "$HERE"/{Dockerfile,nginx.conf,entrypoint.sh,guard.py,settings.py} "$BUILD/"
-  sed -i 's/\r$//' "$BUILD"/{nginx.conf,entrypoint.sh,guard.py,settings.py}   # CRLF from a Windows editor breaks the shebang
+  cp "$HERE"/{Dockerfile,nginx.conf,entrypoint.sh,guard.py,settings.py,wsgi.py} "$BUILD/"
+  sed -i 's/\r$//' "$BUILD"/{nginx.conf,entrypoint.sh,guard.py,settings.py,wsgi.py}   # CRLF from a Windows editor breaks the shebang
 
   tag="$(date +%Y%m%d-%H%M)"
   log "Image $ACR.azurecr.io/radsmart:$tag"
@@ -248,7 +249,7 @@ env_common() {
     "DJANGO_ALLOWED_HOSTS=[\"$host\",\"localhost\",\"127.0.0.1\"]"
     "CSRF_TRUSTED_ORIGINS=[\"https://$host\"]" "CORS_ALLOWED_ORIGINS=[\"https://$host\"]"
     "DJANGO_SECURE_SSL_REDIRECT=False" "USE_SMS=False" "RADSMART_PUBLIC_URL=https://$host"
-    "RADSMART_APP_ID=$APP_ID" "RADSMART_AWAKE_HOURS=$AWAKE_HOURS"
+    "RADSMART_APP_ID=$APP_ID" "RADSMART_BUDGET_USD=$BUDGET_USD" "RADSMART_WARM_UNTIL=$WARM_UNTIL"
     "RADSMART_OPEN_DEMO=$OPEN_DEMO" "RADSMART_DEMO_PASSWORD=$DEMO_PASSWORD"
   )
   SECRETS_COMMON=("database-url=$DATABASE_URL" "django-secret-key=$DJANGO_SECRET_KEY" "jwks=$JWKS_BASE64")
@@ -349,18 +350,21 @@ reseed() {
 # ------------------------------------------------------------------- status
 status() {
   secrets
-  local public paused img
-  IFS='|' read -r public paused img < <(az containerapp show -g "$RG" -n "$APP" -o tsv --query \
-    "[properties.configuration.ingress.external, tags.\"radsmart-paused\", properties.template.containers[0].image]" |
+  local public paused img warm
+  IFS='|' read -r public paused img warm < <(az containerapp show -g "$RG" -n "$APP" -o tsv --query \
+    "[properties.configuration.ingress.external, tags.\"radsmart-paused\", properties.template.containers[0].image,
+      properties.template.scale.minReplicas]" |
     tr -d '\r' | paste -sd '|')   # one value a line; an empty tag must stay a field
   echo "address:  https://$(fqdn)"
   echo "public:   $public (paused by hand: ${paused:-no})"
+  echo "warm:     $([[ "${warm:-0}" -ge 1 ]] && echo "yes, one replica kept running" || echo "no, scales to zero")"
   echo "image:    $img"
   echo "replicas: $(az containerapp replica list -g "$RG" -n "$APP" --query 'length(@)' -o tsv 2>/dev/null || echo 0)"
   open_db
-  docker exec -e TARGET="$DATABASE_URL" -e SQL="SELECT round(coalesce(sum(seconds), 0) / 3600.0, 1) FROM radsmart_awake
-    WHERE day > (now() at time zone 'utc')::date - 31" "$DB" sh -c 'psql "$TARGET" -tAc "$SQL"' 2>/dev/null |
-    sed "s/.*/awake:    & of $AWAKE_HOURS h in the last 31 days/" || echo "awake:    nothing counted yet"
+  # The guard's own estimate, run in the local backend container (it has psycopg).
+  docker exec -i -e DATABASE_URL="$DATABASE_URL" -e RADSMART_BUDGET_USD="$BUDGET_USD" -e RADSMART_WARM_UNTIL="$WARM_UNTIL" \
+    "$BACKEND" python - --status < "$HERE/guard.py" 2>/dev/null | tr -d '\r' | sed 's/^/month:    /' ||
+    echo "month:    nothing counted yet"
   close_db; trap - EXIT
   az containerapp job execution list -g "$RG" -n "$JOB" --query "[:3].{start:properties.startTime, status:properties.status}" -o table 2>/dev/null || true
 }
@@ -372,12 +376,14 @@ paused() {   # paused yes|no: the tag the daily job reads. Only the tags are sen
 pause() {
   paused yes
   az containerapp ingress update -g "$RG" -n "$APP" --type internal -o none
+  az containerapp update -g "$RG" -n "$APP" --min-replicas 0 -o none   # no warm replica either
   echo "The app is internal: nothing outside reaches it, and it sleeps. 'resume' puts it back."
 }
 resume() {
   paused no
   az containerapp ingress update -g "$RG" -n "$APP" --type external -o none
-  echo "The app is public at https://$(fqdn) (the guard closes it again if the 31-day allowance is used up)."
+  echo "The app is public at https://$(fqdn) (the guard warms it by day while the budget allows, and"
+  echo "closes it again if the month's budget is spent)."
 }
 down() {
   read -r -p "Delete resource group $RG and everything in it? Type its name: " answer

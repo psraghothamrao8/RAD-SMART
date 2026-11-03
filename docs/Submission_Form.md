@@ -12,7 +12,7 @@ https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/
 
 > No login needed. The link opens a guided tour of the whole pipeline in seven steps: plan a course (doctor), the patient's phone page, check-in (reception), the day board (technologist), a machine breakdown, the patients' messages, and Insights. Each step's button signs you in as the right person and opens the right page. Every patient is synthetic.
 >
-> The server sleeps when nobody is using it, so the first page can take about 20 seconds. If the department's day is over, or someone has already been through it, press "Start a fresh day at 10:30" on the same page.
+> Through November the server stays awake from 05:30 to 23:00 IST. At other times it sleeps when nobody is using it, so the first page can take about 20 seconds. If the department's day is over, or someone has already been through it, press "Start a fresh day at 10:30" on the same page.
 >
 > To sign in at CARE's own page instead: username care-doctor (doctor) or care-staff (reception and technologist), password radsmart2026. Then choose the facility and RAD-SMART.
 

@@ -30,10 +30,15 @@ COPY --chown=django:django plugin/ /plugins/care_radsmart/
 RUN pip install --no-cache-dir -e /plugins/radsmart_engine -e /plugins/care_radsmart
 
 COPY settings.py /app/config/settings/radsmart_azure.py
+COPY wsgi.py /app/config/radsmart_wsgi.py
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --chmod=0755 entrypoint.sh guard.py /srv/
 COPY --from=care-fe --chown=django:django /app/build/ /srv/www/
 COPY --chown=django:django www/ /srv/www/
+# Compressed copies for nginx's gzip_static: smaller downloads, and no compressing
+# on every request with half a vCPU.
+RUN find /srv/www -type f -size +1k \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.json' \
+      -o -name '*.svg' -o -name '*.webmanifest' \) -exec gzip -9 -k -n {} +
 
 ENV DJANGO_SETTINGS_MODULE=config.settings.radsmart_azure \
     ADDITIONAL_PLUGS='[{"name":"care_radsmart","package_name":"/plugins/care_radsmart","version":"","configs":{"RADSMART_DEMO":true,"RADSMART_MACHINES":"VERSA:Versa HD"}}]'

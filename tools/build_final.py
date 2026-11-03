@@ -36,7 +36,8 @@ CONTACT = "akshay.dinesan@manipal.edu"
 SITE = "https://psraghothamrao8.github.io/RAD-SMART/"
 VIDEO = SITE + "#demo"
 REPO = "https://github.com/psraghothamrao8/RAD-SMART"
-LIVE = "https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/api/care_radsmart/try/"
+MVP = "https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io"   # redirects to the tour
+LIVE = MVP + "/api/care_radsmart/try/"
 
 # the template's own colours; a hairline and one quiet tint
 BLUE, GREEN, DARK, GRAY, LINE, TINT, PALE = "1F3DA9", "0D8743", "232F3E", "5D6A79", "D5DBE3", "F1F4FA", "B9C0CA"
@@ -738,13 +739,17 @@ def rewrite(shape, blocks, size=10.5):
             _run(p, h, 12.5, "275B9D", bold=True, font=HEAD).font.underline = True
         p.runs[-1].font.size = Pt(12.5)
         for it in items:
-            kind, body = ("p", it) if isinstance(it, str) else it
+            kind, body = ("p", it) if isinstance(it, str) else it[:2]
             q = tf.add_paragraph()
             q.space_after, q.line_spacing = Pt(2.5), 1.0
             for j, chunk in enumerate(body.split("**")):
                 if chunk:
                     _run(q, chunk, size, DARK, bold=j % 2 == 1).font.underline = False   # the placeholder underlines
-            if kind == "b":
+            for k, (shown, url) in enumerate(it[2] if kind == "l" else []):   # l: bullet, then (shown, url) links
+                if k:
+                    _run(q, " and ", size, DARK).font.underline = False
+                _run(q, shown, size, BLUE, link=url).font.underline = True
+            if kind in ("b", "l"):
                 _bullet(q, BLUE, 0.16)
 
 
@@ -861,10 +866,11 @@ rewrite(right, [
         ("b", "90-day pilot on the Versa HD (baseline, shadow, live; target −25%), then the second machine and "
               "other CARE hospitals."),
     ]),
-    ("Supporting Links", [
-        ("b", "**MVP, no password**: " + LIVE),
-        ("b", "**Video demo walkthrough**: " + VIDEO),
-        ("b", "**Website, code and documents**: " + SITE + " and " + REPO),
+    ("Supporting Links", [   # clickable; the server's own address opens the guided tour
+        ("l", "**MVP, no password**: ", [(MVP.split("//")[1], MVP)]),
+        ("l", "**Video demo walkthrough**: ", [(VIDEO.split("//")[1], VIDEO)]),
+        ("l", "**Website and documents**: ", [(SITE.split("//")[1].rstrip("/"), SITE)]),
+        ("l", "**Code**: ", [(REPO.split("//")[1], REPO)]),
     ]),
 ], size=11.5)
 brief.save(str(BRIEF))

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightCircle, Check, ChevronLeft, ChevronRight, Power, RotateCcw, Smartphone, Sparkles, Wrench } from "lucide-react";
+import { ArrowRightCircle, Check, ChevronLeft, ChevronRight, Power, RotateCcw, Siren, Smartphone, Sparkles, Wrench } from "lucide-react";
 import { useState } from "react";
 import { navigate } from "raviger";
 import { toast } from "sonner";
@@ -83,6 +83,18 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
   const step = useMutation({
     mutationFn: ({ id, action, reason }: { id: string; action: Step; reason?: string }) => API.session(id, action, reason ? { reason } : {}),
     onSuccess: refresh,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const priority = useMutation({
+    mutationFn: ({ id, on, reason }: { id: string; on: boolean; reason?: string }) => API.priority(id, { on, reason }),
+    onSuccess: (s) => {
+      toast.success(
+        s.priority
+          ? tr("priority_set", "{{name}} goes first once here", { name: s.patient_name })
+          : tr("priority_off", "{{name}} is back in plan order", { name: s.patient_name }),
+      );
+      refresh();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const decide = useMutation({
@@ -216,7 +228,7 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
                 byId={byId}
                 canOperate={canOperate}
                 busy={step.isPending}
-                onTakeIn={(id) => step.mutate({ id, action: "room", reason: tr("reason_queue", "Next in the queue") })}
+                onTakeIn={(id) => step.mutate({ id, action: "room", reason: byId.get(id)?.priority ? undefined : tr("reason_queue", "Next in the queue") })}
               />
             )}
           </Card>
@@ -304,8 +316,13 @@ function Board({ facilityId, config }: { facilityId: string; config: Config }) {
                 canOperate={canOperate && isToday}
                 isNext={nextIds.has(s.id)}
                 ahead={["scheduled", "arrived"].includes(s.status) ? aheadOf(s) : []}
-                busy={(step.isPending && step.variables?.id === s.id) || (decide.isPending && decide.variables?.id === s.offer?.id)}
+                busy={
+                  (step.isPending && step.variables?.id === s.id) ||
+                  (decide.isPending && decide.variables?.id === s.offer?.id) ||
+                  (priority.isPending && priority.variables?.id === s.id)
+                }
                 onStep={(action, reason) => step.mutate({ id: s.id, action, reason })}
+                onPriority={(on, reason) => priority.mutate({ id: s.id, on, reason })}
                 onDecide={(decision) => s.offer && decide.mutate({ id: s.offer.id, decision })}
               />
             ))}
@@ -351,6 +368,12 @@ function Queue({ q, byId, canOperate, busy, onTakeIn }: {
           <>
             <span className="font-medium">{next.patient_name}</span>
             <span className="text-xs tabular-nums text-gray-500">{next.time}</span>
+            {next.priority && (
+              <Badge tone="red" title={next.priority_note || undefined}>
+                <Siren className="size-3" />
+                {tr("priority", "Priority")}
+              </Badge>
+            )}
             {canOperate && !room && (
               <Button size="xs" className="ml-auto" onClick={() => onTakeIn(next.id)} disabled={busy}>
                 <ArrowRightCircle />
@@ -362,6 +385,11 @@ function Queue({ q, byId, canOperate, busy, onTakeIn }: {
           <span className="text-xs text-gray-500">{q.waiting ? tr("q_none_ready", "nobody ready yet") : tr("q_nobody", "nobody waiting")}</span>
         )}
       </div>
+      {next?.priority && next.cautions?.map((c) => (
+        <p key={c} className="text-xs text-warning-800">
+          {c}
+        </p>
+      ))}
       <p className="text-xs text-gray-500">
         {tr("q_counts", "{{waiting}} waiting · {{away}} past their time, not here yet", { waiting: q.waiting, away: q.not_here })}
       </p>
@@ -499,6 +527,7 @@ function SessionLine({
   busy,
   onStep,
   onDecide,
+  onPriority,
 }: {
   s: SessionRow;
   facilityId: string;
@@ -510,15 +539,18 @@ function SessionLine({
   busy: boolean;
   onStep: (a: Step, reason?: string) => void;
   onDecide: (d: "approve" | "reject") => void;
+  onPriority: (on: boolean, reason?: string) => void;
 }) {
   const tr = useT();
   const replyText = useReplyText();
   const bandName = useBandName();
   const [asking, setAsking] = useState(false);
+  const [why, setWhy] = useState(false);
   const gone = ["sent_home", "postponed", "missed", "cancelled"].includes(s.status);
   const cautions = s.cautions ?? [];
   // Taking someone in ahead of the plan, or with something to check: ask why (optional), never block.
-  const takeIn = () => (ahead.length || cautions.length ? setAsking(true) : onStep("room"));
+  // A patient put first already has their reason.
+  const takeIn = () => ((ahead.length && !s.priority) || cautions.length ? setAsking(true) : onStep("room"));
   const waiting = ahead.filter((x) => x.status === "arrived").length;
   const reasons = [
     tr("reason_early", "Came early"),
@@ -526,6 +558,13 @@ function SessionLine({
     tr("reason_clinical", "Clinical reason"),
     tr("reason_other", "Other"),
   ];
+  const firsts = [
+    tr("first_emergency", "Emergency"),
+    tr("first_doctor", "Doctor's request"),
+    tr("first_unwell", "Unwell, cannot wait"),
+    tr("first_transport", "Transport leaving"),
+  ];
+  const canFirst = canOperate && ["scheduled", "arrived"].includes(s.status);
   return (
     // Below md each row is a card: time | patient, fraction | treatment, needs, in/out, status | actions.
     <tr
@@ -558,6 +597,12 @@ function SessionLine({
           {s.late_by != null && s.late_by > 0 && <Badge tone="amber">{tr("not_here_yet", "Not here yet · {{n}} min past", { n: s.late_by })}</Badge>}
           {s.often_late && <Badge tone="gray" title={tr("often_late_hint", "Arrived after their treatment time in 3 of their last 5 visits")}>{tr("often_late", "Often late")}</Badge>}
           {s.out_of_turn && <Badge tone="violet" title={s.turn_note}>{tr("out_of_turn", "Out of turn")}</Badge>}
+          {s.priority && (
+            <Badge tone="red" title={s.priority_by ? tr("priority_by", "Put first by {{who}}", { who: s.priority_by }) : undefined}>
+              <Siren className="size-3" />
+              {s.priority_note ? tr("priority_why", "Priority · {{why}}", { why: s.priority_note }) : tr("priority", "Priority")}
+            </Badge>
+          )}
         </div>
         {s.offer && <OfferBox offer={s.offer} bandName={bandName} canOperate={canOperate} busy={busy} onDecide={onDecide} />}
       </td>
@@ -624,7 +669,35 @@ function SessionLine({
                 </Button>
               </>
             )}
-            {s.status === "arrived" && !asking && (
+            {canFirst && !asking && !why && (
+              <Button
+                size="xs"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => (s.priority ? onPriority(false) : setWhy(true))}
+                title={s.priority ? tr("priority_clear_hint", "Back to plan order") : tr("priority_hint", "Treat first today: an emergency, the doctor asks, the patient cannot wait")}
+                className={s.priority ? "text-danger-700" : undefined}
+              >
+                <Siren />
+                {s.priority ? tr("priority_clear", "Not first") : tr("priority_put", "First")}
+              </Button>
+            )}
+            {why && (
+              <div className="flex w-full max-w-48 flex-col items-end gap-1 rounded-md border border-danger-200 bg-danger-50 p-2 text-left">
+                <p className="w-full text-xs text-danger-900">{tr("priority_ask", "Treat {{name}} first today. Why?", { name: s.patient_name })}</p>
+                <div className="flex flex-wrap justify-end gap-1">
+                  {firsts.map((r) => (
+                    <Button key={r} size="xs" variant="outline" disabled={busy} onClick={() => (setWhy(false), onPriority(true, r))}>
+                      {r}
+                    </Button>
+                  ))}
+                  <Button size="xs" variant="ghost" onClick={() => setWhy(false)}>
+                    {tr("cancel", "Cancel")}
+                  </Button>
+                </div>
+              </div>
+            )}
+            {s.status === "arrived" && !asking && !why && (
               <Button size="xs" variant={isNext || !ahead.length ? "primary" : "outline"} onClick={takeIn} disabled={busy}>
                 {tr("a_in_room", "In room")}
               </Button>
@@ -643,13 +716,14 @@ function SessionLine({
                 ))}
                 <div className="flex flex-wrap justify-end gap-1">
                   {ahead.length > 0 &&
+                    !s.priority &&
                     reasons.map((r) => (
                       <Button key={r} size="xs" variant="outline" disabled={busy} onClick={() => (setAsking(false), onStep("room", r))}>
                         {r}
                       </Button>
                     ))}
                   <Button size="xs" disabled={busy} onClick={() => (setAsking(false), onStep("room"))}>
-                    {ahead.length ? tr("skip_reason", "Take in") : tr("take_in_anyway", "Take in")}
+                    {ahead.length && !s.priority ? tr("skip_reason", "Take in") : tr("take_in_anyway", "Take in")}
                   </Button>
                   <Button size="xs" variant="ghost" onClick={() => setAsking(false)}>
                     {tr("cancel", "Cancel")}

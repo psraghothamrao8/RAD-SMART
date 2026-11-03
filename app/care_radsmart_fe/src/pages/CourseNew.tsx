@@ -118,7 +118,7 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
         imaging: f.imaging,
         machines: f.machines,
         language: f.language,
-        start_date: f.start_date,
+        start_date: f.checklist.emergency ? config.today : f.start_date,
         checklist: Object.fromEntries(
           Object.entries({ ...f.checklist, ...Object.fromEntries(Object.entries(auto).filter(([, v]) => v)) }).filter(([, v]) => v),
         ),
@@ -252,7 +252,14 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
             </Select>
           </Field>
           <Field label={tr("f_start", "Start on or after")} hint={tr("start_hint", "RAD-SMART finds the first date with room")}>
-            <Input type="date" value={f.start_date} min={config.today} onChange={(e) => set("start_date", e.target.value)} />
+            {/* An emergency starts today, in the first free time */}
+            <Input
+              type="date"
+              value={ticked("emergency") ? config.today : f.start_date}
+              min={config.today}
+              onChange={(e) => set("start_date", e.target.value)}
+              disabled={ticked("emergency")}
+            />
             <Err e={errors.start_date} />
           </Field>
           <Field label={tr("f_gap", "Gap category (RCR)")}>

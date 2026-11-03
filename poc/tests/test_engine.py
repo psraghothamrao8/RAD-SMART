@@ -122,5 +122,32 @@ class TimeBandTest(unittest.TestCase):
         self.assertEqual([(c.pid, st) for c, _, st, _, _ in offers], [("paying", hm("10:00"))])
 
 
+class EmergencyStartTest(unittest.TestCase):
+    """Cord compression, bleeding: the first fraction today, in the first free time."""
+    DAY = dt.date(2026, 11, 2)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.predictor = LookupPredictor().fit(make_history(n_sessions=3000))
+
+    def allocate(self, ready, urgent=True):
+        book = SlotBook()
+        book.hold("busy", "VERSA", self.DAY, hm("08:30"), 370)      # booked to the 14:40 urgent hold
+        book.hold("busy", "VERSA", self.DAY, hm("15:00"), 120)      # and from 15:00 to the 17:00 hold
+        book.hold("busy", "VERSA", self.DAY, hm("17:20"), 520)
+        p = _patient("e", technique="PALL", fraction_no=1, total_fx=5, new_start=True,
+                     urgent=urgent, ready_time=hm(ready))
+        c = Course(p, self.DAY, 5, dates=treatment_dates(self.DAY, 5))
+        return SlotAllocator(book, self.predictor).allocate(c)
+
+    def test_takes_the_urgent_hold_and_may_finish_by_six(self):
+        a = self.allocate("14:00")
+        self.assertEqual(a.first[:3], ("VERSA", self.DAY, hm("14:40")))
+        self.assertEqual(self.allocate("15:10").first[2], hm("17:00"))      # past 17:00: urgent only
+        self.assertTrue(a.ok)                                             # later fractions: a standing slot
+        self.assertLess(a.standing[1], hm("14:00"))                       # not held to the ready time
+        self.assertIsNone(self.allocate("14:00", urgent=False).first)     # the holds are not for routine starts
+
+
 if __name__ == "__main__":
     unittest.main()

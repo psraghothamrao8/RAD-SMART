@@ -119,6 +119,13 @@ class Session(EMRBaseModel):
     # next patient was not here, ...): recorded, never blocked.
     out_of_turn = models.BooleanField(default=False)
     turn_note = models.CharField(max_length=200, blank=True, default="")
+    # Put first today by staff (an emergency start, the doctor asks, the patient
+    # is unwell): first in Call next once here, kept in a breakdown. Who and why are kept.
+    priority = models.BooleanField(default=False)
+    priority_note = models.CharField(max_length=120, blank=True, default="")
+    priority_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                    blank=True, related_name="+")
+    priority_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["facility", "date"]), models.Index(fields=["course", "date"])]

@@ -42,6 +42,20 @@ class LiveQueueTest(SimpleTestCase):
         self.assertEqual(live_queue(rows, hm("15:55"))["machines"]["VERSA"]["next"], "x")
         self.assertEqual(live_queue(rows, hm("16:00"))["machines"]["VERSA"]["next"], "h")
 
+    def test_a_patient_put_first_goes_before_everyone(self):
+        rows = [row("h", "16:00", "arrived", arrived="15:40", mhrc=True),
+                row("p", "16:30", "arrived", arrived="16:05", priority=True, pelvic=True)]
+        q = live_queue(rows, hm("16:10"))
+        self.assertEqual(q["machines"]["VERSA"]["next"], "p")          # ahead of the hospice patient
+        self.assertIn("bladder ready at 16:35", q["sessions"]["p"]["cautions"][0])   # shown, not waited for
+        self.assertEqual(live_queue([rows[0], {**rows[1], "priority": False}], hm("16:10"))["machines"]["VERSA"]["next"], "h")
+
+    def test_an_emergency_start_may_finish_by_six(self):
+        late = row("e", "17:10", "arrived", arrived="16:50", new_start=True, minutes=18)
+        self.assertEqual(live_queue([late], hm("17:10"))["sessions"]["e"]["cautions"],
+                         ["new start: must finish by 17:00"])
+        self.assertNotIn("e", live_queue([{**late, "urgent": True}], hm("17:10"))["sessions"])
+
     def test_warns_about_senior_staff_and_a_shared_accessory(self):
         rows = [row("c", "10:30", "arrived", arrived="09:00", complex=True),
                 row("b", "09:40", "arrived", arrived="09:10", accessories=["ABC"]),

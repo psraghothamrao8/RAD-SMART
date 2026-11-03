@@ -193,6 +193,10 @@ export interface SessionRow {
   /** Taken in ahead of someone earlier in the plan, and why. */
   out_of_turn: boolean;
   turn_note: string;
+  /** Put first today by staff (an emergency, the doctor asks, ...), and who did it. */
+  priority: boolean;
+  priority_note: string;
+  priority_by: string | null;
   /** Today only: minutes past the treatment time while not here yet. */
   late_by?: number;
   /** Today only: what to check before taking the patient in now. */
@@ -473,6 +477,7 @@ export const API = {
     request<{ machine: MachineInfo; triage: Triage | null }>(`/machines/${id}/status/`, "POST", body),
   session: (id: string, step: "arrive" | "room" | "done" | "undo" | "send-home", body: { note?: string; reason?: string } = {}) =>
     request<SessionRow>(`/sessions/${id}/${step}/`, "POST", body),
+  priority: (id: string, body: { on: boolean; reason?: string }) => request<SessionRow>(`/sessions/${id}/priority/`, "POST", body),
   courses: (facility: string, params: { status?: string; q?: string; patient?: string } = {}) =>
     request<Course[]>("/courses/", "GET", undefined, { facility, ...params }),
   course: (facility: string, id: string) => request<Course>(`/courses/${id}/`, "GET", undefined, { facility }),

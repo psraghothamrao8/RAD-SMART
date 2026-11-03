@@ -42,6 +42,9 @@ ACTIVE = ("scheduled", "arrived", "in_room", "done")
 # The doctor's priority checklist: every hard rule and soft goal the engine knows.
 CHECKLIST = {
     "hard": [
+        {"key": "emergency", "label": "Emergency start today (cord compression, bleeding, airway): the first free "
+                                      "time from when the patient is ready until 18:00, the urgent holds included; "
+                                      "first in the queue"},
         {"key": "complex", "label": "Complex procedure: senior staff, 10:00-17:00",
          "auto": "Ticked for SBRT, SRT, CSI and TBI"},
         {"key": "mhrc", "label": "Hospice (MHRC) patient: 16:00-17:00 slot, back on the 17:00 bus"},
@@ -67,7 +70,7 @@ CHECKLIST = {
         {"key": "nearby", "label": "Lives nearby: flexible, can be called in early"},
     ],
     "always": [
-        "New starts finish by 17:00",
+        "New starts finish by 17:00 (emergency starts by 18:00)",
         "Pelvic patients report 45 min early to drink 500 mL of water",
         "Blood irradiation 13:30-14:00 is kept free",
         "One patient at a time on each machine",
@@ -215,10 +218,21 @@ def _slot(machine, start, minutes):
             "start": int(round(start)), "time": fmt(start), "minutes": round(float(minutes), 1)}
 
 
+def emergency(course: Course) -> bool:
+    return bool((course.checklist or {}).get("emergency"))
+
+
 def _allocate(course: Course, start_date, earliest=True, wanted=None):
+    p = engine_patient(course)
+    urgent = emergency(course) and course.status == "draft"
+    if urgent:
+        # treated today, from when the patient can be ready: now plus the time to report
+        from care_radsmart.viewsets import clock
+        start_date, now = clock()
+        earliest = False
+        p = replace(p, urgent=True, ready_time=int(now) + p.report_lead)
     book = build_book(course.facility, start_date, exclude_course=course)
     alloc = SlotAllocator(book, predictor())
-    p = engine_patient(course)
     if wanted is not None:
         p = replace(p, requested=int(wanted), paying=True)
     c = EngineCourse(p, start_date, course.fractions, course.pattern)
@@ -227,6 +241,10 @@ def _allocate(course: Course, start_date, earliest=True, wanted=None):
         c, a = alloc.earliest_start(c, holidays())
     else:
         a = alloc.allocate(c)
+    if urgent and a.first is None:          # nothing free before 18:00: this evening, as overtime
+        alloc = SlotAllocator(book, predictor(), {**DEPARTMENT, "urgent_latest_end": DEPARTMENT["regular_end"]})
+        a = alloc.allocate(c)
+        a.reasons.insert(0, "no time was free before 18:00 today")
     return c, a, alloc, p
 
 
@@ -273,6 +291,11 @@ def approve(course: Course, user, proposal: dict, chosen_start=None) -> dict:
     standing = (fresh["standing"] or {}).get("start")
     if chosen_start is not None:          # the doctor picked one of the alternatives
         same = standing == int(chosen_start)
+    elif emergency(course):               # the first free time moves on with the clock: minutes do not matter
+        old, new = proposal.get("first") or {}, fresh["first"] or {}
+        same = ((old.get("machine"), old.get("date")) == (new.get("machine"), new.get("date"))
+                and abs((old.get("start") or 0) - (new.get("start") or 0)) <= 15
+                and standing == (proposal.get("standing") or {}).get("start"))
     else:
         same = fresh["first"] == proposal.get("first") and standing == (proposal.get("standing") or {}).get("start")
     if not same:
@@ -292,12 +315,15 @@ def approve(course: Course, user, proposal: dict, chosen_start=None) -> dict:
     course.updated_by = user
     course.save()
     Session.objects.filter(course=course).update(deleted=True)
+    first = {"priority": True, "priority_note": "emergency start", "priority_by": user,
+             "priority_at": timezone.now()} if emergency(course) else {}
     for day in c.dates:
         for s in c.sessions_on(day):
             Session.objects.create(course=course, facility=course.facility, date=day,
                                    fraction_no=s["fraction"], kind="new_start" if s["kind"] == "new_start"
                                    else "routine", machine=s["machine"], planned_start=int(round(s["start"])),
-                                   planned_minutes=s["minutes"], created_by=user, updated_by=user)
+                                   planned_minutes=s["minutes"], created_by=user, updated_by=user,
+                                   **(first if s["kind"] == "new_start" else {}))
     return fresh
 
 
@@ -518,6 +544,10 @@ def _engine_day(sessions):
         pid = str(s.external_id)
         p = engine_patient(s.course, pid=pid, fraction_no=s.fraction_no,
                            new_start=s.kind == "new_start", machine=s.machine)
+        if s.kind == "new_start" and emergency(s.course):
+            p = replace(p, urgent=True)              # may finish by 18:00
+        if s.priority:
+            p = replace(p, gap_category=1)           # never proposed for sending back in a breakdown
         patients.append(p)
         rows[pid] = Assignment(pid, s.machine, float(s.start), s.planned_minutes, [])
         if s.kind == "routine" and s.today_start is None:
@@ -551,6 +581,8 @@ def session_row(s: Session) -> dict:
         "arrived_at": s.arrived_at, "in_room_at": s.in_room_at, "out_at": s.out_at,
         "flags": flags(c), "language": c.language, "gap_category": c.gap_category, "note": s.note,
         "demo": c.demo, "band": c.time_band, "out_of_turn": s.out_of_turn, "turn_note": s.turn_note,
+        "priority": s.priority, "priority_note": s.priority_note,
+        "priority_by": s.priority_by.username if s.priority_by_id else None,
     }
 
 
@@ -562,6 +594,7 @@ def queue_row(s: Session, p=None) -> dict:
     p = p or engine_patient(s.course)
     return {"id": str(s.external_id), "machine": s.machine, "start": s.start, "minutes": s.planned_minutes,
             "status": s.status, "new_start": s.kind == "new_start", "pelvic": p.pelvic, "complex": p.complex,
+            "priority": s.priority, "urgent": s.kind == "new_start" and emergency(s.course),
             "mhrc": p.mhrc, "accessories": list(p.accessories),
             "arrived": _minutes_of(s.arrived_at, s.date) if s.arrived_at else None,
             "in_room": _minutes_of(s.in_room_at, s.date) if s.in_room_at else None}
@@ -578,8 +611,9 @@ def cautions(row: dict, rows: list[dict], now: float, dept=DEPARTMENT) -> list[s
         out.append(f"complex: senior staff from {fmt(lo)}")
     elif row["complex"] and now + row["minutes"] > hi:
         out.append(f"complex: senior staff until {fmt(hi)}")
-    if row["new_start"] and now + row["minutes"] > d["new_start_latest_end"]:
-        out.append(f"new start: must finish by {fmt(d['new_start_latest_end'])}")
+    latest = d["urgent_latest_end"] if row.get("urgent") else d["new_start_latest_end"]
+    if row["new_start"] and now + row["minutes"] > latest:
+        out.append(f"new start: must finish by {fmt(latest)}")
     for a in row["accessories"]:
         name = ACCESSORY_NAMES.get(a, a)
         other = next((r for r in rows if r["status"] == "in_room" and r["id"] != row["id"]
@@ -596,7 +630,8 @@ def cautions(row: dict, rows: list[dict], now: float, dept=DEPARTMENT) -> list[s
 
 def live_queue(rows: list[dict], now: float, dept=DEPARTMENT) -> dict:
     """The board's live queue. For each machine: who to call next (the first in
-    plan order who is here and ready; hospice patients first from 16:00),
+    plan order who is here and ready; hospice patients first from 16:00; a
+    patient staff put first goes before everyone, cautions shown, not waited for),
     who is in the room, and how far it runs behind (the longest wait past their
     time of anyone here, so a patient's own lateness does not count).
     For each session: minutes past its time while not here, and what to check
@@ -615,9 +650,10 @@ def live_queue(rows: list[dict], now: float, dept=DEPARTMENT) -> dict:
     for m in sorted({r["machine"] for r in rows}):
         mine = sorted((r for r in rows if r["machine"] == m), key=lambda r: r["start"])
         here = [r for r in mine if r["status"] == "arrived"]
-        ready = [r for r in here if not out["sessions"].get(r["id"], {}).get("cautions")]
+        ready = [r for r in here if r.get("priority") or not out["sessions"].get(r["id"], {}).get("cautions")]
         if now >= d["mhrc_window"][0]:
             ready.sort(key=lambda r: not r["mhrc"])      # stable: plan order within each group
+        ready.sort(key=lambda r: not r.get("priority"))
         kept = [now - max(r["start"], r["arrived"] or r["start"]) for r in here if r["start"] < now]
         room = next((r for r in mine if r["status"] == "in_room"), None)
         out["machines"][m] = {

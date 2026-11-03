@@ -491,7 +491,9 @@ class SessionViewSet(viewsets.GenericViewSet):
             me = {"id": str(s.external_id), "machine": s.machine, "start": s.start, "status": s.status}
             s.out_of_turn, detail = engine.turn_detail(rows, me, clock()[1])
             reason = str(request.data.get("reason") or "").strip()[:80]
-            s.turn_note = "; ".join(x for x in (reason, detail) if x) if s.out_of_turn else ""
+            if s.priority:
+                reason = "; ".join(x for x in (f"priority: {s.priority_note or 'staff decision'}", reason) if x)
+            s.turn_note = "; ".join(x for x in (reason, detail) if x)[:200] if s.out_of_turn else ""
         setattr(s, field, timezone.now())
         s.status, s.updated_by = after, request.user
         s.save()
@@ -529,6 +531,21 @@ class SessionViewSet(viewsets.GenericViewSet):
         if s.course.status == "completed":       # the last fraction was marked done by mistake
             s.course.status = "approved"
             s.course.save(update_fields=["status", "modified_date"])
+        return Response(engine.session_row(s))
+
+    @action(detail=True, methods=["post"])
+    def priority(self, request, external_id=None):
+        """Put a patient first today (an emergency, the doctor asks, they are unwell),
+        or take it back with on=false. A person decides; who and why are kept."""
+        s = self._session(request, external_id)
+        on = request.data.get("on", True) not in (False, "false", "0", 0)
+        if on and s.status not in ("scheduled", "arrived"):
+            raise ValidationError("Only a patient still to be treated can be put first.")
+        s.priority = on
+        s.priority_note = str(request.data.get("reason") or "").strip()[:120] if on else ""
+        s.priority_by, s.priority_at = (request.user, timezone.now()) if on else (None, None)
+        s.updated_by = request.user
+        s.save()
         return Response(engine.session_row(s))
 
     @action(detail=True, methods=["post"], url_path="send-home")

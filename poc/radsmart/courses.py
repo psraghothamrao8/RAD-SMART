@@ -7,7 +7,9 @@ evening slots so that, every day, enough time before 17:00 stays free for the
 next new starts.
 
 So when the oncologist approves a course, RAD-SMART allocates:
-  * the new-start slot on day 1, before 17:00, in a gap in that day's plan;
+  * the new-start slot on day 1, before 17:00, in a gap in that day's plan
+    (an emergency start: today, the first free time from when the patient is
+    ready until 18:00, the urgent holds included);
   * one standing slot (two for twice-daily courses) for every later fraction:
     a time that is free on every treatment date of the course, chosen with the
     daily optimiser's hard rules and soft goals, which never eats into the
@@ -279,8 +281,9 @@ class SlotAllocator:
     def _candidates(self, p, machine, dates, minutes, reserve, ignore_pid=None, relax=False):
         b, d = self.book, self.d
         n = b.steps(minutes)
-        lo, hi, why = self.sch._window(p, {})
-        busy = b.fixed(machine, DayScheduler.standby(p)).copy()
+        # an urgent same-day start may finish by 18:00, and may use the time held back for it
+        lo, hi, why = self.sch._window(replace(p, new_start=False) if p.urgent else p, {})
+        busy = b.fixed(machine, DayScheduler.standby(p) or p.urgent).copy()
         units = {a: d["accessories"][a]["units"] for a in p.accessories}
         for date in dates:
             busy |= self._without(machine, date, ignore_pid).astype(bool)
@@ -400,23 +403,25 @@ class SlotAllocator:
                                                ignore_pid=ignore_pid)
                 for s in starts:
                     st = b.t0 + s * b.g
-                    cost = self._cost(ns, st, first_min) + 0.002 * b.busy_minutes(m, c.dates[0])
+                    cost = (st if p.urgent        # an emergency: the first free time, nothing else
+                            else self._cost(ns, st, first_min) + 0.002 * b.busy_minutes(m, c.dates[0]))
                     if best is None or cost < best[0]:
                         best = (cost, m, st, why)
+            latest = d["urgent_latest_end"] if p.urgent else d["new_start_latest_end"]
             if best is None:
-                alloc.problem = (f"no gap of {first_min:.0f} min before "
-                                 f"{fmt(d['new_start_latest_end'])} on {c.dates[0]:%d %b}: "
-                                 "choose a later start date")
+                alloc.problem = (f"no gap of {first_min:.0f} min before {fmt(latest)} on {c.dates[0]:%d %b}: "
+                                 + ("take the patient in out of turn with Priority on the Today board"
+                                    if p.urgent else "choose a later start date"))
                 return alloc
             _, m1, st1, why = best
             alloc.first = (m1, c.dates[0], st1, first_min)
-            alloc.reasons += [f"new start on {c.dates[0]:%a %d %b} at {fmt(st1)}: finishes before "
-                              f"{fmt(d['new_start_latest_end'])}"] + [w for w in why if "new start" not in w]
+            alloc.reasons += [f"{'emergency' if p.urgent else 'new'} start on {c.dates[0]:%a %d %b} at "
+                              f"{fmt(st1)}: finishes before {fmt(latest)}"] + [w for w in why if "start" not in w]
         if not later_dates:
             return alloc
 
         # 2. standing slot(s) for every later fraction
-        rp = replace(p, fraction_no=2, new_start=False)
+        rp = replace(p, fraction_no=2, new_start=False, urgent=False, ready_time=None)   # urgency is day 1's
         pref = machines if alloc.first is None else [alloc.first[0]] + [m for m in machines
                                                                      if m != alloc.first[0]]
         options = self._standing_options(rp, pref, later_dates, later_min, ignore_pid, alloc, True)

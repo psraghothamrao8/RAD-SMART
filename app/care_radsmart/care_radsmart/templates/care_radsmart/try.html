@@ -8,83 +8,143 @@
 <title>Try RAD-SMART</title>
 <style>
   :root { --ink:#13202f; --muted:#5b6878; --line:#d9e0e8; --bg:#f3f6f9; --card:#fff; --brand:#0f6e6a; --brand-ink:#fff; --brand-soft:#dcefed;
-          --warn-bg:#fff4e0; --warn:#8a4b00; }
+          --warn-bg:#fff4e0; --warn:#8a4b00; --code-bg:#eef2f6; }
   @media (prefers-color-scheme: dark) {
     :root { --ink:#e8eef4; --muted:#a3b0bf; --line:#2c3a4a; --bg:#0e1621; --card:#152131; --brand:#3fb8ad; --brand-ink:#06201e; --brand-soft:#1b3b3a;
-            --warn-bg:#3a2a10; --warn:#ffcf8a; }
+            --warn-bg:#3a2a10; --warn:#ffcf8a; --code-bg:#1d2b3c; }
   }
   * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
   body { margin:0; background:var(--bg); color:var(--ink); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 18px; }
-  .eyebrow { margin:0; font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); }
-  h1 { margin:4px 0 6px; font-size:30px; line-height:1.2; }
-  h2 { margin:0; font-size:21px; }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 20px; }
+  h1 { margin:0 0 6px; font-size:34px; line-height:1.15; }
+  h2 { margin:0; font-size:22px; line-height:1.25; }
+  h3 { margin:0; font-size:18px; }
   p { margin:0; }
   .lead { color:var(--muted); max-width:62ch; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; display:grid; gap:14px; }
-  .tag { display:inline-block; font-size:13px; font-weight:600; padding:2px 10px; border-radius:999px; background:var(--brand-soft); color:var(--brand); margin-left:6px; vertical-align:middle; }
-  .roles { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; }
-  a.role { display:grid; gap:4px; padding:14px; border:1px solid var(--line); border-radius:12px; color:var(--ink); text-decoration:none; background:var(--bg); }
-  a.role:hover, a.role:focus-visible { border-color:var(--brand); outline:none; box-shadow:0 0 0 3px var(--brand-soft); }
-  a.role b { font-size:17px; }
-  a.role span { color:var(--muted); font-size:15px; line-height:1.4; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; display:grid; gap:14px; }
   .clock { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:12px 14px; border-radius:12px; background:var(--bg); }
   .clock .t { font-variant-numeric: tabular-nums; font-weight:700; }
   .warn { background:var(--warn-bg); color:var(--warn); }
-  button, a.btn { font:inherit; font-weight:600; padding:10px 16px; border-radius:10px; border:1px solid var(--brand); background:var(--brand); color:var(--brand-ink); cursor:pointer; text-decoration:none; display:inline-block; }
-  button.ghost { background:transparent; color:var(--brand); }
+  ol.tour { list-style:none; margin:0; padding:0; display:grid; gap:0; counter-reset: step; }
+  ol.tour li { counter-increment: step; display:grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap:4px 14px; align-items:center;
+               padding:14px 0; border-top:1px solid var(--line); }
+  ol.tour li:first-child { border-top:0; }
+  ol.tour li::before { content: counter(step); grid-row: span 2; width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+                       background:var(--brand-soft); color:var(--brand); font-weight:700; }
+  ol.tour h3 { grid-column:2; }
+  ol.tour p { grid-column:2; color:var(--muted); font-size:16px; }
+  ol.tour a.btn { grid-column:3; grid-row:1 / span 2; white-space:nowrap; }
+  button, a.btn { font:inherit; font-size:16px; font-weight:600; padding:9px 15px; border-radius:10px; border:1px solid var(--brand); background:var(--brand); color:var(--brand-ink); cursor:pointer; text-decoration:none; display:inline-block; }
+  a.btn.ghost, button.ghost { background:transparent; color:var(--brand); }
   button:disabled { opacity:.55; cursor:default; }
+  a:focus-visible, button:focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
+  .roles { display:flex; flex-wrap:wrap; gap:8px; }
+  table { border-collapse:collapse; width:100%; font-size:16px; }
+  th, td { text-align:left; padding:8px 10px 8px 0; border-top:1px solid var(--line); }
+  th { font-weight:600; color:var(--muted); }
+  code { font: 600 16px ui-monospace, "Cascadia Mono", Consolas, monospace; background:var(--code-bg); padding:2px 7px; border-radius:6px; }
   ul { margin:0; padding-left:20px; color:var(--muted); }
   li { margin:3px 0; }
-  .small { font-size:14px; color:var(--muted); }
+  .small { font-size:15px; color:var(--muted); }
   form { margin:0; }
+  @media (max-width: 620px) {
+    ol.tour li { grid-template-columns: 40px minmax(0, 1fr); }
+    ol.tour a.btn { grid-column:2; grid-row:auto; justify-self:start; margin-top:6px; }
+  }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <p class="eyebrow">RAD-SMART · inside CARE</p>
     <h1>Try RAD-SMART</h1>
-    <p class="lead">Radiotherapy scheduling for {{ dept }}: one standing time for each patient, a re-plan in seconds when the machine fails, and messages patients can read and hear in their own language.</p>
+    <p class="lead">Radiotherapy scheduling inside CARE for {{ dept }}. Follow the seven steps below to see the whole pipeline, from the doctor's prescription to the patient's phone. Each button signs you in as the right person, with no password. Every patient is synthetic.</p>
   </header>
 
-  <section class="card" aria-labelledby="demo">
-    <h2 id="demo">Demonstration <span class="tag">one click, no password</span></h2>
-    <p class="lead">Go straight in as a member of the department. Every patient is synthetic.</p>
-    <div class="clock {% if not under_way %}warn{% endif %}">
-      <span>Department clock: <span class="t">{{ day }}, {{ now }}</span>.
-        {% if busy %}A fresh day is being prepared: this page refreshes itself (about a minute).
-        {% elif under_way %}The day is under way.
-        {% else %}The department's day is not running now.{% endif %}</span>
-      {% if not busy %}
-      <form method="post" action="restart/">
-        <button class="{% if under_way %}ghost{% endif %}" {% if recent %}disabled title="A fresh day was started a few minutes ago"{% endif %}>Start a fresh day at {{ fresh_at }}</button>
-      </form>
-      {% endif %}
-    </div>
+  <div class="clock {% if not under_way %}warn{% endif %}">
+    <span>Department clock: <span class="t">{{ day }}, {{ now }}</span>.
+      {% if busy %}A fresh day is being prepared: this page refreshes itself (about a minute).
+      {% elif under_way %}The day is under way.
+      {% else %}The department's day is not running now: start a fresh one first.{% endif %}</span>
+    {% if not busy %}
+    <form method="post" action="restart/">
+      <button class="{% if under_way %}ghost{% endif %}" {% if recent %}disabled title="A fresh day was started a few minutes ago"{% endif %}>Start a fresh day at {{ fresh_at }}</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <section class="card" aria-labelledby="tour">
+    <h2 id="tour">The whole pipeline in about ten minutes</h2>
+    <ol class="tour">
+      <li>
+        <h3>Plan a course</h3>
+        <p>Pick a patient, tick what applies and save. RAD-SMART proposes a first day and one daily time, with its reasons. Press Explain, then Approve. Tick Emergency start today to see an urgent patient fitted in today.</p>
+        <a class="btn" href="doctor/?to=new">Open as the doctor</a>
+      </li>
+      <li>
+        <h3>See it on the patient's phone</h3>
+        <p>The patient's own page in Kannada, with a voice note. Tap On my way, or ask for a morning time. Keep the six letters under the QR code for step 3.</p>
+        <a class="btn" href="patient/">Open the patient's page</a>
+      </li>
+      <li>
+        <h3>Check the patient in</h3>
+        <p>Type the six letters from the patient's page, or scan the QR code with a camera.</p>
+        <a class="btn" href="reception/?to=checkin">Open as reception</a>
+      </li>
+      <li>
+        <h3>Run the day</h3>
+        <p>Call next, In room and Out. Press First on a patient for an emergency and watch them go to the top of the queue. Accept a better time RAD-SMART offers a patient.</p>
+        <a class="btn" href="technologist/?to=today">Open as the technologist</a>
+      </li>
+      <li>
+        <h3>The machine breaks down</h3>
+        <p>Report a fault, say 90 minutes. RAD-SMART re-plans the rest of the day in seconds under the department's rules. Nothing changes until you approve.</p>
+        <a class="btn" href="technologist/?to=breakdown">Report a breakdown</a>
+      </li>
+      <li>
+        <h3>Tell the patients</h3>
+        <p>Every patient's message, drafted in their language with a voice note. Listen, then open WhatsApp with it filled in{% if telegram %}, or send one to your own Telegram{% endif %}.</p>
+        <a class="btn" href="technologist/?to=messages">Open the messages</a>
+      </li>
+      <li>
+        <h3>See the waits</h3>
+        <p>Waiting times from the times the board recorded, against the department's baseline of 109 minutes.</p>
+        <a class="btn" href="doctor/?to=insights">Open Insights</a>
+      </li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="signin">
+    <h2 id="signin">Or go in by role</h2>
     <div class="roles">
-      <a class="role" href="doctor/"><b>Doctor</b><span>Plan a new course: RAD-SMART proposes one standing time and explains it.</span></a>
-      <a class="role" href="reception/"><b>Reception</b><span>Check patients in with the code on their phone.</span></a>
-      <a class="role" href="technologist/"><b>Technologist</b><span>Run the day's board, and report a machine breakdown.</span></a>
-      <a class="role" href="patient/"><b>Patient</b><span>The patient's own page on a phone: times, voice notes, one-tap replies.</span></a>
+      <a class="btn ghost" href="doctor/">Doctor</a>
+      <a class="btn ghost" href="reception/">Reception</a>
+      <a class="btn ghost" href="technologist/">Technologist</a>
+      <a class="btn ghost" href="patient/">Patient's phone</a>
     </div>
+    {% if password %}
+    <p>Rather sign in at CARE's own page? Use one of these accounts, with the password <code>{{ password }}</code>.</p>
+    <table>
+      <tr><th scope="col">Role</th><th scope="col">Username</th></tr>
+      {% for roles, name in logins %}<tr><td>{{ roles }}</td><td><code>{{ name }}</code></td></tr>{% endfor %}
+    </table>
+    <p><a class="btn ghost" href="signin/">Sign in to CARE</a></p>
+    <p class="small">After signing in, choose the facility, then RAD-SMART.</p>
+    {% endif %}
     <ul>
-      <li>Everyone who tries it shares this demonstration; it starts again every morning at 05:30 IST.</li>
-      {% if telegram %}<li>Patient messages can go to your own Telegram: open a course and scan its Telegram code (WhatsApp in real use).</li>{% endif %}
-      <li>Sarvam AI translations and voice notes have a daily limit here; past it, messages stay in English.</li>
+      <li>Everyone who tries it shares this demonstration. It starts again every morning at 05:30 IST.</li>
+      <li>The server sleeps when nobody is using it, so the first page can take about 20 seconds.</li>
+      <li>Sarvam AI translations and voice notes have a daily limit here. Past it, messages stay in English.</li>
     </ul>
   </section>
 
   <section class="card" aria-labelledby="real">
-    <h2 id="real">Real use <span class="tag">as hospital staff work</span></h2>
+    <h2 id="real">In real use</h2>
     <ul>
-      <li>Each person signs in to CARE with their own account; nobody shares a login.</li>
-      <li>RAD-SMART checks the role for every step: only a doctor approves a course, reception checks patients in, technologists run the board.</li>
+      <li>Each person signs in to CARE with their own account, and RAD-SMART checks the role for every step: only a doctor approves a course.</li>
       <li>Nothing changes a patient's time until a person approves it, and every change is recorded with who made it.</li>
       <li>Patients get their messages on WhatsApp, with a private link to their page: no app and no login for them.</li>
     </ul>
-    <p><a class="btn" href="signin/">Sign in to CARE</a></p>
-    <p class="small">Accounts for reviewers are available from the RAD-SMART team.</p>
   </section>
 </main>
 </body>

@@ -599,6 +599,7 @@ The same image and the same script; only settings change. Do this only after the
 | Setting | Demonstration | Pilot | How |
 |---|---|---|---|
 | One-click sign-in | on | off | `OPEN_DEMO=False bash deploy/azure/deploy.sh push` |
+| Published demonstration password (`DEMO_PASSWORD`) | `radsmart2026` | none | `DEMO_PASSWORD= bash deploy/azure/deploy.sh job push` |
 | Demonstration data and clock | on | off | set `"RADSMART_DEMO": false` in `ADDITIONAL_PLUGS` in the `Dockerfile`, then `build job push` |
 | The daily job | fresh synthetic day | migrations only, or no job | change the `reseed` case in `entrypoint.sh`, or `az containerapp job delete` |
 | Region | UAE North | Central India, or the hospital's own server | `LOC=centralindia RG=radsmart-pilot bash deploy/azure/deploy.sh all` on a paid subscription |

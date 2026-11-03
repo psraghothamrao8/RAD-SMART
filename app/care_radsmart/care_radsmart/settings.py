@@ -104,6 +104,9 @@ DEFAULTS = {
     # and the account each role enters as, "role:username" pairs.
     "RADSMART_DEMO_FACILITY": "",
     "RADSMART_DEMO_USERS": "doctor:care-doctor,reception:care-staff,technologist:care-staff",
+    # One password for those accounts, shown on /try/ for anyone who would rather sign in at
+    # CARE's own page; set again on every fresh demonstration day. Empty: none is shown or set.
+    "RADSMART_DEMO_PASSWORD": "",
     # Machines created for a facility the first time RAD-SMART is opened there:
     # "CODE:Label" pairs, comma separated. Codes match the engine's machine names.
     "RADSMART_MACHINES": "VERSA:Versa HD",

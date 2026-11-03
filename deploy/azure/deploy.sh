@@ -55,6 +55,7 @@ SARVAM_DAILY_CHARS="${SARVAM_DAILY_CHARS:-6000}" # Sarvam spending caps for the 
 SARVAM_TOTAL_CHARS="${SARVAM_TOTAL_CHARS:-40000}"
 CENSUS="${CENSUS:-60}"
 OPEN_DEMO="${OPEN_DEMO:-True}"                  # the one-click front door at /try/ (tryout.py)
+DEMO_PASSWORD="${DEMO_PASSWORD-radsmart2026}"   # empty: none. Shown on /try/: the demonstration accounts only, synthetic data
 
 log() { printf '\n== %s\n' "$*"; }
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing prerequisite: $1" >&2; exit 1; }; }
@@ -248,6 +249,7 @@ env_common() {
     "CSRF_TRUSTED_ORIGINS=[\"https://$host\"]" "CORS_ALLOWED_ORIGINS=[\"https://$host\"]"
     "DJANGO_SECURE_SSL_REDIRECT=False" "USE_SMS=False" "RADSMART_PUBLIC_URL=https://$host"
     "RADSMART_APP_ID=$APP_ID" "RADSMART_AWAKE_HOURS=$AWAKE_HOURS"
+    "RADSMART_OPEN_DEMO=$OPEN_DEMO" "RADSMART_DEMO_PASSWORD=$DEMO_PASSWORD"
   )
   SECRETS_COMMON=("database-url=$DATABASE_URL" "django-secret-key=$DJANGO_SECRET_KEY" "jwks=$JWKS_BASE64")
 }
@@ -277,7 +279,7 @@ push() {
   env_common "$host"; registry
   local env=("${ENV_COMMON[@]}" "GUNICORN_WORKERS=2"
     "RADSMART_SARVAM_DAILY_CHARS=$SARVAM_DAILY_CHARS" "RADSMART_SARVAM_TOTAL_CHARS=$SARVAM_TOTAL_CHARS"
-    "RADSMART_OPEN_DEMO=$OPEN_DEMO" "RADSMART_DEMO_FACILITY=$RADSMART_FACILITY" "RADSMART_CENSUS=$CENSUS")
+    "RADSMART_DEMO_FACILITY=$RADSMART_FACILITY" "RADSMART_CENSUS=$CENSUS")
   local sec=("${SECRETS_COMMON[@]}")
   [[ -n "${SARVAM_API_KEY:-}" ]] && { sec+=("sarvam-api-key=$SARVAM_API_KEY"); env+=("SARVAM_API_KEY=secretref:sarvam-api-key"); }
   if [[ -n "${RADSMART_TELEGRAM_TOKEN:-}" && -n "${RADSMART_TELEGRAM_SECRET:-}" ]]; then

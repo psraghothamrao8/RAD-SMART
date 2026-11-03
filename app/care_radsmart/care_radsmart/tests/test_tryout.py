@@ -47,6 +47,21 @@ class TryoutTest(SimpleTestCase):
         self.assertIn('localStorage.setItem(\'care_refresh_token\', "REFRESH")', page)
         self.assertIn('location.replace("/facility/f-1/radsmart/courses/new")', page)
         self.assertNotIn("</script><b>", page)    # a value never closes the script
+        with mock.patch.object(tryout, "get_user_model", return_value=users), \
+                mock.patch.object(tryout, "RefreshToken", FakeRefresh), \
+                mock.patch.object(tryout, "_facility", return_value=SimpleNamespace(external_id="f-1")):
+            step = tryout.TryEnter.as_view()(RequestFactory().get("/try/doctor/?to=breakdown"), "doctor").content.decode()
+            elsewhere = tryout.TryEnter.as_view()(RequestFactory().get("/try/doctor/?to=//evil.example"), "doctor")
+        self.assertIn('location.replace("/facility/f-1/radsmart/breakdown")', step)     # a tour step's page
+        self.assertIn('location.replace("/facility/f-1/radsmart/courses/new")', elsewhere.content.decode())
+
+    @mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO_USERS",
+                       "doctor:care-doctor,reception:care-staff,technologist:care-staff", create=True)
+    def test_the_shared_password_names_each_account_once(self):
+        self.assertEqual(tryout.logins(), [("Doctor", "care-doctor"), ("Reception and technologist", "care-staff")])
+        with mock.patch.object(tryout.plugin_settings, "RADSMART_OPEN_DEMO", False, create=True), \
+                mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO_PASSWORD", "x", create=True):
+            self.assertEqual(tryout.set_demo_passwords(), [])           # never outside an open demonstration
 
     @mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO", True, create=True)
     def test_a_fresh_day_runs_the_clock_apart_and_writes_played_out_times_back(self):

@@ -1,7 +1,8 @@
 """The public demonstration's front door (RADSMART_OPEN_DEMO, on top of RADSMART_DEMO).
 
-    /api/care_radsmart/try/                 two ways in: the demonstration, and real use
+    /api/care_radsmart/try/                 a guided tour of the whole pipeline, one click a step
     /api/care_radsmart/try/<role>/          one click, signed in as that role's demonstration account
+                                            (?to=<page>: the tour step's page, see PAGES)
     /api/care_radsmart/try/patient/         a demonstration patient's own page
     /api/care_radsmart/try/signin/          real use: signed out of the demonstration, at CARE's sign-in
     POST /api/care_radsmart/try/restart/    a fresh demonstration day, its clock at a working hour
@@ -38,6 +39,10 @@ from care_radsmart.settings import plugin_settings
 
 # Where each role starts in the app, under /facility/<id>/.
 START = {"doctor": "radsmart/courses/new", "reception": "radsmart/checkin", "technologist": "radsmart"}
+# Where a step of the guided tour opens (?to=): RAD-SMART's own pages only.
+PAGES = {"new": "radsmart/courses/new", "courses": "radsmart/courses", "today": "radsmart",
+         "checkin": "radsmart/checkin", "breakdown": "radsmart/breakdown", "messages": "radsmart/messages",
+         "insights": "radsmart/insights"}
 DAY_START, DAY_END = 8 * 60, 17 * 60 + 30     # the department's working day, as the demonstration shows it
 FRESH_AT = 10 * 60 + 30                       # a fresh day starts here, with the morning played out
 BUSY = "care_radsmart:demo_restart"           # a fresh day is being made
@@ -63,6 +68,29 @@ def _users() -> dict[str, str]:
     return {role.strip(): name.strip() for role, name in pairs}
 
 
+def logins() -> list[tuple[str, str]]:
+    """(roles, username) of each demonstration account, for the page that shows the password."""
+    by_user = {}
+    for role, name in _users().items():
+        by_user.setdefault(name, []).append(role)
+    return [(" and ".join(roles).capitalize(), name) for name, roles in by_user.items()]
+
+
+def set_demo_passwords() -> list[str]:
+    """Give the demonstration accounts RADSMART_DEMO_PASSWORD (an open demonstration only)."""
+    password = plugin_settings.RADSMART_DEMO_PASSWORD
+    if not (plugin_settings.RADSMART_DEMO and plugin_settings.RADSMART_OPEN_DEMO and password):
+        return []
+    done = []
+    for name in sorted(set(_users().values())):
+        user = get_user_model().objects.filter(username=name, is_active=True).first()
+        if user is not None:
+            user.set_password(password)
+            user.save(update_fields=["password"])
+            done.append(name)
+    return done
+
+
 def _script(value) -> str:
     """A value for an inline script: JSON, and never a closing tag."""
     return json.dumps(value).replace("<", "\\u003c")
@@ -79,6 +107,7 @@ class TryPage(View):
             "under_way": DAY_START <= now < DAY_END, "busy": bool(cache.get(BUSY)),
             "recent": bool(cache.get(RECENT)), "fresh_at": fmt(FRESH_AT),
             "dept": plugin_settings.RADSMART_DEPARTMENT, "telegram": bool(plugin_settings.RADSMART_TELEGRAM_TOKEN),
+            "password": plugin_settings.RADSMART_DEMO_PASSWORD, "logins": logins(),
         }
         r = render(request, "care_radsmart/try.html", ctx)
         r["Cache-Control"] = "no-store"
@@ -98,7 +127,7 @@ class TryEnter(View):
         if user is None:
             raise Http404
         refresh = RefreshToken.for_user(user)
-        target = f"/facility/{_facility().external_id}/{START[role]}"
+        target = f"/facility/{_facility().external_id}/{PAGES.get(request.GET.get('to'), START[role])}"
         page = (
             "<!doctype html><meta charset=utf-8><meta name=robots content='noindex, nofollow'>"
             "<title>RAD-SMART</title><p style='font:16px system-ui;margin:2em'>Signing in…</p><script>"

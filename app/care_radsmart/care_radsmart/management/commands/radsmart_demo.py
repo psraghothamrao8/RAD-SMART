@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 from care.facility.models import Facility
 
 from care_radsmart.demo import seed, set_shift
+from care_radsmart.tryout import set_demo_passwords
 from care_radsmart.viewsets import clock
 
 
@@ -35,4 +36,5 @@ class Command(BaseCommand):
             h, m = opts["time"].split(":")
             now = int(h) * 60 + int(m)
         out = seed(facility, user, census=opts["census"], today=day, now=now)
+        out["demo_logins"] = set_demo_passwords()
         self.stdout.write(self.style.SUCCESS(str(out)))

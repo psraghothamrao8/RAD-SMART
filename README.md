@@ -18,13 +18,11 @@ On the department's own 55 recorded days, replayed, the long wait falls from **1
 | | |
 |---|---|
 | **Try it live** | **https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/**: a guided tour of the whole pipeline in seven one-click steps, with synthetic patients and no password (or sign in as `care-doctor` or `care-staff`, password `radsmart2026`) |
-| **Watch the demo** (3¾ min, narrated, recorded on the live server) | https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4](docs/media/RAD-SMART_demo.mp4) |
-| **Phase 2 submission** | [PDF](docs/Phase2_Submission.pdf) · [DOCX](docs/Phase2_Submission.docx) · [official template, PPTX](docs/RAD-SMART_Phase2_Submission.pptx) |
+| **Watch the demo** (5 min, narrated, recorded on the live server) | https://psraghothamrao8.github.io/RAD-SMART/#demo · [MP4](docs/media/RAD-SMART_demo.mp4) |
+| **Final submission** | [Final presentation](docs/RAD-SMART_Final_Presentation.pptx) ([PDF](docs/RAD-SMART_Final_Presentation.pdf)) · [Two-page solution brief](docs/RAD-SMART_Solution_Brief.pptx) ([PDF](docs/RAD-SMART_Solution_Brief.pdf)) |
 | **Website** | https://psraghothamrao8.github.io/RAD-SMART/ |
-| **Pitch deck** | [web](https://psraghothamrao8.github.io/RAD-SMART/deck/) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf) |
-| **User guide and demo script** | [PDF](docs/RAD-SMART_User_Guide.pdf) |
-| **Research paper** (8 pages) | [PDF](docs/RAD-SMART_Research_Paper.pdf) |
-| **Technical guide** | [web](https://psraghothamrao8.github.io/RAD-SMART/tech/) · [the maths, worked through](https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html) |
+| **Read more** | [User guide and demo script](docs/RAD-SMART_User_Guide.pdf) · [research paper](docs/RAD-SMART_Research_Paper.pdf) (8 pages) · [impact analysis](docs/RAD-SMART_Impact_Analysis.pdf) · [technical guide](https://psraghothamrao8.github.io/RAD-SMART/tech/) and [the maths, worked through](https://psraghothamrao8.github.io/RAD-SMART/tech/maths.html) |
+| **Earlier rounds** | Phase 2 submission: [PDF](docs/Phase2_Submission.pdf) · [DOCX](docs/Phase2_Submission.docx) · [template, PPTX](docs/RAD-SMART_Phase2_Submission.pptx). Round 1 pitch deck: [web](https://psraghothamrao8.github.io/RAD-SMART/deck/) · [PDF](docs/deck/RAD-SMART_Pitch_Deck.pdf) |
 
 [![The RAD-SMART demo: a recording of the app in CARE](docs/media/demo_poster.jpg)](https://psraghothamrao8.github.io/RAD-SMART/#demo)
 
@@ -47,6 +45,28 @@ On the department's own 55 recorded days, replayed, the long wait falls from **1
 **Emergencies.** Staff can put any patient first today with a reason (an emergency, the doctor asks, the patient is unwell): once here they are first in the queue, and a breakdown never proposes sending them back. On New course, *Emergency start today* places the first fraction today in the first free time, using the time the engine keeps free every day for urgent starts, and marks it priority.
 
 **Patients and Sarvam AI.** After each approval RAD-SMART drafts the patient's message in Kannada, Malayalam, Hindi or Konkani (Tulu speakers read Kannada script) with Sarvam Translate, and a voice note with Bulbul v3; a technologist opens it in WhatsApp and presses send. Sarvam-105B explains a proposed time in plain words. A translation that changes a time, or an explanation that invents one, is thrown away; without Sarvam everything works in English. In our evaluation ([`docs/evaluation/`](docs/evaluation/sarvam_evaluation.md)), 112 of 112 translations in four languages kept every time, and 20 of 20 explanations were accepted.
+
+## Results
+
+**The department's records.** 55 days, October–December 2024, 3,137 patient-days. The median wait from arrival to treatment is 34 minutes, but one patient in ten waits more than 109 minutes. 22% are treated more than an hour after their appointment, and only 29% within 15 minutes of it. Waits build through the day, from about 19 minutes for patients arriving before 10:00 to about 66 minutes after 19:00, and evening patients now come about 32 minutes early.
+
+**With and without RAD-SMART.** The [impact analysis](docs/RAD-SMART_Impact_Analysis.pdf) keeps the two datasets apart.
+
+| Dataset | 90th-percentile wait, without → with | Treated more than 1 hour late, without → with |
+|---|---|---|
+| Original: the department's 55 recorded days, re-planned in the twin | 108.6 → **70.4 min** (−35%) | 22.2% → **5.7%** |
+| Simulated: 12 weeks of synthetic courses with standing slots | 81.6 → **49.3 min** (−40%) | 18.6% → **3.6%** |
+
+The price, over the 12 weeks: the last patient finishes at about 00:07 instead of 21:55, one new start in five begins a little later (0.4 working days on average), and a time the patient asks for is kept less often.
+
+**Stress tests.** 300 simulated days of 87 patients, 08:30 to 01:00 (10 more than the busiest recorded day), under the department's own rules (its answers of 21 September and 24 October 2026), in the twin calibrated on the records:
+
+- Against the busiest recorded days (70–77 patients), the 90th-percentile wait falls from 130 to 76 minutes and the share treated more than an hour late from 27% to 6%; the share treated within ±15 minutes rises from 30% to 53%. The median stays about the same (36 against 38 minutes), because patients are asked to arrive 20 minutes early (45 for pelvic patients) to prepare. Evening waits no longer build up: about 36 minutes for morning and evening arrivals alike, against 19 and 66 in the records.
+- The independent checker found all 8 hard rules met, including new starts by 17:00, MHRC patients on the 17:00 bus and public-transport patients home by 21:00.
+- Breakdowns, re-planned under the department's downtime rules: after a 45-minute fault the median wait is 37 minutes instead of 53, nobody is sent home and 1 new start moves to the next day. After a 150-minute fault it is 39 instead of 104: one patient who had not left home is sent back (the fraction is added at the end of the course) and 2 new starts move to the next day. Each re-plan takes 10–14 seconds.
+- Two-machine new-start planning around a TBI course keeps peak load at 98–99%, instead of 154% on one machine.
+
+The pilot's primary KPI is a 90th-percentile wait at least 25% lower than the records' 109 minutes.
 
 ## Architecture and deployment
 
@@ -84,7 +104,7 @@ flowchart LR
 | Engine | Python: gradient boosting (scikit-learn) for session minutes; mixed-integer optimisation (SciPy with HiGHS); a Monte Carlo digital twin; an independent rule checker |
 | Language AI | Sarvam Translate, Bulbul v3 (voice) and Sarvam-105B (explanations), each output checked |
 | Packaging | One Docker image built on CARE's production image, with nginx and gunicorn |
-| Hosting | Azure Container Apps (HTTPS, scale to zero), Azure Database for PostgreSQL with daily backups, Azure Container Registry, a daily Container Apps job |
+| Hosting | Azure Container Apps (HTTPS; one copy kept warm by day while judges try it, otherwise scale to zero), Azure Database for PostgreSQL with daily backups, Azure Container Registry, a daily Container Apps job |
 | Operations | [`deploy/azure/deploy.sh`](deploy/azure/deploy.sh): one script creates, builds, migrates, deploys and checks everything |
 
 **The live server** runs in demonstration mode: synthetic patients, one-click roles with no password, and a fresh day every morning at 05:30 IST. In real use, staff sign in to CARE with their own accounts and RAD-SMART checks the role at every step. Moving to the pilot is configuration, not new code: the same image runs with demonstration mode off, on the hospital's own server (Docker Compose, beside its CARE) or in an Indian Azure region. How it is hosted, and what each piece costs, is in [`deploy/azure/`](deploy/azure/README.md).
@@ -109,73 +129,20 @@ New to Docker or Azure? [`deploy/HOSTING_GUIDE.md`](deploy/HOSTING_GUIDE.md) exp
 
 Details: [`workspace/README.md`](workspace/README.md) (development), [`app/README.md`](app/README.md) (the plugins, roles and API), [`poc/README.md`](poc/README.md) (the engine and its experiments).
 
-## What is in this folder
+## Repository
 
 | Path | What it is |
 |---|---|
-| `docs/Phase2_Submission.pdf` (`.docx`, `.md`) | The Phase 2 final submission: team and problem, users and solution, the working MVP and AI approach, build sprint progress, evaluation, safety, deployment and costs, next steps, with a short version of each section |
-| `docs/evaluation/` | The Sarvam AI evaluation (`sarvam_evaluation.md`), its raw results, and every translation with its back-translation for native speakers to rate (`sarvam_translations_for_rating.csv`). Rerun with `python tools/evaluate_sarvam.py --env-file <file with SARVAM_API_KEY>`; it fetches only missing results |
-| `docs/RAD-SMART_User_Guide.pdf` (`.docx`, `.md`) | How to use the app (doctor and technologist, step by step with screenshots) and how to show it: setup checklist, a 5-minute demo script, fallbacks and likely questions |
-| `docs/media/` | The demo video (`RAD-SMART_demo.mp4`) and its poster image |
-| `docs/RAD-SMART_Research_Paper.pdf` (`.docx`, `.md`) | Eight-page research paper: the problem, the method, results on both datasets, limitations |
-| `docs/RAD-SMART_Research_Report.pdf` (`.docx`, `.md`) | Full research report: problem, evidence, five approaches and the choice, solution design, PoC results, KPIs, implementation plan, pilot, requirements, budget, risks, references |
-| `docs/RAD-SMART_Impact_Analysis.pdf` (`.docx`, `.md`) | Four pages: how much RAD-SMART improves waiting, with and without it, on the original dataset (the department's records) and on the simulated dataset, and what it costs |
-| `app/` | The application: a backend plugin (`care_radsmart`, Django) and a frontend plugin (`care_radsmart_fe`, React) for CARE. Setup, roles, permissions and the API are in `app/README.md` |
-| `docs/Round1_Submission_Kit.pdf` (`.docx`, `.md`) | Ready-to-paste answers for the five Round 1 sections, deck outline, video script, likely jury questions, checklist, and links to the published deck and website |
-| `docs/figures/` | All figures (architecture, daily loop, PoC charts, screenshots of the CARE application with synthetic patients) |
-| `docs/figures-src/` | HTML sources of the architecture and daily-loop diagrams |
-| `poc/` | The scheduling engine in Python, its experiments on synthetic patients and its tests, with the digital twin calibrated on aggregates of the department's records (see `poc/README.md`) |
-| `tools/analyse_department_data.py` | Summarises the department's anonymised spreadsheet into the aggregates the twin uses: `python tools/analyse_department_data.py "<file>.xlsx"`. The spreadsheet is never committed |
-| `tools/build_docs.py` | Rebuilds the DOCX and PDF from the Markdown: `python tools/build_docs.py docs/<file>.md` |
-| `docs/index.html` | The project website (the prototype link), served by GitHub Pages. Plain HTML: edit it directly |
-| `docs/deck/` | Pitch deck: `RAD-SMART_Pitch_Deck.pdf`, the web version `index.html`, and the 12 slide sources in `src/` |
-| `tools/demo-video/` | How the demo video is made: a script drives the app in headless Chrome and records it, and a Remotion project adds titles, captions and the pointer (see its README) |
-| `tools/build_deck.py` | Rebuilds the web deck and its PDF from `docs/deck/src/` (needs Google Chrome): `python tools/build_deck.py` |
-| `workspace/` | Rebuilds the whole development environment from this repository: `bash workspace/restore.sh` fetches CARE at the pinned commits, wires in the plugins, starts Docker and loads the synthetic data (see `workspace/README.md`) |
-| `deploy/azure/` | The deployment: the Dockerfile, nginx and settings, and `deploy.sh`, which builds the image and runs RAD-SMART on Microsoft Azure (Container Apps, PostgreSQL, Container Registry, a daily job), with cost guards (see `deploy/azure/README.md`) |
+| `app/` | The application: a backend plugin (`care_radsmart`, Django) and a frontend plugin (`care_radsmart_fe`, React) for CARE. Setup, roles, permissions and the API are in [`app/README.md`](app/README.md) |
+| `poc/` | The scheduling engine in Python, its experiments on synthetic patients and its tests; the digital twin is calibrated on aggregates of the department's records ([`poc/README.md`](poc/README.md)) |
+| `deploy/` | The Docker image and `deploy.sh`, which runs RAD-SMART on Microsoft Azure with a cost guard ([`deploy/azure/README.md`](deploy/azure/README.md)); [`HOSTING_GUIDE.md`](deploy/HOSTING_GUIDE.md) explains every command |
+| `workspace/` | Rebuilds the whole development environment from this repository: CARE at the pinned commits, both plugins, Docker and the synthetic data ([`workspace/README.md`](workspace/README.md)) |
+| `docs/` | The website (`index.html`, served by GitHub Pages; plain HTML, edit it directly); the final presentation and brief; the Phase 2 submission, user guide, research paper, research report, impact analysis and Round 1 kit, each as PDF, DOCX and Markdown; the Round 1 deck and its slide sources (`deck/`); the Sarvam evaluation, its raw results and every translation with its back-translation for native speakers to rate (`evaluation/`); figures, their HTML sources and the demo video |
+| `tools/` | The builders: `build_final.py` (the final presentation and brief, from the organisers' templates), `build_docs.py` (DOCX and PDF from Markdown), `build_deck.py` (the deck; needs Chrome), `evaluate_sarvam.py` (reruns the evaluation, fetching only missing results), `analyse_department_data.py` (the department's spreadsheet to aggregates) and `demo-video/` (drives the app in headless Chrome and records it; Remotion adds titles and captions) |
 | `.github/workflows/` | GitHub Actions: the engine's tests on every push |
 
-## Key dates
+## Data and licence
 
-- Round 1 closed on 25 Sep 2026, and we were shortlisted.
-- The build sprint runs 5 Oct to 7 Nov; the final submission is due 7 Nov 2026 at 11:59 pm IST, and the Top 10 teams of each track go to the finale.
-- The final deliverables, in the organisers' templates: [`docs/RAD-SMART_Final_Presentation.pptx`](docs/RAD-SMART_Final_Presentation.pptx) and the two-page [`docs/RAD-SMART_Solution_Brief.pptx`](docs/RAD-SMART_Solution_Brief.pptx) (PDFs beside them), built by `tools/build_final.py`.
-- The grand finale is at IIT Bombay on 28 Nov 2026.
+The prototype's patients are synthetic. [`tools/analyse_department_data.py`](tools/analyse_department_data.py) summarises the department's anonymised spreadsheet into aggregates only ([`poc/data/department_profile.json`](poc/data/department_profile.json)); the spreadsheet itself is excluded by `.gitignore` and never committed.
 
-## What the department's records show
-
-The department shared anonymised arrival and treatment records for 55 days, October–December 2024 (3,137 patient-days). We use them only as aggregates.
-
-- The median wait from arrival to treatment is 34 minutes, but one patient in ten waits more than 109 minutes. 22% are treated more than an hour after their appointment, and only 29% within 15 minutes of it.
-- Waits build through the day, from about 19 minutes for patients arriving before 10:00 to about 66 minutes after 19:00, and evening patients now come about 32 minutes early.
-
-## With and without RAD-SMART
-
-The impact analysis (`docs/RAD-SMART_Impact_Analysis.pdf`) keeps the two datasets apart.
-
-| Dataset | 90th-percentile wait, without → with | Treated more than 1 hour late, without → with |
-|---|---|---|
-| Original: the department's 55 recorded days, re-planned in the twin | 108.6 → **70.4 min** (−35%) | 22.2% → **5.7%** |
-| Simulated: 12 weeks of synthetic courses with standing slots | 81.6 → **49.3 min** (−40%) | 18.6% → **3.6%** |
-
-The price, over the 12 weeks: the last patient finishes at about 00:07 instead of 21:55, one new start in five begins a little later (0.4 working days on average), and a time the patient asks for is kept less often.
-
-## Headline PoC results (synthetic patients, 300 simulated days)
-
-Tested under the department's own rules (its answers of 21 September and 24 October 2026) on an 87-patient day from 08:30 to 01:00, 10 patients more than the busiest recorded day, in a digital twin calibrated on the records. Against the department's busiest recorded days (70–77 patients):
-
-- The 90th-percentile wait from arrival to the treatment room falls from 130 to 76 minutes, and the share treated more than an hour after their time from 27% to 6%. The share treated within ±15 minutes rises from 30% to 53%.
-- The median wait stays about the same (36 against 38 minutes), because patients are asked to arrive 20 minutes early (45 for pelvic patients) to prepare. Waits no longer build up in the evening: about 36 minutes for morning and evening arrivals alike, against 19 and 66 in the records.
-- The independent checker found all 8 hard rules met, including new starts by 17:00, MHRC patients on the 17:00 bus and public-transport patients home by 21:00.
-- With live re-planning under the department's downtime rules of 24 October, the median wait after a 45-minute fault is 37 minutes instead of 53 without re-planning: nobody is sent home, and 1 new start moves to the next day. After a 150-minute fault it is 39 minutes instead of 104: one patient who had not left home is sent back (the fraction is added at the end of the course) and 2 new starts move to the next day. Each re-plan takes 10–14 seconds.
-- Two-machine new-start planning around a TBI course keeps peak load at 98–99%, instead of 154% on one machine.
-
-The pilot's primary KPI is a 90th-percentile wait at least 25% lower than the records' 109 minutes.
-
-## Data
-
-The prototype's patients are synthetic. `tools/analyse_department_data.py` summarises the department's anonymised spreadsheet into aggregates only (`poc/data/department_profile.json`). The spreadsheet itself is excluded by `.gitignore` and never committed.
-
-## Licence
-
-MIT, the same licence as CARE: see [`LICENSE`](LICENSE). RAD-SMART is assistive, not diagnostic: it plans when and on which machine a session takes place, and clinicians decide everything else.
+MIT, the same licence as CARE: see [`LICENSE`](LICENSE).

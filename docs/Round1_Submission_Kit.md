@@ -143,7 +143,7 @@ The deck is written for a panel that is not all technical: one point per slide, 
 | 4 | We compared five ways; a hybrid scored best | Templates 3.1, LLM alone 2.6, optimisation alone 3.6, reinforcement learning 2.5, hybrid 4.85 out of 5 | Bar chart of scores |
 | 5 | Four steps, and a person decides | Predict, plan, test, tell; the doctor approves each course, a technologist or doctor every change on the day | Four step cards + approval band |
 | 6 | One button on the patient's page | The working app in CARE: doctor, technologist, breakdown | Two screenshots |
-| 7 | Long waits fall by more than a third | Department's 55 days replayed: 109 → 70 min (−35%); 12 simulated weeks: 82 → 49 min (−40%); over an hour late 22% → 6%; the trade-off: a later evening | Two before/after bar pairs + three tiles |
+| 7 | Long waits fall by more than a third | Department's 55 days replayed: 109 → 70 min (−35%); 12 simulated weeks: 82 → 49 min (−40%); over an hour late 22% → 6%; busiest days 130 → 70 min | Two before/after bar pairs + two tiles |
 | 8 | A new plan in seconds, not a lost day | Typical wait after a 2½-hour breakdown 104 → 39 min, after 45 minutes 53 → 37; the department's breakdown rules | Two bar pairs + rules card |
 | 9 | Safe by design, then a 90-day pilot | Measure, shadow, live; target 25% shorter long waits; four guardrails; the ask | Timeline + two cards |
 

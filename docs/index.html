@@ -89,6 +89,7 @@
   }
 
   .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .stats.pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat { background: var(--raised); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 6px; align-content: start; }
   .stat .v { font: 600 clamp(32px, 4.5vw, 44px)/1.05 var(--serif); color: var(--ink); font-variant-numeric: tabular-nums; }
   .stat .k { font-size: 15.5px; }
@@ -163,7 +164,7 @@
   }
   @media (max-width: 640px) {
     .wrap { padding-top: 32px; }
-    .stats, .steps, .shots, .two, .docs, .ways, .stack { grid-template-columns: minmax(0, 1fr); }
+    .stats, .stats.pair, .steps, .shots, .two, .docs, .ways, .stack { grid-template-columns: minmax(0, 1fr); }
     .row { grid-template-columns: minmax(0, 1fr); }
     .bar { width: calc((100% - 110px) * var(--f)); height: 24px; }
     .timeline { grid-template-columns: minmax(0, 1fr); }
@@ -368,10 +369,9 @@
         <div class="row with"><span class="who">RAD-SMART</span><span class="track"><span class="bar" style="--f:0.454"></span><span class="val">49 min <span class="down">−40%</span></span></span></div>
       </div>
     </div>
-    <div class="stats">
+    <div class="stats pair">
       <div class="stat"><span class="v">22% → 6%</span><span class="k">treated more than an hour late, on the department's days</span></div>
       <div class="stat"><span class="v">130 → 70</span><span class="k">minutes on the busiest days: the busier the day, the bigger the gain</span></div>
-      <div class="stat" style="background:var(--warm-soft); border-color:var(--warm-line)"><span class="v" style="font-size:clamp(26px, 3.4vw, 34px)">The trade-off</span><span class="k">the evening runs about two hours later, and one new patient in five starts a little later</span></div>
     </div>
     <p class="muted">"Replayed" means the department's days re-planned in a virtual copy of the department, which reproduces today's long wait closely (106 against 109 minutes). It is not yet a live trial; the pilot will measure it.</p>
   </section>

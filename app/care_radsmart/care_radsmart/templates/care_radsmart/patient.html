@@ -72,6 +72,16 @@
   .row select { flex:1; min-width:0; }
   .row button { width:auto; flex-shrink:0; }
   .foot { color:var(--muted); font-size:14px; text-align:center; }
+  /* The demonstration's guided tour: always in English, set apart from the patient's own page */
+  .tour { border:2px solid var(--brand); border-radius:16px; padding:14px 16px; background:var(--brand-soft); font-size:16px; display:grid; gap:8px; }
+  .tour .step { margin:0; font-size:13px; font-weight:700; color:var(--brand); }
+  .tour p, .tour ol { margin:0; }
+  .tour ol { padding-left:22px; }
+  .tour li { margin:2px 0; }
+  .tour b { font-family:ui-monospace, Consolas, monospace; letter-spacing:2px; }
+  .tour .go { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; }
+  .tour a.btn { width:auto; padding:10px 16px; background:var(--brand); color:var(--brand-ink); border-color:var(--brand); }
+  .tour a.all { color:var(--ink); font-size:15px; }
 </style>
 </head>
 <body>
@@ -88,6 +98,20 @@
     </nav>
     {% endif %}
   </header>
+
+  {% if tour %}
+  <aside class="tour" lang="en" aria-label="Guided tour">
+    <p class="step">Guided tour · step 2 of 7 · the patient's phone</p>
+    <p>This is the patient's own page. It opens from their WhatsApp message: no app, no login. It is in their language; tap <strong>English</strong> at the top to read it.</p>
+    <ol>
+      <li>Under the message, tap <strong>Listen</strong> to hear it as a voice note.</li>
+      <li>Tap <strong>On my way</strong>, or ask for another part of the day. Staff see it on the Today board.</li>
+      {% if tour.code %}<li>The check-in code is <b>{{ tour.code }}</b>. The next step fills it in for you.</li>{% endif %}
+    </ol>
+    <div class="go"><a class="btn" href="{{ tour.next }}">Next: check the patient in &rarr;</a><a class="all" href="/api/care_radsmart/try/">All steps</a></div>
+  </aside>
+  <script>try{var s=JSON.parse(localStorage.getItem("radsmart_tour_seen")||"[]");if(s.indexOf(2)<0){s.push(2);localStorage.setItem("radsmart_tour_seen",JSON.stringify(s));}}catch(e){}</script>
+  {% endif %}
 
   {% if done == "1" %}<div class="note ok" role="status">{{ t.thanks }}</div>{% endif %}
   {% if done == "too_many" %}<div class="note warn" role="status">{{ t.too_many }}</div>{% endif %}

@@ -189,7 +189,7 @@ build() {
     tar -C "$BUILD/engine" -xf -
   tar -C "$REPO/app/care_radsmart" --exclude=__pycache__ --exclude='*.egg-info' --exclude=tests \
     -cf - setup.py MANIFEST.in README.md care_radsmart | tar -C "$BUILD/plugin" -xf -
-  cp "$HERE"/{Dockerfile,nginx.conf,entrypoint.sh,guard.py,settings.py,wsgi.py} "$BUILD/"
+  cp "$HERE"/{Dockerfile,nginx.conf,entrypoint.sh,guard.py,settings.py,wsgi.py,version-sync.mjs} "$BUILD/"
   sed -i 's/\r$//' "$BUILD"/{nginx.conf,entrypoint.sh,guard.py,settings.py,wsgi.py}   # CRLF from a Windows editor breaks the shebang
 
   tag="$(date +%Y%m%d-%H%M)"

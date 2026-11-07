@@ -8,6 +8,9 @@ ARG BASE=radsmart-care-base
 # CARE's frontend is built on Linux, as in its own Dockerfile: on Windows its icon
 # tree-shaking globs no files, and every page then fails on a missing icon. The API
 # is same-origin and there are no build-time plugins; PUBLIC_URL only fills og:url.
+# REACT_CUSTOM_SHORTCUTS is CARE's own setting for the facility page's Quick Actions:
+# a RAD-SMART card beside My Schedules, Encounters and Services, so nobody has to
+# find the plugin's icon in a collapsed menu.
 FROM node:22-bookworm-slim AS care-fe
 WORKDIR /app
 ENV NODE_OPTIONS="--max-old-space-size=4096"
@@ -16,7 +19,12 @@ RUN npm install --ignore-scripts
 COPY care_fe/ ./
 ARG PUBLIC_URL
 RUN npm run postinstall \
-  && REACT_CARE_API_URL="" REACT_ENABLED_APPS="" REACT_PUBLIC_URL="$PUBLIC_URL" npm run build
+  && REACT_CARE_API_URL="" REACT_ENABLED_APPS="" REACT_PUBLIC_URL="$PUBLIC_URL" \
+     REACT_CUSTOM_SHORTCUTS='[{"title":"RAD-SMART","description":"Radiotherapy scheduling","href":"/facility/{facilityId}/radsmart","icon":"Calendar"}]' \
+     npm run build
+# No "new version of CARE" prompt on a page load: see version-sync.mjs.
+COPY version-sync.mjs ./
+RUN node version-sync.mjs
 
 FROM ${BASE}
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Search, WandSparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { navigate, useQueryParams } from "raviger";
 import { toast } from "sonner";
@@ -142,7 +142,36 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
     },
   });
 
-  const missing = !patient || !f.hospital_number.trim() || !f.diagnosis.trim() || !f.total_dose_gy || !f.fractions || f.machines.length === 0;
+  // Said beside the Save button while it is greyed out, so nobody wonders why.
+  const needed = [
+    !patient && tr("need_patient", "a patient"),
+    !f.hospital_number.trim() && tr("need_hospital_number", "the hospital number"),
+    !f.diagnosis.trim() && tr("need_diagnosis", "the diagnosis"),
+    !f.total_dose_gy && tr("need_dose", "the total dose"),
+    !f.fractions && tr("need_fractions", "the number of fractions"),
+    f.machines.length === 0 && tr("need_machine", "a machine"),
+  ].filter(Boolean) as string[];
+  const missing = needed.length > 0;
+
+  // The guided tour: a typical prescription in one press (a cervix course, VMAT, gap-sensitive).
+  const example = () => {
+    const site = config.sites.find((s) => /pelvis/i.test(s.label))?.code ?? f.site;
+    const technique = config.techniques.some((t) => t.code === "VMAT") ? "VMAT" : f.technique;
+    setErrors({});
+    setF((s) => ({
+      ...s,
+      hospital_number: `MH${Math.floor(100000 + Math.random() * 900000)}`,
+      diagnosis: "Carcinoma cervix, stage IIB",
+      total_dose_gy: "50",
+      fractions: "25",
+      pattern: "daily",
+      technique,
+      site,
+      imaging: "cbct",
+      gap_category: 1,
+      checklist: { ...s.checklist, gap_sensitive: true },
+    }));
+  };
 
   return (
     <form
@@ -158,7 +187,17 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
         {errors.patient && <p className="mt-1 text-xs text-danger-700">{errors.patient}</p>}
       </Card>
 
-      <Card title={tr("sec_prescription", "Prescription")}>
+      <Card
+        title={tr("sec_prescription", "Prescription")}
+        action={
+          config.tour ? (
+            <Button type="button" size="sm" variant="outline" onClick={example}>
+              <WandSparkles />
+              {tr("fill_example", "Fill in an example")}
+            </Button>
+          ) : undefined
+        }
+      >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Field label={tr("f_hospital_number", "Hospital number")}>
             <Input value={f.hospital_number} onChange={(e) => set("hospital_number", e.target.value)} required />
@@ -336,7 +375,12 @@ function CourseForm({ facilityId, config }: { facilityId: string; config: Config
       </Card>
 
       {Object.keys(errors).length > 0 && errors.non_field_errors && <Notice kind="error">{errors.non_field_errors}</Notice>}
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {missing && (
+          <p className="mr-auto text-sm text-gray-600" role="status">
+            {tr("still_needed", "Still needed before saving: {{list}}.", { list: needed.join(", ") })}
+          </p>
+        )}
         <Button type="button" variant="outline" onClick={() => history.back()}>
           {tr("cancel", "Cancel")}
         </Button>

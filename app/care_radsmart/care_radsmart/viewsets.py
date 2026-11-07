@@ -101,6 +101,8 @@ class ConfigView(APIView):
         if plugin_settings.RADSMART_DEMO:
             from care_radsmart.demo import shift
             out["shift"] = round(shift().total_seconds())   # the app shows times this far ahead
+        # The public demonstration's guided tour (tryout.py): the app shows each step's guide.
+        out["tour"] = bool(plugin_settings.RADSMART_DEMO and plugin_settings.RADSMART_OPEN_DEMO)
         return Response(out)
 
 

@@ -120,6 +120,11 @@ class PatientPage(View):
             "bands": [(k, t[k]) for k in BANDS], "band": c.time_band,
             "telegram": telegram.deep_link(c) if c.status == "approved" else "",
         }
+        # Step 2 of the public demonstration's guided tour (tryout.py): a guide above the page,
+        # for synthetic patients only. Its next step opens reception with this code filled in.
+        if c.demo and plugin_settings.RADSMART_DEMO and plugin_settings.RADSMART_OPEN_DEMO:
+            code = c.checkin_code if today is not None and today.status == "scheduled" else ""
+            ctx["tour"] = {"code": code, "next": "/api/care_radsmart/try/reception/?to=checkin" + (f"&code={code}" if code else "")}
         return render(request, "care_radsmart/patient.html", ctx)
 
     def post(self, request, token):

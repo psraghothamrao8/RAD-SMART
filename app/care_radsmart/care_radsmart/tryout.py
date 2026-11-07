@@ -2,9 +2,11 @@
 
     /api/care_radsmart/try/                 a guided tour of the whole pipeline, one click a step
     /api/care_radsmart/try/<role>/          one click, signed in as that role's demonstration account
-                                            (?to=<page>: the tour step's page, see PAGES)
+                                            (?to=<page>: the tour step's page, see PAGES; with to=checkin,
+                                            ?code=<six letters> fills in the patient's check-in code)
     /api/care_radsmart/try/patient/         a demonstration patient's own page
-    /api/care_radsmart/try/signin/          real use: signed out of the demonstration, at CARE's sign-in
+    /api/care_radsmart/try/signin/          real use: signed out of the demonstration, at CARE's sign-in,
+                                            which then opens RAD-SMART
     POST /api/care_radsmart/try/restart/    a fresh demonstration day, its clock at a working hour
 
 Synthetic patients and demonstration accounts only: never switch this on where
@@ -16,6 +18,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import re
 import threading
 
 from django.contrib.auth import get_user_model
@@ -43,6 +46,7 @@ START = {"doctor": "radsmart/courses/new", "reception": "radsmart/checkin", "tec
 PAGES = {"new": "radsmart/courses/new", "courses": "radsmart/courses", "today": "radsmart",
          "checkin": "radsmart/checkin", "breakdown": "radsmart/breakdown", "messages": "radsmart/messages",
          "insights": "radsmart/insights"}
+CODE = re.compile(r"[A-Z0-9]{6}")             # a check-in code, carried from the patient's page to reception
 DAY_START, DAY_END = 8 * 60, 17 * 60 + 30     # the department's working day, as the demonstration shows it
 FRESH_AT = 10 * 60 + 30                       # a fresh day starts here, with the morning played out
 BUSY = "care_radsmart:demo_restart"           # a fresh day is being made
@@ -128,6 +132,9 @@ class TryEnter(View):
             raise Http404
         refresh = RefreshToken.for_user(user)
         target = f"/facility/{_facility().external_id}/{PAGES.get(request.GET.get('to'), START[role])}"
+        code = request.GET.get("code", "")
+        if target.endswith("/checkin") and CODE.fullmatch(code):
+            target += f"?code={code}"     # from the patient's page in the tour: reception need not retype it
         page = (
             "<!doctype html><meta charset=utf-8><meta name=robots content='noindex, nofollow'>"
             "<title>RAD-SMART</title><p style='font:16px system-ui;margin:2em'>Signing in…</p><script>"
@@ -139,13 +146,17 @@ class TryEnter(View):
 
 
 class TrySignIn(View):
-    """Real use: CARE's own sign-in, signed out of any demonstration account first."""
+    """Real use: CARE's own sign-in, signed out of any demonstration account first. CARE
+    opens its own home page after signing in, where RAD-SMART is two clicks away; its
+    ?redirect= (a whole address on this site) opens RAD-SMART's day board instead."""
 
     def get(self, request):
         _open()
+        target = f"/facility/{_facility().external_id}/{PAGES['today']}"
         page = ("<!doctype html><meta charset=utf-8><meta name=robots content='noindex, nofollow'><title>RAD-SMART</title>"
                 "<script>localStorage.removeItem('care_access_token');localStorage.removeItem('care_refresh_token');"
-                "location.replace('/login');</script>")
+                f"location.replace('/login?redirect=' + encodeURIComponent(location.origin + {_script(target)}));"
+                "</script>")
         return HttpResponse(page, headers={"Cache-Control": "no-store"})
 
 

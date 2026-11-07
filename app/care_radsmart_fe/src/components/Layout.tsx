@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import type { Config } from "@/utils/api";
 
 import Page from "./Page";
+import TourGuide from "./TourGuide";
 
 /** Every RAD-SMART page: a header, the section tabs and the page body. */
 export default function Layout({
@@ -45,6 +46,7 @@ export default function Layout({
     <Page>
       {/* inline-size containment: wide tables scroll in their card instead of widening CARE's main column */}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 p-4 [contain:inline-size] md:p-6">
+        {config?.tour && <TourGuide path={path} base={base} />}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">RAD-SMART</p>

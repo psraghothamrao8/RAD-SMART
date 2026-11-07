@@ -127,6 +127,8 @@ export interface Config {
   now: number;
   /** Seconds a demonstration started again runs ahead of the real clock. */
   shift?: number;
+  /** The public demonstration's guided tour is on: each page shows its step's guide. */
+  tour?: boolean;
   techniques: (Option & { complex: boolean; accessories: string[]; machines: string[]; fractions: [number, number] })[];
   sites: Option[];
   patterns: Option[];

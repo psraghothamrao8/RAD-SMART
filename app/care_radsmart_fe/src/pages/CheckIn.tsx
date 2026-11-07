@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Camera, CameraOff, ScanLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQueryParams } from "raviger";
 
 import Layout, { PageLink } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,9 @@ function Desk({ facilityId, config }: { facilityId: string; config: Config }) {
   const tr = useT();
   const qc = useQueryClient();
   const statusLabel = useStatusLabel();
-  const [code, setCode] = useState("");
+  // ?code= fills the box (the guided tour carries it from the patient's page); staff still press Check in.
+  const [params] = useQueryParams<{ code?: string }>();
+  const [code, setCode] = useState(() => (/^[A-Z0-9]{6}$/.test(params.code ?? "") ? params.code! : ""));
   const [camera, setCamera] = useState(false);
   const [done, setDone] = useState<Done[]>([]);
   const [error, setError] = useState<string | null>(null);

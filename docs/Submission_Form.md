@@ -14,7 +14,7 @@ https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/
 >
 > Through November the server stays awake from 05:30 to 23:00 IST. At other times it sleeps when nobody is using it, so the first page can take about 20 seconds. If the department's day is over, or someone has already been through it, press "Start a fresh day at 10:30" on the same page.
 >
-> To sign in at CARE's own page instead: username care-doctor (doctor) or care-staff (reception and technologist), password radsmart2026. Then choose the facility and RAD-SMART.
+> To sign in at CARE's own page instead: username care-doctor (doctor) or care-staff (reception and technologist), password radsmart2026. The "Sign in to CARE" button on the demo's front page opens RAD-SMART as soon as you sign in; from CARE's home page, open the facility, then the RAD-SMART card.
 
 **Repository (optional)**
 

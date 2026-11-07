@@ -55,6 +55,34 @@ class TryoutTest(SimpleTestCase):
         self.assertIn('location.replace("/facility/f-1/radsmart/breakdown")', step)     # a tour step's page
         self.assertIn('location.replace("/facility/f-1/radsmart/courses/new")', elsewhere.content.decode())
 
+    @mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO", True, create=True)
+    @mock.patch.object(tryout.plugin_settings, "RADSMART_OPEN_DEMO", True, create=True)
+    @mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO_USERS", "reception:care-staff", create=True)
+    def test_the_patients_code_goes_on_to_reception_and_nothing_else_does(self):
+        users = mock.MagicMock()
+        users.objects.filter.return_value.first.return_value = SimpleNamespace(username="care-staff")
+
+        def open_(query):
+            with mock.patch.object(tryout, "get_user_model", return_value=users), \
+                    mock.patch.object(tryout, "RefreshToken", FakeRefresh), \
+                    mock.patch.object(tryout, "_facility", return_value=SimpleNamespace(external_id="f-1")):
+                return tryout.TryEnter.as_view()(RequestFactory().get(f"/try/reception/{query}"), "reception").content.decode()
+
+        self.assertIn('location.replace("/facility/f-1/radsmart/checkin?code=K7QX2M")', open_("?to=checkin&code=K7QX2M"))
+        for bad in ("k7qx2m", "K7QX2", "K7QX2M%22%3E", "K7QX2M%0A"):      # only six capitals or digits
+            self.assertIn('location.replace("/facility/f-1/radsmart/checkin")', open_(f"?to=checkin&code={bad}"))
+        self.assertIn('location.replace("/facility/f-1/radsmart/breakdown")', open_("?to=breakdown&code=K7QX2M"))
+
+    @mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO", True, create=True)
+    @mock.patch.object(tryout.plugin_settings, "RADSMART_OPEN_DEMO", True, create=True)
+    def test_signing_in_at_care_opens_radsmart_not_care_home(self):
+        with mock.patch.object(tryout, "_facility", return_value=SimpleNamespace(external_id="f-1")):
+            page = tryout.TrySignIn.as_view()(RequestFactory().get("/try/signin/")).content.decode()
+        self.assertIn("localStorage.removeItem('care_refresh_token')", page)     # out of any demonstration account
+        # CARE's login takes ?redirect= only as a whole address on its own site.
+        self.assertIn("location.replace('/login?redirect=' + encodeURIComponent(location.origin + "
+                      '"/facility/f-1/radsmart"));', page)
+
     @mock.patch.object(tryout.plugin_settings, "RADSMART_DEMO_USERS",
                        "doctor:care-doctor,reception:care-staff,technologist:care-staff", create=True)
     def test_the_shared_password_names_each_account_once(self):

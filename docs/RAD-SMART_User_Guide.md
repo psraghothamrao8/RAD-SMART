@@ -166,7 +166,7 @@ The chart compares each day with the department's baseline (108.6 minutes) and t
 
 Open https://radsmart.braveglacier-5f9807f7.uaenorth.azurecontainerapps.io/try/ in any browser. It is a guided tour of the whole pipeline in seven steps: plan a course, the patient's phone, check-in, the day board, a breakdown, the messages and Insights. Each step's button signs you in as the right person and opens the right page, with no password. Every patient is synthetic.
 
-- To sign in at CARE's own page instead, use **care-doctor** (doctor) or **care-staff** (reception and technologist), with the password **radsmart2026**, then choose the facility and RAD-SMART.
+- To sign in at CARE's own page instead, use **care-doctor** (doctor) or **care-staff** (reception and technologist), with the password **radsmart2026**. The **Sign in to CARE** button on the demo's front page opens RAD-SMART as soon as you sign in. If you land on CARE's home page instead, open the facility, then the **RAD-SMART** card (or RAD-SMART at the foot of the left menu).
 
 - If the department clock there is outside the working day, click **Start a fresh day at 10:30**. The page refreshes itself until the day is ready.
 - To show a message arriving on a phone, open an approved course, scan its **Telegram (demonstration)** code with the phone and press START in the bot's chat. Then click **Send on Telegram** on the Messages page. The patient gets the text, the voice note and the reply buttons. In real use the same message goes by WhatsApp.

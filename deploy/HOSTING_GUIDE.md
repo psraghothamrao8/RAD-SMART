@@ -464,7 +464,8 @@ The [`Dockerfile`](azure/Dockerfile) has two stages. A **multi-stage build** use
 
 | Lines | What they do |
 |---|---|
-| `FROM node:22-bookworm-slim AS care-fe` ... `npm run build` | **Stage 1:** builds CARE's React frontend on Linux. `REACT_CARE_API_URL=""` makes it call the API on the same address it is served from. |
+| `FROM node:22-bookworm-slim AS care-fe` ... `npm run build` | **Stage 1:** builds CARE's React frontend on Linux. `REACT_CARE_API_URL=""` makes it call the API on the same address it is served from. `REACT_CUSTOM_SHORTCUTS` adds a RAD-SMART card to each facility page's Quick Actions. |
+| `COPY version-sync.mjs`, `node version-sync.mjs` | CARE's build gives itself a new random version each time, so after every redeploy earlier visitors were asked to update. [`version-sync.mjs`](azure/version-sync.mjs) puts a small script at the top of `index.html` that records the loaded build's version first: a page load is always the newest build, with no prompt. |
 | `FROM ${BASE}` | **Stage 2** starts from CARE's own production image: Python, Django, gunicorn and CARE. |
 | `apt-get install nginx redis-server` | adds the web server and the cache |
 | `COPY engine/ ...`, `COPY plugin/ ...`, `pip install -e ...` | adds and installs the scheduling engine and the RAD-SMART backend plugin |

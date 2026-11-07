@@ -14,6 +14,7 @@
             --warn-bg:#3a2a10; --warn:#ffcf8a; --code-bg:#1d2b3c; }
   }
   * { box-sizing: border-box; }
+  [hidden] { display:none !important; }   /* the button styles below would otherwise show hidden ones */
   html, body { overflow-x: clip; }
   body { margin:0; background:var(--bg); color:var(--ink); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
   main { max-width: 880px; margin: 0 auto; padding: 28px 16px 56px; display: grid; gap: 20px; }
@@ -35,6 +36,11 @@
   ol.tour h3 { grid-column:2; }
   ol.tour p { grid-column:2; color:var(--muted); font-size:16px; }
   ol.tour a.btn { grid-column:3; grid-row:1 / span 2; white-space:nowrap; }
+  ol.tour li.seen::before { content:"\2713"; background:var(--brand); color:var(--brand-ink); }
+  ol.tour li.seen h3::after { content:" · done"; font-weight:500; font-size:15px; color:var(--muted); }
+  .start { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; }
+  .start a.btn { font-size:18px; padding:12px 20px; }
+  .start .reset { font:inherit; font-size:15px; background:none; border:0; padding:0; color:var(--muted); text-decoration:underline; cursor:pointer; }
   button, a.btn { font:inherit; font-size:16px; font-weight:600; padding:9px 15px; border-radius:10px; border:1px solid var(--brand); background:var(--brand); color:var(--brand-ink); cursor:pointer; text-decoration:none; display:inline-block; }
   a.btn.ghost, button.ghost { background:transparent; color:var(--brand); }
   button:disabled { opacity:.55; cursor:default; }
@@ -58,8 +64,14 @@
 <main>
   <header>
     <h1>Try RAD-SMART</h1>
-    <p class="lead">Radiotherapy scheduling inside CARE for {{ dept }}. Follow the seven steps below to see the whole pipeline, from the doctor's prescription to the patient's phone. Each button signs you in as the right person, with no password. Every patient is synthetic.</p>
+    <p class="lead">Radiotherapy scheduling inside CARE for {{ dept }}. Seven short steps show the whole pipeline, from the doctor's prescription to the patient's phone. Each step signs you in as the right person, with no password. On every page, a green guide box says what to press and has a button to the next step. Every patient is synthetic.</p>
   </header>
+
+  <div class="start">
+    <a class="btn" id="go" href="doctor/?to=new">Start the tour &rarr;</a>
+    <span class="small" id="progress">About ten minutes. You can stop and come back: this page remembers where you were.</span>
+    <button type="button" class="reset" id="reset" hidden>Start again from step 1</button>
+  </div>
 
   <div class="clock {% if not under_way %}warn{% endif %}">
     <span>Department clock: <span class="t">{{ day }}, {{ now }}</span>.
@@ -75,7 +87,7 @@
 
   <section class="card" aria-labelledby="tour">
     <h2 id="tour">The whole pipeline in about ten minutes</h2>
-    <ol class="tour">
+    <ol class="tour" id="steps">
       <li>
         <h3>Plan a course</h3>
         <p>Pick a patient, tick what applies and save. RAD-SMART proposes a first day and one daily time, with its reasons. Press Explain, then Approve. Tick Emergency start today to see an urgent patient fitted in today.</p>
@@ -84,32 +96,32 @@
       <li>
         <h3>See it on the patient's phone</h3>
         <p>The patient's own page in Kannada, with a voice note. Tap On my way, or ask for a morning time. Keep the six letters under the QR code for step 3.</p>
-        <a class="btn" href="patient/">Open the patient's page</a>
+        <a class="btn ghost" href="patient/">Open the patient's page</a>
       </li>
       <li>
         <h3>Check the patient in</h3>
         <p>Type the six letters from the patient's page, or scan the QR code with a camera.</p>
-        <a class="btn" href="reception/?to=checkin">Open as reception</a>
+        <a class="btn ghost" href="reception/?to=checkin">Open as reception</a>
       </li>
       <li>
         <h3>Run the day</h3>
         <p>Call next, In room and Out. Press First on a patient for an emergency and watch them go to the top of the queue. Accept a better time RAD-SMART offers a patient.</p>
-        <a class="btn" href="technologist/?to=today">Open as the technologist</a>
+        <a class="btn ghost" href="technologist/?to=today">Open as the technologist</a>
       </li>
       <li>
         <h3>The machine breaks down</h3>
         <p>Report a fault, say 90 minutes. RAD-SMART re-plans the rest of the day in seconds under the department's rules. Nothing changes until you approve.</p>
-        <a class="btn" href="technologist/?to=breakdown">Report a breakdown</a>
+        <a class="btn ghost" href="technologist/?to=breakdown">Report a breakdown</a>
       </li>
       <li>
         <h3>Tell the patients</h3>
         <p>Every patient's message, drafted in their language with a voice note. Listen, then open WhatsApp with it filled in{% if telegram %}, or send one to your own Telegram{% endif %}.</p>
-        <a class="btn" href="technologist/?to=messages">Open the messages</a>
+        <a class="btn ghost" href="technologist/?to=messages">Open the messages</a>
       </li>
       <li>
         <h3>See the waits</h3>
         <p>Waiting times from the times the board recorded, against the department's baseline of 109 minutes.</p>
-        <a class="btn" href="doctor/?to=insights">Open Insights</a>
+        <a class="btn ghost" href="doctor/?to=insights">Open Insights</a>
       </li>
     </ol>
   </section>
@@ -129,7 +141,7 @@
       {% for roles, name in logins %}<tr><td>{{ roles }}</td><td><code>{{ name }}</code></td></tr>{% endfor %}
     </table>
     <p><a class="btn ghost" href="signin/">Sign in to CARE</a></p>
-    <p class="small">After signing in, choose the facility, then RAD-SMART.</p>
+    <p class="small">This button signs you in straight to RAD-SMART. If you reach CARE's home page another way, open the facility, then the RAD-SMART card (or RAD-SMART at the foot of the left menu).</p>
     {% endif %}
     <ul>
       <li>Everyone who tries it shares this demonstration. It starts again every morning at 05:30 IST.</li>
@@ -147,5 +159,39 @@
     </ul>
   </section>
 </main>
+<script>
+// Which steps this browser has seen (the app's guide box records them): tick those, and make
+// the first one not yet seen the highlighted step and the target of the start button.
+(function () {
+  var seen = [];
+  try { seen = JSON.parse(localStorage.getItem("radsmart_tour_seen") || "[]"); } catch (e) {}
+  var items = document.querySelectorAll("#steps > li"), next = null;
+  items.forEach(function (li, i) {
+    var done = seen.indexOf(i + 1) >= 0, a = li.querySelector("a.btn");
+    li.classList.toggle("seen", done);
+    if (!done && !next) next = { n: i + 1, a: a, title: li.querySelector("h3").textContent };
+    a.classList.add("ghost");
+  });
+  var go = document.getElementById("go"), progress = document.getElementById("progress"), reset = document.getElementById("reset");
+  if (seen.length && next) {
+    next.a.classList.remove("ghost");
+    go.href = next.a.getAttribute("href");
+    go.innerHTML = "Continue: step " + next.n + ", " + next.title.toLowerCase() + " &rarr;";
+    progress.textContent = seen.length + " of " + items.length + " steps seen.";
+    reset.hidden = false;
+  } else if (seen.length) {
+    go.href = items[0].querySelector("a.btn").getAttribute("href");
+    go.innerHTML = "Take the tour again &rarr;";
+    progress.textContent = "You have seen every step.";
+    reset.hidden = false;
+  } else {
+    items[0].querySelector("a.btn").classList.remove("ghost");
+  }
+  reset.addEventListener("click", function () {
+    try { localStorage.removeItem("radsmart_tour_seen"); } catch (e) {}
+    location.reload();
+  });
+})();
+</script>
 </body>
 </html>
